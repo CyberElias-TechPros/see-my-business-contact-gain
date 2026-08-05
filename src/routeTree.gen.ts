@@ -10,23 +10,42 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AboutRouteImport } from './routes/about'
+import { Route as AdvertiseRouteImport } from './routes/advertise'
 import { Route as CategoriesRouteImport } from './routes/categories'
 import { Route as ClaimRouteImport } from './routes/claim'
+import { Route as HelpRouteImport } from './routes/help'
 import { Route as JoinRouteImport } from './routes/join'
 import { Route as LocationsRouteImport } from './routes/locations'
 import { Route as PricingRouteImport } from './routes/pricing'
+import { Route as ReportRouteImport } from './routes/report'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as SuggestBusinessRouteImport } from './routes/suggest-business'
+import { Route as TrustSafetyRouteImport } from './routes/trust-safety'
 import { Route as BusinessIdRouteImport } from './routes/business.$id'
 import { Route as CategorySlugRouteImport } from './routes/category.$slug'
 import { Route as ContactGainIndexRouteImport } from './routes/contact-gain.index'
 import { Route as ContactGainIdRouteImport } from './routes/contact-gain.$id'
 import { Route as ContactGainCreateRouteImport } from './routes/contact-gain.create'
+import { Route as LegalCookiesRouteImport } from './routes/legal.cookies'
+import { Route as LegalDataRequestRouteImport } from './routes/legal.data-request'
+import { Route as LegalPrivacyRouteImport } from './routes/legal.privacy'
+import { Route as LegalTermsRouteImport } from './routes/legal.terms'
 import { Route as LocationsSlugRouteImport } from './routes/locations.$slug'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AboutRoute = AboutRouteImport.update({
+  id: '/about',
+  path: '/about',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdvertiseRoute = AdvertiseRouteImport.update({
+  id: '/advertise',
+  path: '/advertise',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CategoriesRoute = CategoriesRouteImport.update({
@@ -37,6 +56,11 @@ const CategoriesRoute = CategoriesRouteImport.update({
 const ClaimRoute = ClaimRouteImport.update({
   id: '/claim',
   path: '/claim',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HelpRoute = HelpRouteImport.update({
+  id: '/help',
+  path: '/help',
   getParentRoute: () => rootRouteImport,
 } as any)
 const JoinRoute = JoinRouteImport.update({
@@ -54,6 +78,11 @@ const PricingRoute = PricingRouteImport.update({
   path: '/pricing',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ReportRoute = ReportRouteImport.update({
+  id: '/report',
+  path: '/report',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SearchRoute = SearchRouteImport.update({
   id: '/search',
   path: '/search',
@@ -62,6 +91,11 @@ const SearchRoute = SearchRouteImport.update({
 const SuggestBusinessRoute = SuggestBusinessRouteImport.update({
   id: '/suggest-business',
   path: '/suggest-business',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TrustSafetyRoute = TrustSafetyRouteImport.update({
+  id: '/trust-safety',
+  path: '/trust-safety',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BusinessIdRoute = BusinessIdRouteImport.update({
@@ -89,6 +123,26 @@ const ContactGainCreateRoute = ContactGainCreateRouteImport.update({
   path: '/contact-gain/create',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LegalCookiesRoute = LegalCookiesRouteImport.update({
+  id: '/legal/cookies',
+  path: '/legal/cookies',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LegalDataRequestRoute = LegalDataRequestRouteImport.update({
+  id: '/legal/data-request',
+  path: '/legal/data-request',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LegalPrivacyRoute = LegalPrivacyRouteImport.update({
+  id: '/legal/privacy',
+  path: '/legal/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LegalTermsRoute = LegalTermsRouteImport.update({
+  id: '/legal/terms',
+  path: '/legal/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LocationsSlugRoute = LocationsSlugRouteImport.update({
   id: '/$slug',
   path: '/$slug',
@@ -97,50 +151,77 @@ const LocationsSlugRoute = LocationsSlugRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
+  '/advertise': typeof AdvertiseRoute
   '/categories': typeof CategoriesRoute
   '/claim': typeof ClaimRoute
+  '/help': typeof HelpRoute
   '/join': typeof JoinRoute
   '/locations': typeof LocationsRouteWithChildren
   '/pricing': typeof PricingRoute
+  '/report': typeof ReportRoute
   '/search': typeof SearchRoute
   '/suggest-business': typeof SuggestBusinessRoute
+  '/trust-safety': typeof TrustSafetyRoute
   '/business/$id': typeof BusinessIdRoute
   '/category/$slug': typeof CategorySlugRoute
   '/contact-gain/$id': typeof ContactGainIdRoute
   '/contact-gain/create': typeof ContactGainCreateRoute
+  '/legal/cookies': typeof LegalCookiesRoute
+  '/legal/data-request': typeof LegalDataRequestRoute
+  '/legal/privacy': typeof LegalPrivacyRoute
+  '/legal/terms': typeof LegalTermsRoute
   '/locations/$slug': typeof LocationsSlugRoute
   '/contact-gain/': typeof ContactGainIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
+  '/advertise': typeof AdvertiseRoute
   '/categories': typeof CategoriesRoute
   '/claim': typeof ClaimRoute
+  '/help': typeof HelpRoute
   '/join': typeof JoinRoute
   '/locations': typeof LocationsRouteWithChildren
   '/pricing': typeof PricingRoute
+  '/report': typeof ReportRoute
   '/search': typeof SearchRoute
   '/suggest-business': typeof SuggestBusinessRoute
+  '/trust-safety': typeof TrustSafetyRoute
   '/business/$id': typeof BusinessIdRoute
   '/category/$slug': typeof CategorySlugRoute
   '/contact-gain/$id': typeof ContactGainIdRoute
   '/contact-gain/create': typeof ContactGainCreateRoute
+  '/legal/cookies': typeof LegalCookiesRoute
+  '/legal/data-request': typeof LegalDataRequestRoute
+  '/legal/privacy': typeof LegalPrivacyRoute
+  '/legal/terms': typeof LegalTermsRoute
   '/locations/$slug': typeof LocationsSlugRoute
   '/contact-gain': typeof ContactGainIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
+  '/advertise': typeof AdvertiseRoute
   '/categories': typeof CategoriesRoute
   '/claim': typeof ClaimRoute
+  '/help': typeof HelpRoute
   '/join': typeof JoinRoute
   '/locations': typeof LocationsRouteWithChildren
   '/pricing': typeof PricingRoute
+  '/report': typeof ReportRoute
   '/search': typeof SearchRoute
   '/suggest-business': typeof SuggestBusinessRoute
+  '/trust-safety': typeof TrustSafetyRoute
   '/business/$id': typeof BusinessIdRoute
   '/category/$slug': typeof CategorySlugRoute
   '/contact-gain/$id': typeof ContactGainIdRoute
   '/contact-gain/create': typeof ContactGainCreateRoute
+  '/legal/cookies': typeof LegalCookiesRoute
+  '/legal/data-request': typeof LegalDataRequestRoute
+  '/legal/privacy': typeof LegalPrivacyRoute
+  '/legal/terms': typeof LegalTermsRoute
   '/locations/$slug': typeof LocationsSlugRoute
   '/contact-gain/': typeof ContactGainIndexRoute
 }
@@ -148,66 +229,102 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/about'
+    | '/advertise'
     | '/categories'
     | '/claim'
+    | '/help'
     | '/join'
     | '/locations'
     | '/pricing'
+    | '/report'
     | '/search'
     | '/suggest-business'
+    | '/trust-safety'
     | '/business/$id'
     | '/category/$slug'
     | '/contact-gain/$id'
     | '/contact-gain/create'
+    | '/legal/cookies'
+    | '/legal/data-request'
+    | '/legal/privacy'
+    | '/legal/terms'
     | '/locations/$slug'
     | '/contact-gain/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/about'
+    | '/advertise'
     | '/categories'
     | '/claim'
+    | '/help'
     | '/join'
     | '/locations'
     | '/pricing'
+    | '/report'
     | '/search'
     | '/suggest-business'
+    | '/trust-safety'
     | '/business/$id'
     | '/category/$slug'
     | '/contact-gain/$id'
     | '/contact-gain/create'
+    | '/legal/cookies'
+    | '/legal/data-request'
+    | '/legal/privacy'
+    | '/legal/terms'
     | '/locations/$slug'
     | '/contact-gain'
   id:
     | '__root__'
     | '/'
+    | '/about'
+    | '/advertise'
     | '/categories'
     | '/claim'
+    | '/help'
     | '/join'
     | '/locations'
     | '/pricing'
+    | '/report'
     | '/search'
     | '/suggest-business'
+    | '/trust-safety'
     | '/business/$id'
     | '/category/$slug'
     | '/contact-gain/$id'
     | '/contact-gain/create'
+    | '/legal/cookies'
+    | '/legal/data-request'
+    | '/legal/privacy'
+    | '/legal/terms'
     | '/locations/$slug'
     | '/contact-gain/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AboutRoute: typeof AboutRoute
+  AdvertiseRoute: typeof AdvertiseRoute
   CategoriesRoute: typeof CategoriesRoute
   ClaimRoute: typeof ClaimRoute
+  HelpRoute: typeof HelpRoute
   JoinRoute: typeof JoinRoute
   LocationsRoute: typeof LocationsRouteWithChildren
   PricingRoute: typeof PricingRoute
+  ReportRoute: typeof ReportRoute
   SearchRoute: typeof SearchRoute
   SuggestBusinessRoute: typeof SuggestBusinessRoute
+  TrustSafetyRoute: typeof TrustSafetyRoute
   BusinessIdRoute: typeof BusinessIdRoute
   CategorySlugRoute: typeof CategorySlugRoute
   ContactGainIdRoute: typeof ContactGainIdRoute
   ContactGainCreateRoute: typeof ContactGainCreateRoute
+  LegalCookiesRoute: typeof LegalCookiesRoute
+  LegalDataRequestRoute: typeof LegalDataRequestRoute
+  LegalPrivacyRoute: typeof LegalPrivacyRoute
+  LegalTermsRoute: typeof LegalTermsRoute
   ContactGainIndexRoute: typeof ContactGainIndexRoute
 }
 
@@ -218,6 +335,20 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/advertise': {
+      id: '/advertise'
+      path: '/advertise'
+      fullPath: '/advertise'
+      preLoaderRoute: typeof AdvertiseRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/categories': {
@@ -232,6 +363,13 @@ declare module '@tanstack/react-router' {
       path: '/claim'
       fullPath: '/claim'
       preLoaderRoute: typeof ClaimRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/help': {
+      id: '/help'
+      path: '/help'
+      fullPath: '/help'
+      preLoaderRoute: typeof HelpRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/join': {
@@ -255,6 +393,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PricingRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/report': {
+      id: '/report'
+      path: '/report'
+      fullPath: '/report'
+      preLoaderRoute: typeof ReportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/search': {
       id: '/search'
       path: '/search'
@@ -267,6 +412,13 @@ declare module '@tanstack/react-router' {
       path: '/suggest-business'
       fullPath: '/suggest-business'
       preLoaderRoute: typeof SuggestBusinessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/trust-safety': {
+      id: '/trust-safety'
+      path: '/trust-safety'
+      fullPath: '/trust-safety'
+      preLoaderRoute: typeof TrustSafetyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/business/$id': {
@@ -304,6 +456,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ContactGainCreateRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/legal/cookies': {
+      id: '/legal/cookies'
+      path: '/legal/cookies'
+      fullPath: '/legal/cookies'
+      preLoaderRoute: typeof LegalCookiesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/legal/data-request': {
+      id: '/legal/data-request'
+      path: '/legal/data-request'
+      fullPath: '/legal/data-request'
+      preLoaderRoute: typeof LegalDataRequestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/legal/privacy': {
+      id: '/legal/privacy'
+      path: '/legal/privacy'
+      fullPath: '/legal/privacy'
+      preLoaderRoute: typeof LegalPrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/legal/terms': {
+      id: '/legal/terms'
+      path: '/legal/terms'
+      fullPath: '/legal/terms'
+      preLoaderRoute: typeof LegalTermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/locations/$slug': {
       id: '/locations/$slug'
       path: '/$slug'
@@ -328,17 +508,26 @@ const LocationsRouteWithChildren = LocationsRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AboutRoute: AboutRoute,
+  AdvertiseRoute: AdvertiseRoute,
   CategoriesRoute: CategoriesRoute,
   ClaimRoute: ClaimRoute,
+  HelpRoute: HelpRoute,
   JoinRoute: JoinRoute,
   LocationsRoute: LocationsRouteWithChildren,
   PricingRoute: PricingRoute,
+  ReportRoute: ReportRoute,
   SearchRoute: SearchRoute,
   SuggestBusinessRoute: SuggestBusinessRoute,
+  TrustSafetyRoute: TrustSafetyRoute,
   BusinessIdRoute: BusinessIdRoute,
   CategorySlugRoute: CategorySlugRoute,
   ContactGainIdRoute: ContactGainIdRoute,
   ContactGainCreateRoute: ContactGainCreateRoute,
+  LegalCookiesRoute: LegalCookiesRoute,
+  LegalDataRequestRoute: LegalDataRequestRoute,
+  LegalPrivacyRoute: LegalPrivacyRoute,
+  LegalTermsRoute: LegalTermsRoute,
   ContactGainIndexRoute: ContactGainIndexRoute,
 }
 export const routeTree = rootRouteImport
