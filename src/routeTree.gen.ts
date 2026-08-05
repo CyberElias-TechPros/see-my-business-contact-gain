@@ -11,7 +11,10 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AboutRouteImport } from './routes/about'
+import { Route as AccountRouteImport } from './routes/account'
+import { Route as AdminRouteRouteImport } from './routes/admin/route'
 import { Route as AdvertiseRouteImport } from './routes/advertise'
+import { Route as AppRouteRouteImport } from './routes/app/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as CategoriesRouteImport } from './routes/categories'
 import { Route as ClaimRouteImport } from './routes/claim'
@@ -45,9 +48,24 @@ const AboutRoute = AboutRouteImport.update({
   path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AccountRoute = AccountRouteImport.update({
+  id: '/account',
+  path: '/account',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRouteRoute = AdminRouteRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdvertiseRoute = AdvertiseRouteImport.update({
   id: '/advertise',
   path: '/advertise',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppRouteRoute = AppRouteRouteImport.update({
+  id: '/app',
+  path: '/app',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -163,7 +181,10 @@ const LocationsSlugRoute = LocationsSlugRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteRoute
+  '/app': typeof AppRouteRoute
   '/about': typeof AboutRoute
+  '/account': typeof AccountRoute
   '/advertise': typeof AdvertiseRoute
   '/auth': typeof AuthRoute
   '/categories': typeof CategoriesRoute
@@ -190,7 +211,10 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteRoute
+  '/app': typeof AppRouteRoute
   '/about': typeof AboutRoute
+  '/account': typeof AccountRoute
   '/advertise': typeof AdvertiseRoute
   '/auth': typeof AuthRoute
   '/categories': typeof CategoriesRoute
@@ -218,7 +242,10 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteRoute
+  '/app': typeof AppRouteRoute
   '/about': typeof AboutRoute
+  '/account': typeof AccountRoute
   '/advertise': typeof AdvertiseRoute
   '/auth': typeof AuthRoute
   '/categories': typeof CategoriesRoute
@@ -247,7 +274,10 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/admin'
+    | '/app'
     | '/about'
+    | '/account'
     | '/advertise'
     | '/auth'
     | '/categories'
@@ -274,7 +304,10 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/admin'
+    | '/app'
     | '/about'
+    | '/account'
     | '/advertise'
     | '/auth'
     | '/categories'
@@ -301,7 +334,10 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/admin'
+    | '/app'
     | '/about'
+    | '/account'
     | '/advertise'
     | '/auth'
     | '/categories'
@@ -329,7 +365,10 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRouteRoute: typeof AdminRouteRoute
+  AppRouteRoute: typeof AppRouteRoute
   AboutRoute: typeof AboutRoute
+  AccountRoute: typeof AccountRoute
   AdvertiseRoute: typeof AdvertiseRoute
   AuthRoute: typeof AuthRoute
   CategoriesRoute: typeof CategoriesRoute
@@ -370,11 +409,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/account': {
+      id: '/account'
+      path: '/account'
+      fullPath: '/account'
+      preLoaderRoute: typeof AccountRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/advertise': {
       id: '/advertise'
       path: '/advertise'
       fullPath: '/advertise'
       preLoaderRoute: typeof AdvertiseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app': {
+      id: '/app'
+      path: '/app'
+      fullPath: '/app'
+      preLoaderRoute: typeof AppRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -548,7 +608,10 @@ const LocationsRouteWithChildren = LocationsRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRouteRoute: AdminRouteRoute,
+  AppRouteRoute: AppRouteRoute,
   AboutRoute: AboutRoute,
+  AccountRoute: AccountRoute,
   AdvertiseRoute: AdvertiseRoute,
   AuthRoute: AuthRoute,
   CategoriesRoute: CategoriesRoute,
