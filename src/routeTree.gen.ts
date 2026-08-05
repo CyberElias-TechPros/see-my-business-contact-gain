@@ -12,8 +12,10 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as AdvertiseRouteImport } from './routes/advertise'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as CategoriesRouteImport } from './routes/categories'
 import { Route as ClaimRouteImport } from './routes/claim'
+import { Route as CompareRouteImport } from './routes/compare'
 import { Route as HelpRouteImport } from './routes/help'
 import { Route as JoinRouteImport } from './routes/join'
 import { Route as LocationsRouteImport } from './routes/locations'
@@ -48,6 +50,11 @@ const AdvertiseRoute = AdvertiseRouteImport.update({
   path: '/advertise',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CategoriesRoute = CategoriesRouteImport.update({
   id: '/categories',
   path: '/categories',
@@ -56,6 +63,11 @@ const CategoriesRoute = CategoriesRouteImport.update({
 const ClaimRoute = ClaimRouteImport.update({
   id: '/claim',
   path: '/claim',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CompareRoute = CompareRouteImport.update({
+  id: '/compare',
+  path: '/compare',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HelpRoute = HelpRouteImport.update({
@@ -153,8 +165,10 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/advertise': typeof AdvertiseRoute
+  '/auth': typeof AuthRoute
   '/categories': typeof CategoriesRoute
   '/claim': typeof ClaimRoute
+  '/compare': typeof CompareRoute
   '/help': typeof HelpRoute
   '/join': typeof JoinRoute
   '/locations': typeof LocationsRouteWithChildren
@@ -178,8 +192,10 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/advertise': typeof AdvertiseRoute
+  '/auth': typeof AuthRoute
   '/categories': typeof CategoriesRoute
   '/claim': typeof ClaimRoute
+  '/compare': typeof CompareRoute
   '/help': typeof HelpRoute
   '/join': typeof JoinRoute
   '/locations': typeof LocationsRouteWithChildren
@@ -204,8 +220,10 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/advertise': typeof AdvertiseRoute
+  '/auth': typeof AuthRoute
   '/categories': typeof CategoriesRoute
   '/claim': typeof ClaimRoute
+  '/compare': typeof CompareRoute
   '/help': typeof HelpRoute
   '/join': typeof JoinRoute
   '/locations': typeof LocationsRouteWithChildren
@@ -231,8 +249,10 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/advertise'
+    | '/auth'
     | '/categories'
     | '/claim'
+    | '/compare'
     | '/help'
     | '/join'
     | '/locations'
@@ -256,8 +276,10 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/advertise'
+    | '/auth'
     | '/categories'
     | '/claim'
+    | '/compare'
     | '/help'
     | '/join'
     | '/locations'
@@ -281,8 +303,10 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/advertise'
+    | '/auth'
     | '/categories'
     | '/claim'
+    | '/compare'
     | '/help'
     | '/join'
     | '/locations'
@@ -307,8 +331,10 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
   AdvertiseRoute: typeof AdvertiseRoute
+  AuthRoute: typeof AuthRoute
   CategoriesRoute: typeof CategoriesRoute
   ClaimRoute: typeof ClaimRoute
+  CompareRoute: typeof CompareRoute
   HelpRoute: typeof HelpRoute
   JoinRoute: typeof JoinRoute
   LocationsRoute: typeof LocationsRouteWithChildren
@@ -351,6 +377,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdvertiseRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/categories': {
       id: '/categories'
       path: '/categories'
@@ -363,6 +396,13 @@ declare module '@tanstack/react-router' {
       path: '/claim'
       fullPath: '/claim'
       preLoaderRoute: typeof ClaimRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/compare': {
+      id: '/compare'
+      path: '/compare'
+      fullPath: '/compare'
+      preLoaderRoute: typeof CompareRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/help': {
@@ -510,8 +550,10 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
   AdvertiseRoute: AdvertiseRoute,
+  AuthRoute: AuthRoute,
   CategoriesRoute: CategoriesRoute,
   ClaimRoute: ClaimRoute,
+  CompareRoute: CompareRoute,
   HelpRoute: HelpRoute,
   JoinRoute: JoinRoute,
   LocationsRoute: LocationsRouteWithChildren,
