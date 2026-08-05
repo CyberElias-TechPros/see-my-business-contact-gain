@@ -95,12 +95,12 @@ function PricingPage() {
           <CardContent className="p-6">
             <h2 className="text-lg font-semibold">Frequently asked</h2>
             <Accordion type="single" collapsible className="mt-3">
-              {[
+              {([
                 ["Can I use my personal WhatsApp number?", "Yes. Most Nigerian businesses do. You can switch to a business number later without losing your leads."],
                 ["What happens if I stop paying?", "Your profile stays public, but campaigns, automation and extra seats pause until you renew."],
                 ["Do you take a commission on jobs?", "No. We charge a flat subscription only."],
                 ["How do you handle my customers' data?", "We follow NDPR: data minimisation, consent screens, export and delete requests."],
-              ].map(([q, a]) => (
+              ] as [string, string][]).map(([q, a]) => (
                 <AccordionItem key={q} value={q}>
                   <AccordionTrigger className="text-left text-sm">{q}</AccordionTrigger>
                   <AccordionContent className="text-sm text-muted-foreground">{a}</AccordionContent>

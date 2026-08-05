@@ -11,8 +11,12 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CategoriesRouteImport } from './routes/categories'
+import { Route as ClaimRouteImport } from './routes/claim'
+import { Route as JoinRouteImport } from './routes/join'
 import { Route as LocationsRouteImport } from './routes/locations'
+import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as SearchRouteImport } from './routes/search'
+import { Route as SuggestBusinessRouteImport } from './routes/suggest-business'
 import { Route as BusinessIdRouteImport } from './routes/business.$id'
 import { Route as CategorySlugRouteImport } from './routes/category.$slug'
 import { Route as ContactGainIndexRouteImport } from './routes/contact-gain.index'
@@ -30,14 +34,34 @@ const CategoriesRoute = CategoriesRouteImport.update({
   path: '/categories',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ClaimRoute = ClaimRouteImport.update({
+  id: '/claim',
+  path: '/claim',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const JoinRoute = JoinRouteImport.update({
+  id: '/join',
+  path: '/join',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LocationsRoute = LocationsRouteImport.update({
   id: '/locations',
   path: '/locations',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PricingRoute = PricingRouteImport.update({
+  id: '/pricing',
+  path: '/pricing',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SearchRoute = SearchRouteImport.update({
   id: '/search',
   path: '/search',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SuggestBusinessRoute = SuggestBusinessRouteImport.update({
+  id: '/suggest-business',
+  path: '/suggest-business',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BusinessIdRoute = BusinessIdRouteImport.update({
@@ -74,8 +98,12 @@ const LocationsSlugRoute = LocationsSlugRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/categories': typeof CategoriesRoute
+  '/claim': typeof ClaimRoute
+  '/join': typeof JoinRoute
   '/locations': typeof LocationsRouteWithChildren
+  '/pricing': typeof PricingRoute
   '/search': typeof SearchRoute
+  '/suggest-business': typeof SuggestBusinessRoute
   '/business/$id': typeof BusinessIdRoute
   '/category/$slug': typeof CategorySlugRoute
   '/contact-gain/$id': typeof ContactGainIdRoute
@@ -86,8 +114,12 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/categories': typeof CategoriesRoute
+  '/claim': typeof ClaimRoute
+  '/join': typeof JoinRoute
   '/locations': typeof LocationsRouteWithChildren
+  '/pricing': typeof PricingRoute
   '/search': typeof SearchRoute
+  '/suggest-business': typeof SuggestBusinessRoute
   '/business/$id': typeof BusinessIdRoute
   '/category/$slug': typeof CategorySlugRoute
   '/contact-gain/$id': typeof ContactGainIdRoute
@@ -99,8 +131,12 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/categories': typeof CategoriesRoute
+  '/claim': typeof ClaimRoute
+  '/join': typeof JoinRoute
   '/locations': typeof LocationsRouteWithChildren
+  '/pricing': typeof PricingRoute
   '/search': typeof SearchRoute
+  '/suggest-business': typeof SuggestBusinessRoute
   '/business/$id': typeof BusinessIdRoute
   '/category/$slug': typeof CategorySlugRoute
   '/contact-gain/$id': typeof ContactGainIdRoute
@@ -113,8 +149,12 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/categories'
+    | '/claim'
+    | '/join'
     | '/locations'
+    | '/pricing'
     | '/search'
+    | '/suggest-business'
     | '/business/$id'
     | '/category/$slug'
     | '/contact-gain/$id'
@@ -125,8 +165,12 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/categories'
+    | '/claim'
+    | '/join'
     | '/locations'
+    | '/pricing'
     | '/search'
+    | '/suggest-business'
     | '/business/$id'
     | '/category/$slug'
     | '/contact-gain/$id'
@@ -137,8 +181,12 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/categories'
+    | '/claim'
+    | '/join'
     | '/locations'
+    | '/pricing'
     | '/search'
+    | '/suggest-business'
     | '/business/$id'
     | '/category/$slug'
     | '/contact-gain/$id'
@@ -150,8 +198,12 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CategoriesRoute: typeof CategoriesRoute
+  ClaimRoute: typeof ClaimRoute
+  JoinRoute: typeof JoinRoute
   LocationsRoute: typeof LocationsRouteWithChildren
+  PricingRoute: typeof PricingRoute
   SearchRoute: typeof SearchRoute
+  SuggestBusinessRoute: typeof SuggestBusinessRoute
   BusinessIdRoute: typeof BusinessIdRoute
   CategorySlugRoute: typeof CategorySlugRoute
   ContactGainIdRoute: typeof ContactGainIdRoute
@@ -175,6 +227,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CategoriesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/claim': {
+      id: '/claim'
+      path: '/claim'
+      fullPath: '/claim'
+      preLoaderRoute: typeof ClaimRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/join': {
+      id: '/join'
+      path: '/join'
+      fullPath: '/join'
+      preLoaderRoute: typeof JoinRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/locations': {
       id: '/locations'
       path: '/locations'
@@ -182,11 +248,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LocationsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/pricing': {
+      id: '/pricing'
+      path: '/pricing'
+      fullPath: '/pricing'
+      preLoaderRoute: typeof PricingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/search': {
       id: '/search'
       path: '/search'
       fullPath: '/search'
       preLoaderRoute: typeof SearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/suggest-business': {
+      id: '/suggest-business'
+      path: '/suggest-business'
+      fullPath: '/suggest-business'
+      preLoaderRoute: typeof SuggestBusinessRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/business/$id': {
@@ -249,8 +329,12 @@ const LocationsRouteWithChildren = LocationsRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CategoriesRoute: CategoriesRoute,
+  ClaimRoute: ClaimRoute,
+  JoinRoute: JoinRoute,
   LocationsRoute: LocationsRouteWithChildren,
+  PricingRoute: PricingRoute,
   SearchRoute: SearchRoute,
+  SuggestBusinessRoute: SuggestBusinessRoute,
   BusinessIdRoute: BusinessIdRoute,
   CategorySlugRoute: CategorySlugRoute,
   ContactGainIdRoute: ContactGainIdRoute,
