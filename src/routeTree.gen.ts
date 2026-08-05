@@ -10,33 +10,153 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CategoriesRouteImport } from './routes/categories'
+import { Route as LocationsRouteImport } from './routes/locations'
+import { Route as SearchRouteImport } from './routes/search'
+import { Route as BusinessIdRouteImport } from './routes/business.$id'
+import { Route as CategorySlugRouteImport } from './routes/category.$slug'
+import { Route as ContactGainIndexRouteImport } from './routes/contact-gain.index'
+import { Route as ContactGainIdRouteImport } from './routes/contact-gain.$id'
+import { Route as ContactGainCreateRouteImport } from './routes/contact-gain.create'
+import { Route as LocationsSlugRouteImport } from './routes/locations.$slug'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CategoriesRoute = CategoriesRouteImport.update({
+  id: '/categories',
+  path: '/categories',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LocationsRoute = LocationsRouteImport.update({
+  id: '/locations',
+  path: '/locations',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SearchRoute = SearchRouteImport.update({
+  id: '/search',
+  path: '/search',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BusinessIdRoute = BusinessIdRouteImport.update({
+  id: '/business/$id',
+  path: '/business/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CategorySlugRoute = CategorySlugRouteImport.update({
+  id: '/category/$slug',
+  path: '/category/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContactGainIndexRoute = ContactGainIndexRouteImport.update({
+  id: '/contact-gain/',
+  path: '/contact-gain/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContactGainIdRoute = ContactGainIdRouteImport.update({
+  id: '/contact-gain/$id',
+  path: '/contact-gain/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContactGainCreateRoute = ContactGainCreateRouteImport.update({
+  id: '/contact-gain/create',
+  path: '/contact-gain/create',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LocationsSlugRoute = LocationsSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => LocationsRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/categories': typeof CategoriesRoute
+  '/locations': typeof LocationsRouteWithChildren
+  '/search': typeof SearchRoute
+  '/business/$id': typeof BusinessIdRoute
+  '/category/$slug': typeof CategorySlugRoute
+  '/contact-gain/$id': typeof ContactGainIdRoute
+  '/contact-gain/create': typeof ContactGainCreateRoute
+  '/locations/$slug': typeof LocationsSlugRoute
+  '/contact-gain/': typeof ContactGainIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/categories': typeof CategoriesRoute
+  '/locations': typeof LocationsRouteWithChildren
+  '/search': typeof SearchRoute
+  '/business/$id': typeof BusinessIdRoute
+  '/category/$slug': typeof CategorySlugRoute
+  '/contact-gain/$id': typeof ContactGainIdRoute
+  '/contact-gain/create': typeof ContactGainCreateRoute
+  '/locations/$slug': typeof LocationsSlugRoute
+  '/contact-gain': typeof ContactGainIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/categories': typeof CategoriesRoute
+  '/locations': typeof LocationsRouteWithChildren
+  '/search': typeof SearchRoute
+  '/business/$id': typeof BusinessIdRoute
+  '/category/$slug': typeof CategorySlugRoute
+  '/contact-gain/$id': typeof ContactGainIdRoute
+  '/contact-gain/create': typeof ContactGainCreateRoute
+  '/locations/$slug': typeof LocationsSlugRoute
+  '/contact-gain/': typeof ContactGainIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/categories'
+    | '/locations'
+    | '/search'
+    | '/business/$id'
+    | '/category/$slug'
+    | '/contact-gain/$id'
+    | '/contact-gain/create'
+    | '/locations/$slug'
+    | '/contact-gain/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/categories'
+    | '/locations'
+    | '/search'
+    | '/business/$id'
+    | '/category/$slug'
+    | '/contact-gain/$id'
+    | '/contact-gain/create'
+    | '/locations/$slug'
+    | '/contact-gain'
+  id:
+    | '__root__'
+    | '/'
+    | '/categories'
+    | '/locations'
+    | '/search'
+    | '/business/$id'
+    | '/category/$slug'
+    | '/contact-gain/$id'
+    | '/contact-gain/create'
+    | '/locations/$slug'
+    | '/contact-gain/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CategoriesRoute: typeof CategoriesRoute
+  LocationsRoute: typeof LocationsRouteWithChildren
+  SearchRoute: typeof SearchRoute
+  BusinessIdRoute: typeof BusinessIdRoute
+  CategorySlugRoute: typeof CategorySlugRoute
+  ContactGainIdRoute: typeof ContactGainIdRoute
+  ContactGainCreateRoute: typeof ContactGainCreateRoute
+  ContactGainIndexRoute: typeof ContactGainIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,22 +168,95 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/categories': {
+      id: '/categories'
+      path: '/categories'
+      fullPath: '/categories'
+      preLoaderRoute: typeof CategoriesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/locations': {
+      id: '/locations'
+      path: '/locations'
+      fullPath: '/locations'
+      preLoaderRoute: typeof LocationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/search': {
+      id: '/search'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof SearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/business/$id': {
+      id: '/business/$id'
+      path: '/business/$id'
+      fullPath: '/business/$id'
+      preLoaderRoute: typeof BusinessIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/category/$slug': {
+      id: '/category/$slug'
+      path: '/category/$slug'
+      fullPath: '/category/$slug'
+      preLoaderRoute: typeof CategorySlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contact-gain/': {
+      id: '/contact-gain/'
+      path: '/contact-gain'
+      fullPath: '/contact-gain/'
+      preLoaderRoute: typeof ContactGainIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contact-gain/$id': {
+      id: '/contact-gain/$id'
+      path: '/contact-gain/$id'
+      fullPath: '/contact-gain/$id'
+      preLoaderRoute: typeof ContactGainIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contact-gain/create': {
+      id: '/contact-gain/create'
+      path: '/contact-gain/create'
+      fullPath: '/contact-gain/create'
+      preLoaderRoute: typeof ContactGainCreateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/locations/$slug': {
+      id: '/locations/$slug'
+      path: '/$slug'
+      fullPath: '/locations/$slug'
+      preLoaderRoute: typeof LocationsSlugRouteImport
+      parentRoute: typeof LocationsRoute
+    }
   }
 }
 
+interface LocationsRouteChildren {
+  LocationsSlugRoute: typeof LocationsSlugRoute
+}
+
+const LocationsRouteChildren: LocationsRouteChildren = {
+  LocationsSlugRoute: LocationsSlugRoute,
+}
+
+const LocationsRouteWithChildren = LocationsRoute._addFileChildren(
+  LocationsRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CategoriesRoute: CategoriesRoute,
+  LocationsRoute: LocationsRouteWithChildren,
+  SearchRoute: SearchRoute,
+  BusinessIdRoute: BusinessIdRoute,
+  CategorySlugRoute: CategorySlugRoute,
+  ContactGainIdRoute: ContactGainIdRoute,
+  ContactGainCreateRoute: ContactGainCreateRoute,
+  ContactGainIndexRoute: ContactGainIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
