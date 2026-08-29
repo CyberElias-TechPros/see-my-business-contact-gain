@@ -16,6 +16,13 @@ export default defineConfig({
     // Accept preview/sandbox hostnames (e.g. *.e2b.app) in dev.
     server: {
       allowedHosts: true,
+      // Dev-only: run the preview against the local Cloudflare Worker
+      // (`cd backend && npx wrangler dev --port 8787`). Without the Worker
+      // running, /api/health fails and the app falls back to demo mode.
+      proxy: {
+        "/api": "http://127.0.0.1:8787",
+        "/l": "http://127.0.0.1:8787",
+      },
     },
   },
 });
