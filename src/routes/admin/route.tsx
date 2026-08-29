@@ -1,6 +1,26 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { BadgeCheck, BarChart3, Cpu, CreditCard, FileCheck, Flag, Headphones, LayoutDashboard, Megaphone, ScrollText, Settings, ShieldAlert, Star, Store, Tags, ToggleLeft, Users } from "lucide-react";
+import {
+  BadgeCheck,
+  BarChart3,
+  Cpu,
+  CreditCard,
+  FileCheck,
+  Flag,
+  Headphones,
+  LayoutDashboard,
+  Lightbulb,
+  Megaphone,
+  ScrollText,
+  Settings,
+  ShieldAlert,
+  Star,
+  Store,
+  Tags,
+  ToggleLeft,
+  Users,
+} from "lucide-react";
 import { ConsoleShell, type NavItem } from "@/components/console/ConsoleShell";
+import { RequireRole } from "@/components/auth-gate";
 
 const items: NavItem[] = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard },
@@ -8,6 +28,7 @@ const items: NavItem[] = [
   { to: "/admin/businesses", label: "Businesses", icon: Store },
   { to: "/admin/claims", label: "Claims", icon: FileCheck },
   { to: "/admin/verification", label: "Verification", icon: BadgeCheck },
+  { to: "/admin/suggestions", label: "Suggestions", icon: Lightbulb },
   { to: "/admin/categories", label: "Categories", icon: Tags },
   { to: "/admin/moderation", label: "Moderation", icon: ShieldAlert },
   { to: "/admin/reviews", label: "Reviews", icon: Star },
@@ -27,5 +48,13 @@ export const Route = createFileRoute("/admin")({
 });
 
 function Layout() {
-  return <ConsoleShell items={items} title="Admin console" subtitle="Platform operations" user={{ name: "Ada Balogun", role: "Platform administrator" }} />;
+  return (
+    <RequireRole role="admin">
+      <AdminShell />
+    </RequireRole>
+  );
+}
+
+function AdminShell() {
+  return <ConsoleShell items={items} title="Admin console" subtitle="Platform operations" admin />;
 }

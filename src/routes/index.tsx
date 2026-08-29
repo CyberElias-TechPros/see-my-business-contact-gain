@@ -1,4 +1,5 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
 import { ArrowRight, MessageCircle, QrCode, Search, ShieldCheck, Users, Zap } from "lucide-react";
 import { PublicShell } from "@/components/site/PublicShell";
 import { BusinessCard } from "@/components/kit";
@@ -6,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { businesses, categories, contactGainRooms, locations } from "@/data/mock";
+import { useBusinesses, useMeta, useRooms } from "@/lib/queries";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -20,7 +21,8 @@ export const Route = createFileRoute("/")({
       { property: "og:title", content: "GainHub NG — WhatsApp Contact Gain & Business Directory" },
       {
         property: "og:description",
-        content: "Nigeria's WhatsApp-first business directory and contact-gain network. Get found, get saved, get customers.",
+        content:
+          "Nigeria's WhatsApp-first business directory and contact-gain network. Get found, get saved, get customers.",
       },
     ],
   }),
@@ -28,15 +30,44 @@ export const Route = createFileRoute("/")({
 });
 
 const pillars = [
-  { icon: Search, title: "Public discovery", body: "SEO-friendly profiles, category and location landing pages, near-me search and map view." },
-  { icon: MessageCircle, title: "WhatsApp-first contact", body: "One tap opens a chat. Every conversation is attributed to the exact listing or campaign." },
-  { icon: Users, title: "Contact-gain rooms", body: "Moderated save-back circles so vendors grow status reach without dropping numbers in random groups." },
-  { icon: Zap, title: "Automation engine", body: "Auto-tag, auto-assign, follow-up reminders and stale-lead detection out of the box." },
-  { icon: QrCode, title: "Tracked links & QR", body: "Print a QR for your shop, put a link in your bio, and see which one brings customers." },
-  { icon: ShieldCheck, title: "Trust & safety", body: "Verification levels, AI pre-screening, report flows and NDPR-aligned data handling." },
+  {
+    icon: Search,
+    title: "Public discovery",
+    body: "SEO-friendly profiles, category and location landing pages, near-me search and map view.",
+  },
+  {
+    icon: MessageCircle,
+    title: "WhatsApp-first contact",
+    body: "One tap opens a chat. Every conversation is attributed to the exact listing or campaign.",
+  },
+  {
+    icon: Users,
+    title: "Contact-gain rooms",
+    body: "Moderated save-back circles so vendors grow status reach without dropping numbers in random groups.",
+  },
+  {
+    icon: Zap,
+    title: "Automation engine",
+    body: "Auto-tag, auto-assign, follow-up reminders and stale-lead detection out of the box.",
+  },
+  {
+    icon: QrCode,
+    title: "Tracked links & QR",
+    body: "Print a QR for your shop, put a link in your bio, and see which one brings customers.",
+  },
+  {
+    icon: ShieldCheck,
+    title: "Trust & safety",
+    body: "Verification levels, AI pre-screening, report flows and NDPR-aligned data handling.",
+  },
 ];
 
 function Home() {
+  const navigate = useNavigate();
+  const [query, setQuery] = useState("");
+  const { data: meta } = useMeta();
+  const featured = useBusinesses({ sort: "relevance", pageSize: 8 });
+  const rooms = useRooms({});
   return (
     <PublicShell>
       <section className="border-b bg-hero-mesh">
@@ -49,24 +80,30 @@ function Home() {
               Get found. Get saved. <span className="text-gradient-brand">Get customers.</span>
             </h1>
             <p className="mt-5 max-w-xl text-lg text-muted-foreground">
-              A business directory and WhatsApp contact-gain network built for how Nigerians actually buy — search,
-              check the photos, then chat.
+              A business directory and WhatsApp contact-gain network built for how Nigerians
+              actually buy — search, check the photos, then chat.
             </p>
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <form
+              className="mt-8 flex flex-col gap-3 sm:flex-row"
+              onSubmit={(e) => {
+                e.preventDefault();
+                void navigate({ to: "/search", search: query ? { q: query } : {} });
+              }}
+            >
               <div className="flex flex-1 items-center gap-2 rounded-xl border bg-card p-2 shadow-soft">
                 <Search className="ml-2 size-4 text-muted-foreground" />
                 <Input
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
                   placeholder="Phone repair in Ikeja…"
                   className="border-0 shadow-none focus-visible:ring-0"
                   aria-label="Search businesses"
                 />
-                <Button asChild>
-                  <Link to="/search">Search</Link>
-                </Button>
+                <Button type="submit">Search</Button>
               </div>
-            </div>
+            </form>
             <div className="mt-5 flex flex-wrap gap-2">
-              {categories.slice(0, 5).map((c) => (
+              {(meta?.categories ?? []).slice(0, 5).map((c) => (
                 <Link key={c.slug} to="/category/$slug" params={{ slug: c.slug }}>
                   <Badge variant="outline" className="bg-card">
                     {c.name}
@@ -76,9 +113,9 @@ function Home() {
             </div>
             <dl className="mt-10 grid grid-cols-3 gap-4 max-w-md">
               {[
-                ["58,400", "Listed businesses"],
-                ["1.2M", "WhatsApp chats started"],
-                ["36", "States covered"],
+                [(meta?.stats.businesses ?? 58400).toLocaleString(), "Listed businesses"],
+                [meta?.stats.chats ?? "1.2M", "WhatsApp chats started"],
+                [String(meta?.stats.states ?? 36), "States covered"],
               ].map(([v, l]) => (
                 <div key={l}>
                   <dt className="font-display text-2xl font-bold">{v}</dt>
@@ -118,8 +155,8 @@ function Home() {
       <section className="mx-auto max-w-7xl px-4 py-16">
         <h2 className="text-2xl font-bold md:text-3xl">Two connected worlds, one platform</h2>
         <p className="mt-2 max-w-2xl text-muted-foreground">
-          A public discovery network for customers, and a private workspace where every business manages the contacts it
-          gains.
+          A public discovery network for customers, and a private workspace where every business
+          manages the contacts it gains.
         </p>
         <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {pillars.map((p) => (
@@ -146,7 +183,7 @@ function Home() {
           </Button>
         </div>
         <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {businesses.slice(0, 8).map((b) => (
+          {(featured.data?.items ?? []).slice(0, 8).map((b) => (
             <BusinessCard key={b.id} business={b} />
           ))}
         </div>
@@ -158,7 +195,8 @@ function Home() {
             <div>
               <h2 className="text-2xl font-bold md:text-3xl">Contact-gain rooms</h2>
               <p className="mt-2 max-w-2xl text-muted-foreground">
-                Moderated save-back circles with published rules, slot limits and verified-only options.
+                Moderated save-back circles with published rules, slot limits and verified-only
+                options.
               </p>
             </div>
             <Button asChild variant="outline">
@@ -166,7 +204,7 @@ function Home() {
             </Button>
           </div>
           <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {contactGainRooms.map((r) => (
+            {(rooms.data ?? []).map((r) => (
               <Card key={r.id} className="card-surface">
                 <CardContent className="space-y-3 p-5">
                   <div className="flex items-center justify-between">
@@ -177,7 +215,7 @@ function Home() {
                   <p className="text-xs text-muted-foreground">Rule: {r.rule}</p>
                   <div className="flex items-center justify-between text-xs">
                     <span>{r.members.toLocaleString()} members</span>
-                    <span className="text-primary">{r.slotsLeft} slots left</span>
+                    <span className="text-primary">{r.slotsLeft ?? 0} slots left</span>
                   </div>
                   <Button asChild size="sm" variant="outline" className="w-full">
                     <Link to="/contact-gain/$id" params={{ id: r.id }}>
@@ -194,7 +232,7 @@ function Home() {
       <section className="mx-auto max-w-7xl px-4 py-16">
         <h2 className="text-2xl font-bold md:text-3xl">Browse by location</h2>
         <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {locations.map((l) => (
+          {(meta?.locations ?? []).map((l) => (
             <Link
               key={l.slug}
               to="/locations/$slug"
@@ -217,7 +255,8 @@ function Home() {
             Ready to turn WhatsApp chats into a real customer list?
           </h2>
           <p className="mt-4 max-w-xl text-ink-foreground/75">
-            Create your profile in minutes, publish your services and products, and let every enquiry land in one inbox.
+            Create your profile in minutes, publish your services and products, and let every
+            enquiry land in one inbox.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Button asChild size="lg">

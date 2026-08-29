@@ -4,8 +4,18 @@ import type { ReactNode } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import type { Business } from "@/data/mock";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import type { Business } from "@/lib/types";
+import { useSaveBusiness, useTrackEvent } from "@/lib/queries";
+import { waLink } from "@/lib/api";
 
 export function StatCard({
   label,
@@ -137,7 +147,11 @@ export function SourceBars({ data }: { data: { label: string; value: number }[] 
 export function VerifiedBadge({ level }: { level: Business["verified"] }) {
   if (level === "unverified") return <Badge variant="outline">Unverified</Badge>;
   const label =
-    level === "premium" ? "Premium verified" : level === "documents" ? "Documents verified" : `${level} verified`;
+    level === "premium"
+      ? "Premium verified"
+      : level === "documents"
+        ? "Documents verified"
+        : `${level} verified`;
   return (
     <Badge className="gap-1 capitalize">
       <BadgeCheck className="size-3" /> {label}
@@ -155,6 +169,7 @@ export function Stars({ rating }: { rating: number }) {
 }
 
 export function BusinessCard({ business }: { business: Business }) {
+  const track = useTrackEvent();
   return (
     <Card className="card-surface group overflow-hidden transition-shadow hover:shadow-lift">
       <div className={`h-24 ${business.cover}`} />
@@ -164,7 +179,11 @@ export function BusinessCard({ business }: { business: Business }) {
         </div>
         <div>
           <div className="flex items-start justify-between gap-2">
-            <Link to="/business/$id" params={{ id: business.id }} className="font-semibold hover:text-primary">
+            <Link
+              to="/business/$id"
+              params={{ id: business.id }}
+              className="font-semibold hover:text-primary"
+            >
               {business.name}
             </Link>
             <Stars rating={business.rating} />
@@ -172,7 +191,7 @@ export function BusinessCard({ business }: { business: Business }) {
           <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{business.tagline}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-          <Badge variant="secondary">{business.category}</Badge>
+          <Badge variant="secondary">{business.categoryName ?? business.categorySlug}</Badge>
           <span className="flex items-center gap-1">
             <MapPin className="size-3" /> {business.city}, {business.state}
           </span>
@@ -180,11 +199,78 @@ export function BusinessCard({ business }: { business: Business }) {
         </div>
         <div className="flex items-center justify-between gap-2 pt-1">
           <VerifiedBadge level={business.verified} />
-          <Button size="sm" className="gap-1">
+          <Button
+            size="sm"
+            className="gap-1"
+            onClick={() => {
+              track.mutate({ businessId: business.id, type: "contact", source: "Card — WhatsApp" });
+              window.open(waLink(business, "directory card"), "_blank", "noopener");
+            }}
+          >
             <MessageCircle className="size-3.5" /> WhatsApp
           </Button>
         </div>
       </CardContent>
     </Card>
   );
+}
+
+export function LoadingCard({ label = "Loading…" }: { label?: string }) {
+  return (
+    <Card className="card-surface">
+      <CardContent className="space-y-3 p-5">
+        <Skeleton className="h-5 w-1/3" />
+        <Skeleton className="h-4 w-2/3" />
+        <Skeleton className="h-4 w-1/2" />
+        <p className="pt-1 text-xs text-muted-foreground">{label}</p>
+      </CardContent>
+    </Card>
+  );
+}
+
+export function LoadError({ message, retry }: { message?: string; retry?: () => void }) {
+  return (
+    <Card className="card-surface">
+      <CardContent className="space-y-2 p-6 text-center">
+        <p className="font-semibold">Couldn't load this</p>
+        <p className="text-sm text-muted-foreground">
+          {message ?? "Something went wrong on our end."}
+        </p>
+        {retry ? (
+          <Button variant="outline" size="sm" onClick={retry} className="mt-2">
+            Try again
+          </Button>
+        ) : null}
+      </CardContent>
+    </Card>
+  );
+}
+
+export function EmptyState({
+  title,
+  body,
+  action,
+}: {
+  title: string;
+  body?: string;
+  action?: ReactNode;
+}) {
+  return (
+    <Card className="card-surface">
+      <CardContent className="space-y-2 p-8 text-center">
+        <p className="font-semibold">{title}</p>
+        {body ? <p className="mx-auto max-w-md text-sm text-muted-foreground">{body}</p> : null}
+        {action ? <div className="pt-2">{action}</div> : null}
+      </CardContent>
+    </Card>
+  );
+}
+
+/** "x ago" label from a minutes-ago value. */
+export function TimeAgo({ minutes }: { minutes: number }) {
+  if (minutes < 1) return <span>now</span>;
+  if (minutes < 60) return <span>{Math.round(minutes)}m ago</span>;
+  if (minutes < 1440) return <span>{Math.round(minutes / 60)}h ago</span>;
+  if (minutes < 10080) return <span>{Math.round(minutes / 1440)}d ago</span>;
+  return <span>{Math.round(minutes / 10080)}w ago</span>;
 }

@@ -1,6 +1,25 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { BarChart3, CalendarDays, CheckSquare, CreditCard, Inbox, Kanban, LayoutDashboard, Megaphone, Package, QrCode, ScrollText, Settings, Store, Target, UserCog, Users, Zap } from "lucide-react";
+import {
+  BarChart3,
+  CalendarDays,
+  CheckSquare,
+  CreditCard,
+  Inbox,
+  Kanban,
+  LayoutDashboard,
+  Megaphone,
+  Package,
+  QrCode,
+  ScrollText,
+  Settings,
+  Store,
+  Target,
+  UserCog,
+  Users,
+  Zap,
+} from "lucide-react";
 import { ConsoleShell, type NavItem } from "@/components/console/ConsoleShell";
+import { RequireRole } from "@/components/auth-gate";
 
 const items: NavItem[] = [
   { to: "/app", label: "Dashboard", icon: LayoutDashboard },
@@ -27,5 +46,13 @@ export const Route = createFileRoute("/app")({
 });
 
 function Layout() {
-  return <ConsoleShell items={items} title="Business workspace" subtitle="SwiftFix Gadgets • Growth plan" user={{ name: "Chidi Okonkwo", role: "Business owner" }} />;
+  return (
+    <RequireRole role="owner">
+      <WorkspaceShell />
+    </RequireRole>
+  );
+}
+
+function WorkspaceShell() {
+  return <ConsoleShell items={items} title="Business workspace" />;
 }

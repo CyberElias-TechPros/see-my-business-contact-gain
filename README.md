@@ -22,3 +22,12 @@ cd <repository-name>
 npm i
 npm run dev
 ```
+
+## Deployment
+
+- **Frontend** → Vercel (Nitro preset pinned in `vercel.json`).
+- **Backend API** → Cloudflare Workers (`backend/`, D1 + KV).
+
+See [DEPLOYMENT.md](./DEPLOYMENT.md) for the full step-by-step guide, including
+resource creation, migrations, CORS/session-cookie configuration and the
+production hardening checklist.

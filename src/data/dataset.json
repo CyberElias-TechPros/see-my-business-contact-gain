@@ -1,0 +1,2784 @@
+{
+  "users": [
+    {
+      "id": "U-8812",
+      "email": "chidi@swiftfix.ng",
+      "phone": "+2348030000001",
+      "name": "Chidi Okonkwo",
+      "password": "demo1234",
+      "role": "owner",
+      "status": "Active",
+      "whatsapp": "+234 803 000 0001",
+      "ts": 52000
+    },
+    {
+      "id": "U-8811",
+      "email": "blessing@gmail.com",
+      "phone": "+2348030000002",
+      "name": "Blessing Eze",
+      "password": "demo1234",
+      "role": "user",
+      "status": "Active",
+      "ts": 40000
+    },
+    {
+      "id": "U-8810",
+      "email": "musa@yahoo.com",
+      "phone": "+2348030000003",
+      "name": "Musa Ibrahim",
+      "password": "demo1234",
+      "role": "user",
+      "status": "Suspended",
+      "ts": 60000
+    },
+    {
+      "id": "U-8809",
+      "email": "ada@keyhomes.ng",
+      "phone": "+2348030000004",
+      "name": "Ada Nwosu",
+      "password": "demo1234",
+      "role": "owner",
+      "status": "Active",
+      "ts": 70000
+    },
+    {
+      "id": "U-8808",
+      "email": "seyi@swiftfix.ng",
+      "phone": "+2348030000005",
+      "name": "Seyi Adeoye",
+      "password": "demo1234",
+      "role": "user",
+      "status": "Active",
+      "ts": 75000
+    },
+    {
+      "id": "U-0001",
+      "email": "admin@gainhub.ng",
+      "phone": "+2348000000000",
+      "name": "Ada Balogun",
+      "password": "admin1234",
+      "role": "admin",
+      "status": "Active",
+      "ts": 200000
+    }
+  ],
+  "categories": [
+    {
+      "slug": "phone-gadgets",
+      "name": "Phone & Gadget Repair",
+      "icon": "Smartphone",
+      "count": 4820
+    },
+    {
+      "slug": "food-restaurants",
+      "name": "Food & Restaurants",
+      "icon": "UtensilsCrossed",
+      "count": 9310
+    },
+    {
+      "slug": "fashion-tailoring",
+      "name": "Fashion & Tailoring",
+      "icon": "Scissors",
+      "count": 7640
+    },
+    {
+      "slug": "beauty-spa",
+      "name": "Beauty, Hair & Spa",
+      "icon": "Sparkles",
+      "count": 6120
+    },
+    {
+      "slug": "real-estate",
+      "name": "Real Estate & Agents",
+      "icon": "Building2",
+      "count": 3410
+    },
+    {
+      "slug": "logistics",
+      "name": "Logistics & Dispatch",
+      "icon": "Truck",
+      "count": 2870
+    },
+    {
+      "slug": "events",
+      "name": "Events & Rentals",
+      "icon": "PartyPopper",
+      "count": 2210
+    },
+    {
+      "slug": "auto",
+      "name": "Auto & Mechanics",
+      "icon": "Car",
+      "count": 3050
+    },
+    {
+      "slug": "health",
+      "name": "Health & Pharmacy",
+      "icon": "Stethoscope",
+      "count": 1890
+    },
+    {
+      "slug": "education",
+      "name": "Schools & Tutors",
+      "icon": "GraduationCap",
+      "count": 2440
+    },
+    {
+      "slug": "professionals",
+      "name": "Professionals & Legal",
+      "icon": "Briefcase",
+      "count": 1620
+    },
+    {
+      "slug": "home-services",
+      "name": "Home Services",
+      "icon": "Wrench",
+      "count": 4110
+    }
+  ],
+  "locations": [
+    {
+      "slug": "lagos",
+      "name": "Lagos",
+      "areas": [
+        "Ikeja",
+        "Lekki",
+        "Yaba",
+        "Surulere",
+        "Ajah"
+      ],
+      "count": 24800
+    },
+    {
+      "slug": "abuja",
+      "name": "Abuja (FCT)",
+      "areas": [
+        "Wuse",
+        "Garki",
+        "Gwarinpa",
+        "Lugbe"
+      ],
+      "count": 11200
+    },
+    {
+      "slug": "port-harcourt",
+      "name": "Port Harcourt",
+      "areas": [
+        "GRA",
+        "D-Line",
+        "Rumuokoro"
+      ],
+      "count": 6400
+    },
+    {
+      "slug": "ibadan",
+      "name": "Ibadan",
+      "areas": [
+        "Bodija",
+        "Ring Road",
+        "Challenge"
+      ],
+      "count": 5100
+    },
+    {
+      "slug": "kano",
+      "name": "Kano",
+      "areas": [
+        "Nassarawa",
+        "Sabon Gari"
+      ],
+      "count": 3900
+    },
+    {
+      "slug": "enugu",
+      "name": "Enugu",
+      "areas": [
+        "Independence Layout",
+        "New Haven"
+      ],
+      "count": 3200
+    }
+  ],
+  "businesses": [
+    {
+      "id": "swiftfix-gadgets",
+      "ownerId": "U-8812",
+      "name": "SwiftFix Gadgets",
+      "tagline": "Phone & laptop repair in 45 minutes",
+      "about": "SwiftFix Gadgets is a phone & gadget repair business serving Ikeja and nearby areas. We take enquiries on WhatsApp, respond within minutes during working hours, and handle both walk-in and delivery requests across the city.",
+      "categorySlug": "phone-gadgets",
+      "city": "Ikeja",
+      "state": "Lagos",
+      "address": "12 Adekunle Close, Ikeja, Lagos",
+      "rating": 4.8,
+      "reviewsCount": 412,
+      "verified": "premium",
+      "openNow": true,
+      "whatsapp": "+2348030000000",
+      "phone": "+2348030000000",
+      "website": "https://swiftfix-gadgets.ng",
+      "socials": [
+        {
+          "label": "Instagram",
+          "handle": "@swiftfix-gadgets"
+        },
+        {
+          "label": "TikTok",
+          "handle": "@swiftfix-gadgetsng"
+        }
+      ],
+      "services": [
+        {
+          "name": "Standard service",
+          "price": "₦15,000",
+          "note": "Same-day where possible"
+        },
+        {
+          "name": "Premium service",
+          "price": "₦45,000",
+          "note": "Priority handling"
+        },
+        {
+          "name": "Consultation",
+          "price": "Free",
+          "note": "On WhatsApp"
+        }
+      ],
+      "products": [
+        {
+          "name": "Starter package",
+          "price": "₦25,000",
+          "tag": "Popular"
+        },
+        {
+          "name": "Bundle offer",
+          "price": "₦60,000",
+          "tag": "Offer"
+        },
+        {
+          "name": "Enterprise",
+          "price": "Request quote",
+          "tag": "B2B"
+        }
+      ],
+      "amenities": [
+        "Parking",
+        "Card payment",
+        "Transfer accepted",
+        "Delivery",
+        "Wheelchair access"
+      ],
+      "serviceAreas": [
+        "Island",
+        "Mainland",
+        "Nationwide delivery"
+      ],
+      "gallery": [
+        {
+          "label": "Logo",
+          "kind": "Brand"
+        },
+        {
+          "label": "Cover photo",
+          "kind": "Brand"
+        },
+        {
+          "label": "Shop front",
+          "kind": "Premises"
+        },
+        {
+          "label": "Interior",
+          "kind": "Premises"
+        },
+        {
+          "label": "Team at work",
+          "kind": "Team"
+        },
+        {
+          "label": "Product shot 1",
+          "kind": "Products"
+        },
+        {
+          "label": "Product shot 2",
+          "kind": "Products"
+        },
+        {
+          "label": "Before / after",
+          "kind": "Work"
+        },
+        {
+          "label": "CAC certificate",
+          "kind": "Verification"
+        }
+      ],
+      "team": [
+        {
+          "name": "Chidi Okonkwo",
+          "role": "Owner"
+        },
+        {
+          "name": "Amina Bello",
+          "role": "Sales agent"
+        }
+      ],
+      "plan": "Pro",
+      "contactsGained": 5210,
+      "savedBy": 312,
+      "featured": true,
+      "responseMinutes": 5,
+      "ts": 90000
+    },
+    {
+      "id": "mama-ope-kitchen",
+      "ownerId": null,
+      "name": "Mama Ope Kitchen",
+      "tagline": "Home-style jollof, swallow & small chops",
+      "about": "Mama Ope Kitchen is a food & restaurants business serving Surulere and nearby areas. We take enquiries on WhatsApp, respond within minutes during working hours, and handle both walk-in and delivery requests across the city.",
+      "categorySlug": "food-restaurants",
+      "city": "Surulere",
+      "state": "Lagos",
+      "address": "12 Adekunle Close, Surulere, Lagos",
+      "rating": 4.7,
+      "reviewsCount": 903,
+      "verified": "documents",
+      "openNow": true,
+      "whatsapp": "+2348030000011",
+      "phone": "+2348030000011",
+      "website": "https://mama-ope-kitchen.ng",
+      "socials": [
+        {
+          "label": "Instagram",
+          "handle": "@mama-ope-kitchen"
+        },
+        {
+          "label": "TikTok",
+          "handle": "@mama-ope-kitchenng"
+        }
+      ],
+      "services": [
+        {
+          "name": "Standard service",
+          "price": "₦15,000",
+          "note": "Same-day where possible"
+        },
+        {
+          "name": "Premium service",
+          "price": "₦45,000",
+          "note": "Priority handling"
+        },
+        {
+          "name": "Consultation",
+          "price": "Free",
+          "note": "On WhatsApp"
+        }
+      ],
+      "products": [
+        {
+          "name": "Starter package",
+          "price": "₦25,000",
+          "tag": "Popular"
+        },
+        {
+          "name": "Bundle offer",
+          "price": "₦60,000",
+          "tag": "Offer"
+        },
+        {
+          "name": "Enterprise",
+          "price": "Request quote",
+          "tag": "B2B"
+        }
+      ],
+      "amenities": [
+        "Parking",
+        "Card payment",
+        "Transfer accepted",
+        "Delivery",
+        "Wheelchair access"
+      ],
+      "serviceAreas": [
+        "Island",
+        "Mainland",
+        "Nationwide delivery"
+      ],
+      "gallery": [
+        {
+          "label": "Logo",
+          "kind": "Brand"
+        },
+        {
+          "label": "Cover photo",
+          "kind": "Brand"
+        },
+        {
+          "label": "Shop front",
+          "kind": "Premises"
+        },
+        {
+          "label": "Interior",
+          "kind": "Premises"
+        },
+        {
+          "label": "Team at work",
+          "kind": "Team"
+        },
+        {
+          "label": "Product shot 1",
+          "kind": "Products"
+        },
+        {
+          "label": "Product shot 2",
+          "kind": "Products"
+        },
+        {
+          "label": "Before / after",
+          "kind": "Work"
+        },
+        {
+          "label": "CAC certificate",
+          "kind": "Verification"
+        }
+      ],
+      "team": [
+        {
+          "name": "Opeyemi A.",
+          "role": "Owner"
+        }
+      ],
+      "plan": "Growth",
+      "contactsGained": 1840,
+      "savedBy": 312,
+      "featured": true,
+      "responseMinutes": 8,
+      "ts": 88000
+    },
+    {
+      "id": "adire-atelier",
+      "ownerId": null,
+      "name": "Adire Atelier",
+      "tagline": "Bespoke agbada, kaftan & aso-oke",
+      "about": "Adire Atelier is a fashion & tailoring business serving Yaba and nearby areas. We take enquiries on WhatsApp, respond within minutes during working hours, and handle both walk-in and delivery requests across the city.",
+      "categorySlug": "fashion-tailoring",
+      "city": "Yaba",
+      "state": "Lagos",
+      "address": "12 Adekunle Close, Yaba, Lagos",
+      "rating": 4.9,
+      "reviewsCount": 267,
+      "verified": "premium",
+      "openNow": true,
+      "whatsapp": "+2348030000012",
+      "phone": "+2348030000012",
+      "website": "https://adire-atelier.ng",
+      "socials": [
+        {
+          "label": "Instagram",
+          "handle": "@adire-atelier"
+        },
+        {
+          "label": "TikTok",
+          "handle": "@adire-atelierng"
+        }
+      ],
+      "services": [
+        {
+          "name": "Standard service",
+          "price": "₦15,000",
+          "note": "Same-day where possible"
+        },
+        {
+          "name": "Premium service",
+          "price": "₦45,000",
+          "note": "Priority handling"
+        },
+        {
+          "name": "Consultation",
+          "price": "Free",
+          "note": "On WhatsApp"
+        }
+      ],
+      "products": [
+        {
+          "name": "Starter package",
+          "price": "₦25,000",
+          "tag": "Popular"
+        },
+        {
+          "name": "Bundle offer",
+          "price": "₦60,000",
+          "tag": "Offer"
+        },
+        {
+          "name": "Enterprise",
+          "price": "Request quote",
+          "tag": "B2B"
+        }
+      ],
+      "amenities": [
+        "Parking",
+        "Card payment",
+        "Transfer accepted",
+        "Delivery",
+        "Wheelchair access"
+      ],
+      "serviceAreas": [
+        "Island",
+        "Mainland",
+        "Nationwide delivery"
+      ],
+      "gallery": [
+        {
+          "label": "Logo",
+          "kind": "Brand"
+        },
+        {
+          "label": "Cover photo",
+          "kind": "Brand"
+        },
+        {
+          "label": "Shop front",
+          "kind": "Premises"
+        },
+        {
+          "label": "Interior",
+          "kind": "Premises"
+        },
+        {
+          "label": "Team at work",
+          "kind": "Team"
+        },
+        {
+          "label": "Product shot 1",
+          "kind": "Products"
+        },
+        {
+          "label": "Product shot 2",
+          "kind": "Products"
+        },
+        {
+          "label": "Before / after",
+          "kind": "Work"
+        },
+        {
+          "label": "CAC certificate",
+          "kind": "Verification"
+        }
+      ],
+      "team": [
+        {
+          "name": "Kemi A.",
+          "role": "Owner"
+        }
+      ],
+      "plan": "Growth",
+      "contactsGained": 1840,
+      "savedBy": 312,
+      "featured": true,
+      "responseMinutes": 6,
+      "ts": 86000
+    },
+    {
+      "id": "glow-by-tola",
+      "ownerId": null,
+      "name": "Glow by Tola",
+      "tagline": "Hair, nails, lashes & home service spa",
+      "about": "Glow by Tola is a beauty, hair & spa business serving Lekki and nearby areas. We take enquiries on WhatsApp, respond within minutes during working hours, and handle both walk-in and delivery requests across the city.",
+      "categorySlug": "beauty-spa",
+      "city": "Lekki",
+      "state": "Lagos",
+      "address": "12 Adekunle Close, Lekki, Lagos",
+      "rating": 4.6,
+      "reviewsCount": 512,
+      "verified": "documents",
+      "openNow": true,
+      "whatsapp": "+2348030000013",
+      "phone": "+2348030000013",
+      "website": "https://glow-by-tola.ng",
+      "socials": [
+        {
+          "label": "Instagram",
+          "handle": "@glow-by-tola"
+        },
+        {
+          "label": "TikTok",
+          "handle": "@glow-by-tolang"
+        }
+      ],
+      "services": [
+        {
+          "name": "Standard service",
+          "price": "₦15,000",
+          "note": "Same-day where possible"
+        },
+        {
+          "name": "Premium service",
+          "price": "₦45,000",
+          "note": "Priority handling"
+        },
+        {
+          "name": "Consultation",
+          "price": "Free",
+          "note": "On WhatsApp"
+        }
+      ],
+      "products": [
+        {
+          "name": "Starter package",
+          "price": "₦25,000",
+          "tag": "Popular"
+        },
+        {
+          "name": "Bundle offer",
+          "price": "₦60,000",
+          "tag": "Offer"
+        },
+        {
+          "name": "Enterprise",
+          "price": "Request quote",
+          "tag": "B2B"
+        }
+      ],
+      "amenities": [
+        "Parking",
+        "Card payment",
+        "Transfer accepted",
+        "Delivery",
+        "Wheelchair access"
+      ],
+      "serviceAreas": [
+        "Island",
+        "Mainland",
+        "Nationwide delivery"
+      ],
+      "gallery": [
+        {
+          "label": "Logo",
+          "kind": "Brand"
+        },
+        {
+          "label": "Cover photo",
+          "kind": "Brand"
+        },
+        {
+          "label": "Shop front",
+          "kind": "Premises"
+        },
+        {
+          "label": "Interior",
+          "kind": "Premises"
+        },
+        {
+          "label": "Team at work",
+          "kind": "Team"
+        },
+        {
+          "label": "Product shot 1",
+          "kind": "Products"
+        },
+        {
+          "label": "Product shot 2",
+          "kind": "Products"
+        },
+        {
+          "label": "Before / after",
+          "kind": "Work"
+        },
+        {
+          "label": "CAC certificate",
+          "kind": "Verification"
+        }
+      ],
+      "team": [
+        {
+          "name": "Tola S.",
+          "role": "Owner"
+        }
+      ],
+      "plan": "Growth",
+      "contactsGained": 1840,
+      "savedBy": 312,
+      "featured": true,
+      "responseMinutes": 11,
+      "ts": 84000
+    },
+    {
+      "id": "keyhomes-realty",
+      "ownerId": "U-8809",
+      "name": "KeyHomes Realty",
+      "tagline": "Verified shortlets, rentals & land in FCT",
+      "about": "KeyHomes Realty is a real estate & agents business serving Gwarinpa and nearby areas. We take enquiries on WhatsApp, respond within minutes during working hours, and handle both walk-in and delivery requests across the city.",
+      "categorySlug": "real-estate",
+      "city": "Gwarinpa",
+      "state": "Abuja",
+      "address": "12 Adekunle Close, Gwarinpa, Abuja",
+      "rating": 4.3,
+      "reviewsCount": 89,
+      "verified": "documents",
+      "openNow": true,
+      "whatsapp": "+2348030000014",
+      "phone": "+2348030000014",
+      "website": "https://keyhomes-realty.ng",
+      "socials": [
+        {
+          "label": "Instagram",
+          "handle": "@keyhomes-realty"
+        },
+        {
+          "label": "TikTok",
+          "handle": "@keyhomes-realtynng"
+        }
+      ],
+      "services": [
+        {
+          "name": "Standard service",
+          "price": "₦15,000",
+          "note": "Same-day where possible"
+        },
+        {
+          "name": "Premium service",
+          "price": "₦45,000",
+          "note": "Priority handling"
+        },
+        {
+          "name": "Consultation",
+          "price": "Free",
+          "note": "On WhatsApp"
+        }
+      ],
+      "products": [
+        {
+          "name": "Starter package",
+          "price": "₦25,000",
+          "tag": "Popular"
+        },
+        {
+          "name": "Bundle offer",
+          "price": "₦60,000",
+          "tag": "Offer"
+        },
+        {
+          "name": "Enterprise",
+          "price": "Request quote",
+          "tag": "B2B"
+        }
+      ],
+      "amenities": [
+        "Parking",
+        "Card payment",
+        "Transfer accepted",
+        "Delivery",
+        "Wheelchair access"
+      ],
+      "serviceAreas": [
+        "Island",
+        "Mainland",
+        "Nationwide delivery"
+      ],
+      "gallery": [
+        {
+          "label": "Logo",
+          "kind": "Brand"
+        },
+        {
+          "label": "Cover photo",
+          "kind": "Brand"
+        },
+        {
+          "label": "Shop front",
+          "kind": "Premises"
+        },
+        {
+          "label": "Interior",
+          "kind": "Premises"
+        },
+        {
+          "label": "Team at work",
+          "kind": "Team"
+        },
+        {
+          "label": "Product shot 1",
+          "kind": "Products"
+        },
+        {
+          "label": "Product shot 2",
+          "kind": "Products"
+        },
+        {
+          "label": "Before / after",
+          "kind": "Work"
+        },
+        {
+          "label": "CAC certificate",
+          "kind": "Verification"
+        }
+      ],
+      "team": [
+        {
+          "name": "Ada Nwosu",
+          "role": "Owner"
+        }
+      ],
+      "plan": "Pro",
+      "contactsGained": 1840,
+      "savedBy": 312,
+      "featured": false,
+      "responseMinutes": 14,
+      "ts": 82000
+    },
+    {
+      "id": "rapid-dispatch-ng",
+      "ownerId": null,
+      "name": "Rapid Dispatch NG",
+      "tagline": "Same-day bike & van dispatch",
+      "about": "Rapid Dispatch NG is a logistics & dispatch business serving Wuse and nearby areas. We take enquiries on WhatsApp, respond within minutes during working hours, and handle both walk-in and delivery requests across the city.",
+      "categorySlug": "logistics",
+      "city": "Wuse",
+      "state": "Abuja",
+      "address": "12 Adekunle Close, Wuse, Abuja",
+      "rating": 4.5,
+      "reviewsCount": 341,
+      "verified": "documents",
+      "openNow": true,
+      "whatsapp": "+2348030000015",
+      "phone": "+2348030000015",
+      "website": "https://rapid-dispatch-ng.ng",
+      "socials": [
+        {
+          "label": "Instagram",
+          "handle": "@rapid-dispatch-ng"
+        },
+        {
+          "label": "TikTok",
+          "handle": "@rapid-dispatch-ngng"
+        }
+      ],
+      "services": [
+        {
+          "name": "Standard service",
+          "price": "₦15,000",
+          "note": "Same-day where possible"
+        },
+        {
+          "name": "Premium service",
+          "price": "₦45,000",
+          "note": "Priority handling"
+        },
+        {
+          "name": "Consultation",
+          "price": "Free",
+          "note": "On WhatsApp"
+        }
+      ],
+      "products": [
+        {
+          "name": "Starter package",
+          "price": "₦25,000",
+          "tag": "Popular"
+        },
+        {
+          "name": "Bundle offer",
+          "price": "₦60,000",
+          "tag": "Offer"
+        },
+        {
+          "name": "Enterprise",
+          "price": "Request quote",
+          "tag": "B2B"
+        }
+      ],
+      "amenities": [
+        "Parking",
+        "Card payment",
+        "Transfer accepted",
+        "Delivery",
+        "Wheelchair access"
+      ],
+      "serviceAreas": [
+        "Island",
+        "Mainland",
+        "Nationwide delivery"
+      ],
+      "gallery": [
+        {
+          "label": "Logo",
+          "kind": "Brand"
+        },
+        {
+          "label": "Cover photo",
+          "kind": "Brand"
+        },
+        {
+          "label": "Shop front",
+          "kind": "Premises"
+        },
+        {
+          "label": "Interior",
+          "kind": "Premises"
+        },
+        {
+          "label": "Team at work",
+          "kind": "Team"
+        },
+        {
+          "label": "Product shot 1",
+          "kind": "Products"
+        },
+        {
+          "label": "Product shot 2",
+          "kind": "Products"
+        },
+        {
+          "label": "Before / after",
+          "kind": "Work"
+        },
+        {
+          "label": "CAC certificate",
+          "kind": "Verification"
+        }
+      ],
+      "team": [
+        {
+          "name": "Ibrahim D.",
+          "role": "Owner"
+        }
+      ],
+      "plan": "Growth",
+      "contactsGained": 1840,
+      "savedBy": 312,
+      "featured": false,
+      "responseMinutes": 7,
+      "ts": 80000
+    },
+    {
+      "id": "crown-events",
+      "ownerId": null,
+      "name": "Crown Events & Rentals",
+      "tagline": "Canopies, chairs, décor & MC services",
+      "about": "Crown Events & Rentals is an events & rentals business serving GRA and nearby areas. We take enquiries on WhatsApp, respond within minutes during working hours, and handle both walk-in and delivery requests across the city.",
+      "categorySlug": "events",
+      "city": "GRA",
+      "state": "Port Harcourt",
+      "address": "12 Adekunle Close, GRA, Port Harcourt",
+      "rating": 4.4,
+      "reviewsCount": 156,
+      "verified": "documents",
+      "openNow": true,
+      "whatsapp": "+2348030000016",
+      "phone": "+2348030000016",
+      "website": "https://crown-events.ng",
+      "socials": [
+        {
+          "label": "Instagram",
+          "handle": "@crown-events"
+        },
+        {
+          "label": "TikTok",
+          "handle": "@crown-eventsng"
+        }
+      ],
+      "services": [
+        {
+          "name": "Standard service",
+          "price": "₦15,000",
+          "note": "Same-day where possible"
+        },
+        {
+          "name": "Premium service",
+          "price": "₦45,000",
+          "note": "Priority handling"
+        },
+        {
+          "name": "Consultation",
+          "price": "Free",
+          "note": "On WhatsApp"
+        }
+      ],
+      "products": [
+        {
+          "name": "Starter package",
+          "price": "₦25,000",
+          "tag": "Popular"
+        },
+        {
+          "name": "Bundle offer",
+          "price": "₦60,000",
+          "tag": "Offer"
+        },
+        {
+          "name": "Enterprise",
+          "price": "Request quote",
+          "tag": "B2B"
+        }
+      ],
+      "amenities": [
+        "Parking",
+        "Card payment",
+        "Transfer accepted",
+        "Delivery",
+        "Wheelchair access"
+      ],
+      "serviceAreas": [
+        "Island",
+        "Mainland",
+        "Nationwide delivery"
+      ],
+      "gallery": [
+        {
+          "label": "Logo",
+          "kind": "Brand"
+        },
+        {
+          "label": "Cover photo",
+          "kind": "Brand"
+        },
+        {
+          "label": "Shop front",
+          "kind": "Premises"
+        },
+        {
+          "label": "Interior",
+          "kind": "Premises"
+        },
+        {
+          "label": "Team at work",
+          "kind": "Team"
+        },
+        {
+          "label": "Product shot 1",
+          "kind": "Products"
+        },
+        {
+          "label": "Product shot 2",
+          "kind": "Products"
+        },
+        {
+          "label": "Before / after",
+          "kind": "Work"
+        },
+        {
+          "label": "CAC certificate",
+          "kind": "Verification"
+        }
+      ],
+      "team": [
+        {
+          "name": "Chioma E.",
+          "role": "Owner"
+        }
+      ],
+      "plan": "Growth",
+      "contactsGained": 1840,
+      "savedBy": 312,
+      "featured": false,
+      "responseMinutes": 16,
+      "ts": 78000
+    },
+    {
+      "id": "autoplug-mechanics",
+      "ownerId": null,
+      "name": "AutoPlug Mechanics",
+      "tagline": "Mobile mechanic & diagnostics",
+      "about": "AutoPlug Mechanics is an auto & mechanics business serving Ring Road and nearby areas. We take enquiries on WhatsApp, respond within minutes during working hours, and handle both walk-in and delivery requests across the city.",
+      "categorySlug": "auto",
+      "city": "Ring Road",
+      "state": "Ibadan",
+      "address": "12 Adekunle Close, Ring Road, Ibadan",
+      "rating": 4.2,
+      "reviewsCount": 204,
+      "verified": "documents",
+      "openNow": false,
+      "whatsapp": "+2348030000017",
+      "phone": "+2348030000017",
+      "website": "https://autoplug-mechanics.ng",
+      "socials": [
+        {
+          "label": "Instagram",
+          "handle": "@autoplug-mechanics"
+        },
+        {
+          "label": "TikTok",
+          "handle": "@autoplug-mechanicsng"
+        }
+      ],
+      "services": [
+        {
+          "name": "Standard service",
+          "price": "₦15,000",
+          "note": "Same-day where possible"
+        },
+        {
+          "name": "Premium service",
+          "price": "₦45,000",
+          "note": "Priority handling"
+        },
+        {
+          "name": "Consultation",
+          "price": "Free",
+          "note": "On WhatsApp"
+        }
+      ],
+      "products": [
+        {
+          "name": "Starter package",
+          "price": "₦25,000",
+          "tag": "Popular"
+        },
+        {
+          "name": "Bundle offer",
+          "price": "₦60,000",
+          "tag": "Offer"
+        },
+        {
+          "name": "Enterprise",
+          "price": "Request quote",
+          "tag": "B2B"
+        }
+      ],
+      "amenities": [
+        "Parking",
+        "Card payment",
+        "Transfer accepted",
+        "Delivery",
+        "Wheelchair access"
+      ],
+      "serviceAreas": [
+        "Island",
+        "Mainland",
+        "Nationwide delivery"
+      ],
+      "gallery": [
+        {
+          "label": "Logo",
+          "kind": "Brand"
+        },
+        {
+          "label": "Cover photo",
+          "kind": "Brand"
+        },
+        {
+          "label": "Shop front",
+          "kind": "Premises"
+        },
+        {
+          "label": "Interior",
+          "kind": "Premises"
+        },
+        {
+          "label": "Team at work",
+          "kind": "Team"
+        },
+        {
+          "label": "Product shot 1",
+          "kind": "Products"
+        },
+        {
+          "label": "Product shot 2",
+          "kind": "Products"
+        },
+        {
+          "label": "Before / after",
+          "kind": "Work"
+        },
+        {
+          "label": "CAC certificate",
+          "kind": "Verification"
+        }
+      ],
+      "team": [
+        {
+          "name": "Kunle T.",
+          "role": "Owner"
+        }
+      ],
+      "plan": "Free",
+      "contactsGained": 340,
+      "savedBy": 45,
+      "featured": false,
+      "responseMinutes": 25,
+      "ts": 76000
+    },
+    {
+      "id": "wellcare-pharmacy",
+      "ownerId": null,
+      "name": "WellCare Pharmacy",
+      "tagline": "Registered pharmacy with delivery",
+      "about": "WellCare Pharmacy is a health & pharmacy business serving New Haven and nearby areas. We take enquiries on WhatsApp, respond within minutes during working hours, and handle both walk-in and delivery requests across the city.",
+      "categorySlug": "health",
+      "city": "New Haven",
+      "state": "Enugu",
+      "address": "12 Adekunle Close, New Haven, Enugu",
+      "rating": 4.7,
+      "reviewsCount": 121,
+      "verified": "documents",
+      "openNow": true,
+      "whatsapp": "+2348030000018",
+      "phone": "+2348030000018",
+      "website": "https://wellcare-pharmacy.ng",
+      "socials": [
+        {
+          "label": "Instagram",
+          "handle": "@wellcare-pharmacy"
+        },
+        {
+          "label": "TikTok",
+          "handle": "@wellcare-pharmacynng"
+        }
+      ],
+      "services": [
+        {
+          "name": "Standard service",
+          "price": "₦15,000",
+          "note": "Same-day where possible"
+        },
+        {
+          "name": "Premium service",
+          "price": "₦45,000",
+          "note": "Priority handling"
+        },
+        {
+          "name": "Consultation",
+          "price": "Free",
+          "note": "On WhatsApp"
+        }
+      ],
+      "products": [
+        {
+          "name": "Starter package",
+          "price": "₦25,000",
+          "tag": "Popular"
+        },
+        {
+          "name": "Bundle offer",
+          "price": "₦60,000",
+          "tag": "Offer"
+        },
+        {
+          "name": "Enterprise",
+          "price": "Request quote",
+          "tag": "B2B"
+        }
+      ],
+      "amenities": [
+        "Parking",
+        "Card payment",
+        "Transfer accepted",
+        "Delivery",
+        "Wheelchair access"
+      ],
+      "serviceAreas": [
+        "Island",
+        "Mainland",
+        "Nationwide delivery"
+      ],
+      "gallery": [
+        {
+          "label": "Logo",
+          "kind": "Brand"
+        },
+        {
+          "label": "Cover photo",
+          "kind": "Brand"
+        },
+        {
+          "label": "Shop front",
+          "kind": "Premises"
+        },
+        {
+          "label": "Interior",
+          "kind": "Premises"
+        },
+        {
+          "label": "Team at work",
+          "kind": "Team"
+        },
+        {
+          "label": "Product shot 1",
+          "kind": "Products"
+        },
+        {
+          "label": "Product shot 2",
+          "kind": "Products"
+        },
+        {
+          "label": "Before / after",
+          "kind": "Work"
+        },
+        {
+          "label": "CAC certificate",
+          "kind": "Verification"
+        }
+      ],
+      "team": [
+        {
+          "name": "Dr. Emeka N.",
+          "role": "Owner"
+        }
+      ],
+      "plan": "Growth",
+      "contactsGained": 640,
+      "savedBy": 78,
+      "featured": false,
+      "responseMinutes": 9,
+      "ts": 74000
+    },
+    {
+      "id": "brightpath-tutors",
+      "ownerId": null,
+      "name": "BrightPath Tutors",
+      "tagline": "WAEC, JAMB & IELTS coaching",
+      "about": "BrightPath Tutors is a schools & tutors business serving Bodija and nearby areas. We take enquiries on WhatsApp, respond within minutes during working hours, and handle both walk-in and delivery requests across the city.",
+      "categorySlug": "education",
+      "city": "Bodija",
+      "state": "Ibadan",
+      "address": "12 Adekunle Close, Bodija, Ibadan",
+      "rating": 4.8,
+      "reviewsCount": 76,
+      "verified": "email",
+      "openNow": true,
+      "whatsapp": "+2348030000019",
+      "phone": "+2348030000019",
+      "website": "https://brightpath-tutors.ng",
+      "socials": [
+        {
+          "label": "Instagram",
+          "handle": "@brightpath-tutors"
+        },
+        {
+          "label": "TikTok",
+          "handle": "@brightpath-tutorsng"
+        }
+      ],
+      "services": [
+        {
+          "name": "Standard service",
+          "price": "₦15,000",
+          "note": "Same-day where possible"
+        },
+        {
+          "name": "Premium service",
+          "price": "₦45,000",
+          "note": "Priority handling"
+        },
+        {
+          "name": "Consultation",
+          "price": "Free",
+          "note": "On WhatsApp"
+        }
+      ],
+      "products": [
+        {
+          "name": "Starter package",
+          "price": "₦25,000",
+          "tag": "Popular"
+        },
+        {
+          "name": "Bundle offer",
+          "price": "₦60,000",
+          "tag": "Offer"
+        },
+        {
+          "name": "Enterprise",
+          "price": "Request quote",
+          "tag": "B2B"
+        }
+      ],
+      "amenities": [
+        "Parking",
+        "Card payment",
+        "Transfer accepted",
+        "Delivery",
+        "Wheelchair access"
+      ],
+      "serviceAreas": [
+        "Island",
+        "Mainland",
+        "Nationwide delivery"
+      ],
+      "gallery": [
+        {
+          "label": "Logo",
+          "kind": "Brand"
+        },
+        {
+          "label": "Cover photo",
+          "kind": "Brand"
+        },
+        {
+          "label": "Shop front",
+          "kind": "Premises"
+        },
+        {
+          "label": "Interior",
+          "kind": "Premises"
+        },
+        {
+          "label": "Team at work",
+          "kind": "Team"
+        },
+        {
+          "label": "Product shot 1",
+          "kind": "Products"
+        },
+        {
+          "label": "Product shot 2",
+          "kind": "Products"
+        },
+        {
+          "label": "Before / after",
+          "kind": "Work"
+        },
+        {
+          "label": "CAC certificate",
+          "kind": "Verification"
+        }
+      ],
+      "team": [
+        {
+          "name": "Folake O.",
+          "role": "Owner"
+        }
+      ],
+      "plan": "Free",
+      "contactsGained": 210,
+      "savedBy": 33,
+      "featured": false,
+      "responseMinutes": 19,
+      "ts": 72000
+    },
+    {
+      "id": "okoro-associates",
+      "ownerId": null,
+      "name": "Okoro & Associates",
+      "tagline": "Property law, contracts & CAC filings",
+      "about": "Okoro & Associates is a professionals & legal business serving D-Line and nearby areas. We take enquiries on WhatsApp, respond within minutes during working hours, and handle both walk-in and delivery requests across the city.",
+      "categorySlug": "professionals",
+      "city": "D-Line",
+      "state": "Port Harcourt",
+      "address": "12 Adekunle Close, D-Line, Port Harcourt",
+      "rating": 4.5,
+      "reviewsCount": 44,
+      "verified": "email",
+      "openNow": true,
+      "whatsapp": "+2348030000020",
+      "phone": "+2348030000020",
+      "website": "https://okoro-associates.ng",
+      "socials": [
+        {
+          "label": "Instagram",
+          "handle": "@okoro-associates"
+        },
+        {
+          "label": "TikTok",
+          "handle": "@okoro-associatesng"
+        }
+      ],
+      "services": [
+        {
+          "name": "Standard service",
+          "price": "₦15,000",
+          "note": "Same-day where possible"
+        },
+        {
+          "name": "Premium service",
+          "price": "₦45,000",
+          "note": "Priority handling"
+        },
+        {
+          "name": "Consultation",
+          "price": "Free",
+          "note": "On WhatsApp"
+        }
+      ],
+      "products": [
+        {
+          "name": "Starter package",
+          "price": "₦25,000",
+          "tag": "Popular"
+        },
+        {
+          "name": "Bundle offer",
+          "price": "₦60,000",
+          "tag": "Offer"
+        },
+        {
+          "name": "Enterprise",
+          "price": "Request quote",
+          "tag": "B2B"
+        }
+      ],
+      "amenities": [
+        "Parking",
+        "Card payment",
+        "Transfer accepted",
+        "Delivery",
+        "Wheelchair access"
+      ],
+      "serviceAreas": [
+        "Island",
+        "Mainland",
+        "Nationwide delivery"
+      ],
+      "gallery": [
+        {
+          "label": "Logo",
+          "kind": "Brand"
+        },
+        {
+          "label": "Cover photo",
+          "kind": "Brand"
+        },
+        {
+          "label": "Shop front",
+          "kind": "Premises"
+        },
+        {
+          "label": "Interior",
+          "kind": "Premises"
+        },
+        {
+          "label": "Team at work",
+          "kind": "Team"
+        },
+        {
+          "label": "Product shot 1",
+          "kind": "Products"
+        },
+        {
+          "label": "Product shot 2",
+          "kind": "Products"
+        },
+        {
+          "label": "Before / after",
+          "kind": "Work"
+        },
+        {
+          "label": "CAC certificate",
+          "kind": "Verification"
+        }
+      ],
+      "team": [
+        {
+          "name": "Barr. N. Okoro",
+          "role": "Principal"
+        }
+      ],
+      "plan": "Free",
+      "contactsGained": 150,
+      "savedBy": 21,
+      "featured": false,
+      "responseMinutes": 32,
+      "ts": 70000
+    },
+    {
+      "id": "fixit-home-services",
+      "ownerId": null,
+      "name": "FixIt Home Services",
+      "tagline": "Plumbing, POP, electrical & cleaning",
+      "about": "FixIt Home Services is a home services business serving Ajah and nearby areas. We take enquiries on WhatsApp, respond within minutes during working hours, and handle both walk-in and delivery requests across the city.",
+      "categorySlug": "home-services",
+      "city": "Ajah",
+      "state": "Lagos",
+      "address": "12 Adekunle Close, Ajah, Lagos",
+      "rating": 4.1,
+      "reviewsCount": 289,
+      "verified": "unverified",
+      "openNow": true,
+      "whatsapp": "+2348030000021",
+      "phone": "+2348030000021",
+      "website": "https://fixit-home-services.ng",
+      "socials": [
+        {
+          "label": "Instagram",
+          "handle": "@fixit-home-services"
+        },
+        {
+          "label": "TikTok",
+          "handle": "@fixit-home-servicesng"
+        }
+      ],
+      "services": [
+        {
+          "name": "Standard service",
+          "price": "₦15,000",
+          "note": "Same-day where possible"
+        },
+        {
+          "name": "Premium service",
+          "price": "₦45,000",
+          "note": "Priority handling"
+        },
+        {
+          "name": "Consultation",
+          "price": "Free",
+          "note": "On WhatsApp"
+        }
+      ],
+      "products": [
+        {
+          "name": "Starter package",
+          "price": "₦25,000",
+          "tag": "Popular"
+        },
+        {
+          "name": "Bundle offer",
+          "price": "₦60,000",
+          "tag": "Offer"
+        },
+        {
+          "name": "Enterprise",
+          "price": "Request quote",
+          "tag": "B2B"
+        }
+      ],
+      "amenities": [
+        "Parking",
+        "Card payment",
+        "Transfer accepted",
+        "Delivery",
+        "Wheelchair access"
+      ],
+      "serviceAreas": [
+        "Island",
+        "Mainland",
+        "Nationwide delivery"
+      ],
+      "gallery": [
+        {
+          "label": "Logo",
+          "kind": "Brand"
+        },
+        {
+          "label": "Cover photo",
+          "kind": "Brand"
+        },
+        {
+          "label": "Shop front",
+          "kind": "Premises"
+        },
+        {
+          "label": "Interior",
+          "kind": "Premises"
+        },
+        {
+          "label": "Team at work",
+          "kind": "Team"
+        },
+        {
+          "label": "Product shot 1",
+          "kind": "Products"
+        },
+        {
+          "label": "Product shot 2",
+          "kind": "Products"
+        },
+        {
+          "label": "Before / after",
+          "kind": "Work"
+        },
+        {
+          "label": "CAC certificate",
+          "kind": "Verification"
+        }
+      ],
+      "team": [
+        {
+          "name": "Segun A.",
+          "role": "Owner"
+        }
+      ],
+      "plan": "Free",
+      "contactsGained": 98,
+      "savedBy": 12,
+      "featured": false,
+      "responseMinutes": 41,
+      "ts": 68000
+    }
+  ],
+  "reviews": [
+    {
+      "id": "R-301",
+      "businessId": "swiftfix-gadgets",
+      "author": "Blessing E.",
+      "rating": 5,
+      "body": "They fixed my screen in 40 minutes and the price was exactly what they said on WhatsApp.",
+      "status": "Published",
+      "ts": 2880
+    },
+    {
+      "id": "R-300",
+      "businessId": "swiftfix-gadgets",
+      "author": "Musa I.",
+      "rating": 4,
+      "body": "Good service, but the shop was busy so I waited a while. Still worth it.",
+      "status": "Published",
+      "ts": 10080
+    },
+    {
+      "id": "R-299",
+      "businessId": "swiftfix-gadgets",
+      "author": "Ngozi U.",
+      "rating": 5,
+      "body": "Very responsive on WhatsApp. Sent photos of the fault and got a quote immediately.",
+      "status": "Published",
+      "ts": 30240
+    },
+    {
+      "id": "R-298",
+      "businessId": "mama-ope-kitchen",
+      "author": "Tunde A.",
+      "rating": 5,
+      "body": "Best jollof in Surulere, delivery arrived hot and on time.",
+      "status": "Published",
+      "ts": 4320
+    },
+    {
+      "id": "R-297",
+      "businessId": "mama-ope-kitchen",
+      "author": "Ada N.",
+      "rating": 4,
+      "body": "Great food. The small chops platter was a hit at our party.",
+      "status": "Published",
+      "ts": 20160
+    },
+    {
+      "id": "R-296",
+      "businessId": "adire-atelier",
+      "author": "Chioma E.",
+      "rating": 5,
+      "body": "My agbada was sewn to perfection in four days. Excellent fabric quality.",
+      "status": "Published",
+      "ts": 5760
+    },
+    {
+      "id": "R-295",
+      "businessId": "glow-by-tola",
+      "author": "Zainab M.",
+      "rating": 5,
+      "body": "Home service manicure and lashes — clean tools, lovely finish.",
+      "status": "Published",
+      "ts": 7200
+    },
+    {
+      "id": "R-294",
+      "businessId": "keyhomes-realty",
+      "author": "Emeka O.",
+      "rating": 4,
+      "body": "Found a good shortlet in Gwarinpa through them. Slight delay with check-in.",
+      "status": "Published",
+      "ts": 11520
+    },
+    {
+      "id": "R-293",
+      "businessId": "fixit-home-services",
+      "author": "Bola A.",
+      "rating": 3,
+      "body": "Plumbing job was fine but they came a day late.",
+      "status": "Published",
+      "ts": 14400
+    }
+  ],
+  "rooms": [
+    {
+      "id": "lagos-vendors-hub",
+      "name": "Lagos Vendors Hub",
+      "purpose": "Business promotion",
+      "members": 4820,
+      "slots": 5000,
+      "rule": "Save all, post one status daily",
+      "verifiedOnly": true,
+      "state": "Lagos",
+      "status": "Active",
+      "ownerId": null,
+      "ts": 60000
+    },
+    {
+      "id": "naija-fashion-plug",
+      "name": "Naija Fashion Plug",
+      "purpose": "Fashion & tailoring vendors",
+      "members": 2610,
+      "slots": 2700,
+      "rule": "Save back within 24 hours",
+      "verifiedOnly": true,
+      "state": "Nationwide",
+      "status": "Active",
+      "ownerId": null,
+      "ts": 55000
+    },
+    {
+      "id": "abuja-hustlers",
+      "name": "Abuja Hustlers Circle",
+      "purpose": "General networking",
+      "members": 3150,
+      "slots": 3200,
+      "rule": "No adult content, no scam links",
+      "verifiedOnly": false,
+      "state": "Abuja",
+      "status": "Active",
+      "ownerId": null,
+      "ts": 50000
+    },
+    {
+      "id": "delivery-riders-ng",
+      "name": "Delivery Riders NG",
+      "purpose": "Logistics partners",
+      "members": 1290,
+      "slots": 1500,
+      "rule": "Riders and dispatch owners only",
+      "verifiedOnly": true,
+      "state": "Nationwide",
+      "status": "Active",
+      "ownerId": null,
+      "ts": 45000
+    }
+  ],
+  "roomMembers": [
+    {
+      "roomId": "lagos-vendors-hub",
+      "name": "SwiftFix Gadgets",
+      "niche": "Phone repair",
+      "saveBack": 98
+    },
+    {
+      "roomId": "lagos-vendors-hub",
+      "name": "Glow by Tola",
+      "niche": "Beauty",
+      "saveBack": 64
+    },
+    {
+      "roomId": "lagos-vendors-hub",
+      "name": "FixIt Home Services",
+      "niche": "Home services",
+      "saveBack": 71
+    },
+    {
+      "roomId": "naija-fashion-plug",
+      "name": "Adire Atelier",
+      "niche": "Fashion",
+      "saveBack": 94
+    },
+    {
+      "roomId": "abuja-hustlers",
+      "name": "KeyHomes Realty",
+      "niche": "Real estate",
+      "saveBack": 82
+    },
+    {
+      "roomId": "abuja-hustlers",
+      "name": "Rapid Dispatch NG",
+      "niche": "Logistics",
+      "saveBack": 77
+    },
+    {
+      "roomId": "delivery-riders-ng",
+      "name": "Rapid Dispatch NG",
+      "niche": "Logistics",
+      "saveBack": 88
+    }
+  ],
+  "roomActivity": [
+    {
+      "roomId": "lagos-vendors-hub",
+      "text": "Amina joined the room",
+      "ts": 180
+    },
+    {
+      "roomId": "lagos-vendors-hub",
+      "text": "3 members removed for not saving back",
+      "ts": 720
+    },
+    {
+      "roomId": "lagos-vendors-hub",
+      "text": "Moderator reviewed 2 reports",
+      "ts": 1440
+    },
+    {
+      "roomId": "lagos-vendors-hub",
+      "text": "Room capacity increased to 5,000",
+      "ts": 4320
+    }
+  ],
+  "leads": [
+    {
+      "id": "LD-1041",
+      "businessId": "swiftfix-gadgets",
+      "name": "Blessing Eze",
+      "source": "Directory profile",
+      "channel": "WhatsApp",
+      "stage": "New",
+      "value": "₦45,000",
+      "agent": "Amina B.",
+      "score": 82,
+      "ts": 3
+    },
+    {
+      "id": "LD-1040",
+      "businessId": "swiftfix-gadgets",
+      "name": "Musa Ibrahim",
+      "source": "QR — Ikeja shop",
+      "channel": "WhatsApp",
+      "stage": "Qualified",
+      "value": "₦120,000",
+      "agent": "Chidi O.",
+      "score": 91,
+      "ts": 18
+    },
+    {
+      "id": "LD-1039",
+      "businessId": "swiftfix-gadgets",
+      "name": "Ngozi Umeh",
+      "source": "Campaign — August offer",
+      "channel": "Form",
+      "stage": "Quotation",
+      "value": "₦310,000",
+      "agent": "Amina B.",
+      "score": 74,
+      "ts": 60
+    },
+    {
+      "id": "LD-1038",
+      "businessId": "swiftfix-gadgets",
+      "name": "Tunde Ade",
+      "source": "Referral link",
+      "channel": "WhatsApp",
+      "stage": "Follow up",
+      "value": "₦28,000",
+      "agent": "Unassigned",
+      "score": 51,
+      "ts": 120
+    },
+    {
+      "id": "LD-1037",
+      "businessId": "swiftfix-gadgets",
+      "name": "Fatima Sani",
+      "source": "Website widget",
+      "channel": "WhatsApp",
+      "stage": "Won",
+      "value": "₦85,000",
+      "agent": "Chidi O.",
+      "score": 96,
+      "ts": 1500
+    },
+    {
+      "id": "LD-1036",
+      "businessId": "swiftfix-gadgets",
+      "name": "Emeka Nwosu",
+      "source": "Contact-gain room",
+      "channel": "WhatsApp",
+      "stage": "Lost",
+      "value": "₦15,000",
+      "agent": "Amina B.",
+      "score": 33,
+      "ts": 2880
+    },
+    {
+      "id": "LD-1035",
+      "businessId": "keyhomes-realty",
+      "name": "Yusuf Bello",
+      "source": "Directory profile",
+      "channel": "Form",
+      "stage": "New",
+      "value": "₦450,000",
+      "agent": "Ada N.",
+      "score": 68,
+      "ts": 25
+    }
+  ],
+  "contacts": [
+    {
+      "id": "CT-901",
+      "businessId": "swiftfix-gadgets",
+      "name": "Blessing Eze",
+      "phone": "+234 802 111 2222",
+      "email": "blessing@gmail.com",
+      "tags": [
+        "WhatsApp lead",
+        "iPhone"
+      ],
+      "source": "Directory profile",
+      "ts": 3
+    },
+    {
+      "id": "CT-900",
+      "businessId": "swiftfix-gadgets",
+      "name": "Musa Ibrahim",
+      "phone": "+234 803 333 4444",
+      "email": "musa@yahoo.com",
+      "tags": [
+        "Hot"
+      ],
+      "source": "QR — Ikeja shop",
+      "ts": 18
+    },
+    {
+      "id": "CT-899",
+      "businessId": "swiftfix-gadgets",
+      "name": "Ngozi Umeh",
+      "phone": "+234 805 555 6666",
+      "email": "ngozi@outlook.com",
+      "tags": [
+        "Quotation"
+      ],
+      "source": "Campaign — August offer",
+      "ts": 60
+    },
+    {
+      "id": "CT-898",
+      "businessId": "swiftfix-gadgets",
+      "name": "Fatima Sani",
+      "phone": "+234 807 777 8888",
+      "email": "fatima@gmail.com",
+      "tags": [
+        "Customer",
+        "Repeat"
+      ],
+      "source": "Website widget",
+      "ts": 1500
+    }
+  ],
+  "conversations": [
+    {
+      "id": "c1",
+      "businessId": "swiftfix-gadgets",
+      "name": "Blessing Eze",
+      "last": "Do you repair iPhone 13 screen today?",
+      "unread": 2,
+      "tag": "New WhatsApp lead",
+      "assigned": "Amina B.",
+      "ts": 3,
+      "messages": [
+        {
+          "from": "contact",
+          "body": "Hello, I saw your profile on GainHub.",
+          "ts": 8
+        },
+        {
+          "from": "business",
+          "body": "Welcome! How can we help you today?",
+          "ts": 6
+        },
+        {
+          "from": "contact",
+          "body": "Do you repair iPhone 13 screen today?",
+          "ts": 3
+        }
+      ]
+    },
+    {
+      "id": "c2",
+      "businessId": "swiftfix-gadgets",
+      "name": "Musa Ibrahim",
+      "last": "Send me your account details",
+      "unread": 0,
+      "tag": "Hot",
+      "assigned": "Chidi O.",
+      "ts": 18,
+      "messages": [
+        {
+          "from": "contact",
+          "body": "The trackpad of my MacBook is faulty.",
+          "ts": 30
+        },
+        {
+          "from": "business",
+          "body": "We can fix it today — ₦45,000 for genuine parts.",
+          "ts": 25
+        },
+        {
+          "from": "contact",
+          "body": "Send me your account details",
+          "ts": 18
+        }
+      ]
+    },
+    {
+      "id": "c3",
+      "businessId": "swiftfix-gadgets",
+      "name": "Ngozi Umeh",
+      "last": "I've shared the quotation, please review.",
+      "unread": 0,
+      "tag": "Quotation",
+      "assigned": "Amina B.",
+      "ts": 60,
+      "messages": [
+        {
+          "from": "contact",
+          "body": "Please quote me for a full laptop service.",
+          "ts": 90
+        },
+        {
+          "from": "business",
+          "body": "I've shared the quotation, please review.",
+          "ts": 60
+        }
+      ]
+    },
+    {
+      "id": "c4",
+      "businessId": "swiftfix-gadgets",
+      "name": "Tunde Ade",
+      "last": "Okay I will come tomorrow",
+      "unread": 1,
+      "tag": "Callback",
+      "assigned": "Unassigned",
+      "ts": 120,
+      "messages": [
+        {
+          "from": "business",
+          "body": "Good day, following up on your repair request.",
+          "ts": 180
+        },
+        {
+          "from": "contact",
+          "body": "Okay I will come tomorrow",
+          "ts": 120
+        }
+      ]
+    },
+    {
+      "id": "c5",
+      "businessId": "swiftfix-gadgets",
+      "name": "Fatima Sani",
+      "last": "Thank you 🙏",
+      "unread": 0,
+      "tag": "Customer",
+      "assigned": "Chidi O.",
+      "ts": 1500,
+      "messages": [
+        {
+          "from": "contact",
+          "body": "Thank you 🙏",
+          "ts": 1500
+        }
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "id": "T-91",
+      "businessId": "swiftfix-gadgets",
+      "title": "Call Blessing about screen repair",
+      "due": "Today 4:00 PM",
+      "owner": "Amina B.",
+      "priority": "High",
+      "done": false,
+      "ts": 200
+    },
+    {
+      "id": "T-90",
+      "businessId": "swiftfix-gadgets",
+      "title": "Send quotation to Ngozi",
+      "due": "Today 6:00 PM",
+      "owner": "Chidi O.",
+      "priority": "High",
+      "done": false,
+      "ts": 220
+    },
+    {
+      "id": "T-89",
+      "businessId": "swiftfix-gadgets",
+      "title": "Follow up stale lead — Tunde",
+      "due": "Tomorrow",
+      "owner": "Amina B.",
+      "priority": "Medium",
+      "done": false,
+      "ts": 400
+    },
+    {
+      "id": "T-88",
+      "businessId": "swiftfix-gadgets",
+      "title": "Upload new product photos",
+      "due": "Fri",
+      "owner": "Chidi O.",
+      "priority": "Low",
+      "done": true,
+      "ts": 3000
+    }
+  ],
+  "campaigns": [
+    {
+      "id": "CMP-12",
+      "businessId": "swiftfix-gadgets",
+      "name": "August repair offer",
+      "channel": "WhatsApp link",
+      "scans": 1820,
+      "leads": 412,
+      "cost": "₦45,000",
+      "cpl": "₦109",
+      "status": "Live",
+      "ts": 20000
+    },
+    {
+      "id": "CMP-11",
+      "businessId": "swiftfix-gadgets",
+      "name": "Ikeja shop QR",
+      "channel": "QR code",
+      "scans": 940,
+      "leads": 233,
+      "cost": "₦8,000",
+      "cpl": "₦34",
+      "status": "Live",
+      "ts": 30000
+    },
+    {
+      "id": "CMP-10",
+      "businessId": "swiftfix-gadgets",
+      "name": "Contact-gain room push",
+      "channel": "Room",
+      "scans": 3100,
+      "leads": 690,
+      "cost": "₦0",
+      "cpl": "₦0",
+      "status": "Live",
+      "ts": 40000
+    },
+    {
+      "id": "CMP-09",
+      "businessId": "swiftfix-gadgets",
+      "name": "Ramadan bundle",
+      "channel": "Campaign link",
+      "scans": 2400,
+      "leads": 301,
+      "cost": "₦60,000",
+      "cpl": "₦199",
+      "status": "Ended",
+      "ts": 90000
+    }
+  ],
+  "links": [
+    {
+      "id": "LK-31",
+      "businessId": "swiftfix-gadgets",
+      "label": "Main profile button",
+      "code": "swiftfix",
+      "url": "gain.ng/w/swiftfix",
+      "scans": 5210,
+      "source": "Directory",
+      "ts": 60000
+    },
+    {
+      "id": "LK-30",
+      "businessId": "swiftfix-gadgets",
+      "label": "Ikeja shop QR",
+      "code": "ikeja",
+      "url": "gain.ng/q/ikeja",
+      "scans": 940,
+      "source": "QR",
+      "ts": 45000
+    },
+    {
+      "id": "LK-29",
+      "businessId": "swiftfix-gadgets",
+      "label": "Instagram bio",
+      "code": "swiftfix-ig",
+      "url": "gain.ng/w/swiftfix-ig",
+      "scans": 2110,
+      "source": "Social",
+      "ts": 50000
+    },
+    {
+      "id": "LK-28",
+      "businessId": "swiftfix-gadgets",
+      "label": "Flyer — August",
+      "code": "aug-flyer",
+      "url": "gain.ng/q/aug-flyer",
+      "scans": 618,
+      "source": "Print",
+      "ts": 20000
+    }
+  ],
+  "automations": [
+    {
+      "id": "AU-7",
+      "businessId": "swiftfix-gadgets",
+      "trigger": "New WhatsApp lead",
+      "action": "Create contact + tag “New WhatsApp lead”",
+      "runs": 5210,
+      "status": "Active",
+      "ts": 60000
+    },
+    {
+      "id": "AU-6",
+      "businessId": "swiftfix-gadgets",
+      "trigger": "No response after 24h",
+      "action": "Create follow-up task for owner",
+      "runs": 812,
+      "status": "Active",
+      "ts": 55000
+    },
+    {
+      "id": "AU-5",
+      "businessId": "swiftfix-gadgets",
+      "trigger": "Quote requested",
+      "action": "Create opportunity in pipeline",
+      "runs": 402,
+      "status": "Active",
+      "ts": 50000
+    },
+    {
+      "id": "AU-4",
+      "businessId": "swiftfix-gadgets",
+      "trigger": "New public review",
+      "action": "Notify business owner",
+      "runs": 261,
+      "status": "Active",
+      "ts": 45000
+    },
+    {
+      "id": "AU-3",
+      "businessId": "swiftfix-gadgets",
+      "trigger": "Profile incomplete 7 days",
+      "action": "Send completion reminder",
+      "runs": 143,
+      "status": "Paused",
+      "ts": 40000
+    },
+    {
+      "id": "AU-2",
+      "businessId": "swiftfix-gadgets",
+      "trigger": "Listing reported",
+      "action": "Send to moderation queue",
+      "runs": 58,
+      "status": "Active",
+      "ts": 35000
+    }
+  ],
+  "teamMembers": [
+    {
+      "id": "TM-1",
+      "businessId": "swiftfix-gadgets",
+      "name": "Chidi Okonkwo",
+      "email": "chidi@swiftfix.ng",
+      "role": "Owner",
+      "status": "Active",
+      "ts": 80000
+    },
+    {
+      "id": "TM-2",
+      "businessId": "swiftfix-gadgets",
+      "name": "Amina Bello",
+      "email": "amina@swiftfix.ng",
+      "role": "Sales agent",
+      "status": "Active",
+      "ts": 70000
+    },
+    {
+      "id": "TM-3",
+      "businessId": "swiftfix-gadgets",
+      "name": "Seyi Adeoye",
+      "email": "seyi@swiftfix.ng",
+      "role": "Marketing",
+      "status": "Active",
+      "ts": 60000
+    },
+    {
+      "id": "TM-4",
+      "businessId": "swiftfix-gadgets",
+      "name": "Grace Nnaji",
+      "email": "grace@swiftfix.ng",
+      "role": "Staff",
+      "status": "Invited",
+      "ts": 5000
+    }
+  ],
+  "auditLog": [
+    {
+      "id": "A-501",
+      "actor": "Amina Bello",
+      "action": "Moved LD-1040 to Qualified",
+      "businessId": "swiftfix-gadgets",
+      "ts": 63
+    },
+    {
+      "id": "A-500",
+      "actor": "System",
+      "action": "Auto-assigned LD-1041 to Amina Bello",
+      "businessId": "swiftfix-gadgets",
+      "ts": 66
+    },
+    {
+      "id": "A-499",
+      "actor": "Chidi Okonkwo",
+      "action": "Updated business hours",
+      "businessId": "swiftfix-gadgets",
+      "ts": 1150
+    },
+    {
+      "id": "A-498",
+      "actor": "Seyi Adeoye",
+      "action": "Created campaign CMP-12",
+      "businessId": "swiftfix-gadgets",
+      "ts": 1250
+    }
+  ],
+  "claims": [
+    {
+      "id": "CL-77",
+      "businessId": "mama-ope-kitchen",
+      "businessName": "Mama Ope Kitchen",
+      "claimant": "Opeyemi A.",
+      "role": "Owner",
+      "contact": "ope@mamaope.ng",
+      "evidence": "CAC + utility bill",
+      "notes": "",
+      "status": "Pending",
+      "ts": 120
+    },
+    {
+      "id": "CL-76",
+      "businessId": "autoplug-mechanics",
+      "businessName": "AutoPlug Mechanics",
+      "claimant": "Kunle T.",
+      "role": "Owner",
+      "contact": "kunle@autoplug.ng",
+      "evidence": "Shop photo + ID",
+      "notes": "",
+      "status": "In review",
+      "ts": 1500
+    },
+    {
+      "id": "CL-75",
+      "businessId": "crown-events",
+      "businessName": "Crown Events",
+      "claimant": "Chioma E.",
+      "role": "Owner",
+      "contact": "chioma@crownevents.ng",
+      "evidence": "Bank statement",
+      "notes": "",
+      "status": "Approved",
+      "ts": 4320
+    }
+  ],
+  "moderation": [
+    {
+      "id": "M-231",
+      "type": "Image",
+      "item": "Gallery photo — Glow by Tola",
+      "reason": "AI flag: possible nudity",
+      "risk": "High",
+      "status": "Pending",
+      "ts": 5
+    },
+    {
+      "id": "M-230",
+      "type": "Listing",
+      "item": "Quick Loans Naija",
+      "reason": "Scam keywords",
+      "risk": "High",
+      "status": "Pending",
+      "ts": 22
+    },
+    {
+      "id": "M-229",
+      "type": "Review",
+      "item": "Review on SwiftFix Gadgets",
+      "reason": "Suspected fake review",
+      "risk": "Medium",
+      "status": "Pending",
+      "ts": 60
+    },
+    {
+      "id": "M-228",
+      "type": "Profile",
+      "item": "Contact-gain profile #4412",
+      "reason": "Impersonation report",
+      "risk": "Medium",
+      "status": "Pending",
+      "ts": 180
+    }
+  ],
+  "reports": [
+    {
+      "id": "RP-511",
+      "targetType": "Listing",
+      "targetLabel": "Quick Loans Naija",
+      "reason": "Scam or advance-fee requests",
+      "details": "Asks for a ₦5,000 ‘processing fee’ before any loan.",
+      "contact": "reporter1@mail.com",
+      "status": "Open",
+      "risk": "High",
+      "ts": 45
+    },
+    {
+      "id": "RP-510",
+      "targetType": "Review",
+      "targetLabel": "Review on SwiftFix Gadgets",
+      "reason": "Fake reviews",
+      "details": "Same text posted on three listings.",
+      "contact": "",
+      "status": "Reviewing",
+      "risk": "Medium",
+      "ts": 300
+    },
+    {
+      "id": "RP-509",
+      "targetType": "Member",
+      "targetLabel": "Abuja Hustlers Circle member",
+      "reason": "Impersonation of another business",
+      "details": "",
+      "contact": "",
+      "status": "Resolved",
+      "risk": "Low",
+      "ts": 5000
+    }
+  ],
+  "suggestions": [
+    {
+      "id": "SG-120",
+      "type": "New business",
+      "categorySlug": "food-restaurants",
+      "name": "Mai Suya Spot",
+      "contact": "+234 806 123 4567",
+      "address": "Sabon Gari, Kano",
+      "details": "Popular suya spot, very responsive on WhatsApp.",
+      "status": "Pending",
+      "ts": 700
+    }
+  ],
+  "tickets": [
+    {
+      "id": "S-4021",
+      "subject": "Verification documents rejected",
+      "user": "Kunle T.",
+      "priority": "High",
+      "status": "Open",
+      "ts": 60
+    },
+    {
+      "id": "S-4020",
+      "subject": "Cannot connect WhatsApp number",
+      "user": "Ada Nwosu",
+      "priority": "Medium",
+      "status": "Waiting",
+      "ts": 300
+    },
+    {
+      "id": "S-4019",
+      "subject": "Refund for Growth plan",
+      "user": "Chioma E.",
+      "priority": "Medium",
+      "status": "Open",
+      "ts": 1500
+    }
+  ],
+  "invoices": [
+    {
+      "id": "INV-2211",
+      "businessId": "swiftfix-gadgets",
+      "plan": "Growth — monthly",
+      "amount": "₦12,500",
+      "status": "Paid",
+      "ts": 40000
+    },
+    {
+      "id": "INV-2109",
+      "businessId": "swiftfix-gadgets",
+      "plan": "Growth — monthly",
+      "amount": "₦12,500",
+      "status": "Paid",
+      "ts": 72000
+    },
+    {
+      "id": "INV-2001",
+      "businessId": "swiftfix-gadgets",
+      "plan": "Free trial",
+      "amount": "₦0",
+      "status": "Paid",
+      "ts": 105000
+    }
+  ],
+  "ads": [
+    {
+      "id": "AD-221",
+      "advertiser": "SwiftFix Gadgets",
+      "inventory": "Category spotlight",
+      "spend": "₦120,000",
+      "chats": 1840,
+      "status": "Live",
+      "ts": 20000
+    },
+    {
+      "id": "AD-220",
+      "advertiser": "KeyHomes Realty",
+      "inventory": "Location feature",
+      "spend": "₦240,000",
+      "chats": 980,
+      "status": "Live",
+      "ts": 30000
+    },
+    {
+      "id": "AD-219",
+      "advertiser": "Crown Events",
+      "inventory": "Room banner",
+      "spend": "₦60,000",
+      "chats": 410,
+      "status": "Paused",
+      "ts": 40000
+    }
+  ],
+  "flags": [
+    {
+      "key": "contact_gain_rooms_v2",
+      "rollout": "50%",
+      "audience": "Lagos businesses",
+      "status": "Canary",
+      "description": "Second-generation room matching",
+      "enabled": false,
+      "ts": 40000
+    },
+    {
+      "key": "ai_review_screening",
+      "rollout": "100%",
+      "audience": "All",
+      "status": "Enabled",
+      "description": "AI pre-screening for images and listings",
+      "enabled": true,
+      "ts": 80000
+    },
+    {
+      "key": "sponsored_room_banner",
+      "rollout": "10%",
+      "audience": "Pro plan",
+      "status": "Canary",
+      "description": "Sponsored banner slot inside rooms",
+      "enabled": true,
+      "ts": 30000
+    },
+    {
+      "key": "multi_branch_profiles",
+      "rollout": "0%",
+      "audience": "Internal",
+      "status": "Disabled",
+      "description": "Multiple branches per business profile",
+      "enabled": false,
+      "ts": 20000
+    }
+  ],
+  "config": [
+    {
+      "key": "max_gallery_images",
+      "value": "30",
+      "notes": "Per listing"
+    },
+    {
+      "key": "room_slot_ceiling",
+      "value": "5000",
+      "notes": "Per contact-gain room"
+    },
+    {
+      "key": "report_auto_hide_threshold",
+      "value": "5",
+      "notes": "Pending review"
+    },
+    {
+      "key": "ndpr_retention_months",
+      "value": "24",
+      "notes": "Then anonymised"
+    },
+    {
+      "key": "moderation_sla_minutes",
+      "value": "30",
+      "notes": "High-risk items"
+    }
+  ],
+  "jobs": [
+    {
+      "id": "JB-31",
+      "name": "Nightly listing quality scan",
+      "schedule": "Daily 02:00",
+      "lastRun": "02:00 today",
+      "status": "Healthy",
+      "output": "9,880 listings below 60% completion"
+    },
+    {
+      "id": "JB-30",
+      "name": "Stale-lead automation sweep",
+      "schedule": "Hourly",
+      "lastRun": "12:00 today",
+      "status": "Healthy",
+      "output": "812 follow-up tasks created this week"
+    },
+    {
+      "id": "JB-29",
+      "name": "Save-back verification",
+      "schedule": "Daily 06:00",
+      "lastRun": "06:00 today",
+      "status": "Warning",
+      "output": "3 rooms below 80% save-back score"
+    },
+    {
+      "id": "JB-28",
+      "name": "NDPR data retention anonymiser",
+      "schedule": "Weekly Sun 03:00",
+      "lastRun": "Sun 03:00",
+      "status": "Healthy",
+      "output": "1,204 records anonymised"
+    }
+  ],
+  "savedByUser": {
+    "blessing@gmail.com": [
+      "swiftfix-gadgets",
+      "mama-ope-kitchen"
+    ]
+  },
+  "enquiries": [],
+  "events": [],
+  "trendData": [
+    {
+      "label": "Mon",
+      "contacts": 120,
+      "leads": 42
+    },
+    {
+      "label": "Tue",
+      "contacts": 180,
+      "leads": 61
+    },
+    {
+      "label": "Wed",
+      "contacts": 150,
+      "leads": 55
+    },
+    {
+      "label": "Thu",
+      "contacts": 220,
+      "leads": 88
+    },
+    {
+      "label": "Fri",
+      "contacts": 310,
+      "leads": 121
+    },
+    {
+      "label": "Sat",
+      "contacts": 280,
+      "leads": 104
+    },
+    {
+      "label": "Sun",
+      "contacts": 160,
+      "leads": 58
+    }
+  ],
+  "sourceData": [
+    {
+      "label": "Directory profile",
+      "value": 41
+    },
+    {
+      "label": "QR codes",
+      "value": 22
+    },
+    {
+      "label": "Campaign links",
+      "value": 18
+    },
+    {
+      "label": "Contact-gain rooms",
+      "value": 12
+    },
+    {
+      "label": "Referrals",
+      "value": 7
+    }
+  ],
+  "dataRequests": []
+}

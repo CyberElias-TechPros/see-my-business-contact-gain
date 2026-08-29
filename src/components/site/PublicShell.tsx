@@ -65,17 +65,27 @@ export function SiteHeader() {
             <SheetContent side="right" className="w-72">
               <div className="mt-6 flex flex-col gap-1">
                 {nav.map((n) => (
-                  <Link key={n.to} to={n.to} className="rounded-lg px-3 py-2 text-sm font-medium hover:bg-muted">
+                  <Link
+                    key={n.to}
+                    to={n.to}
+                    className="rounded-lg px-3 py-2 text-sm font-medium hover:bg-muted"
+                  >
                     {n.label}
                   </Link>
                 ))}
-                <Link to="/account" className="rounded-lg px-3 py-2 text-sm font-medium hover:bg-muted">
+                <Link
+                  to="/account"
+                  className="rounded-lg px-3 py-2 text-sm font-medium hover:bg-muted"
+                >
                   My account
                 </Link>
                 <Link to="/app" className="rounded-lg px-3 py-2 text-sm font-medium hover:bg-muted">
                   Business workspace
                 </Link>
-                <Link to="/admin" className="rounded-lg px-3 py-2 text-sm font-medium hover:bg-muted">
+                <Link
+                  to="/admin"
+                  className="rounded-lg px-3 py-2 text-sm font-medium hover:bg-muted"
+                >
                   Admin console
                 </Link>
                 <Button asChild className="mt-3">
@@ -139,8 +149,8 @@ export function SiteFooter() {
         <div className="lg:col-span-2">
           <Brand tone="invert" />
           <p className="mt-4 max-w-xs text-sm text-ink-foreground/70">
-            Nigeria&apos;s WhatsApp-first business directory and contact-gain network. Get found, get saved, get
-            customers.
+            Nigeria&apos;s WhatsApp-first business directory and contact-gain network. Get found,
+            get saved, get customers.
           </p>
         </div>
         {footerCols.map((col) => (
@@ -149,7 +159,10 @@ export function SiteFooter() {
             <ul className="mt-3 space-y-2">
               {col.links.map((l) => (
                 <li key={l.to}>
-                  <Link to={l.to} className="text-sm text-ink-foreground/70 transition-colors hover:text-primary">
+                  <Link
+                    to={l.to}
+                    className="text-sm text-ink-foreground/70 transition-colors hover:text-primary"
+                  >
                     {l.label}
                   </Link>
                 </li>
@@ -191,7 +204,9 @@ export function PageHead({
       <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-12 md:flex-row md:items-end md:justify-between">
         <div>
           {eyebrow ? (
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">{eyebrow}</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+              {eyebrow}
+            </p>
           ) : null}
           <h1 className="mt-2 text-3xl font-bold md:text-4xl">{title}</h1>
           {subtitle ? <p className="mt-3 max-w-2xl text-muted-foreground">{subtitle}</p> : null}

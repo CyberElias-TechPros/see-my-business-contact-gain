@@ -1,56 +1,119 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
 import { MessageCircle, ShieldAlert } from "lucide-react";
+import { toast } from "sonner";
 import { PublicShell, PageHead } from "@/components/site/PublicShell";
+import { EmptyState, LoadError, LoadingCard } from "@/components/kit";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { contactGainRooms } from "@/data/mock";
+import { Textarea } from "@/components/ui/textarea";
+import { timeAgo } from "@/lib/api";
+import { useJoinRoom, useMe, useReportRoom, useRoom } from "@/lib/queries";
 
 export const Route = createFileRoute("/contact-gain/$id")({
-  head: ({ params }) => {
-    const room = contactGainRooms.find((r) => r.id === params.id);
-    const name = room?.name ?? "Contact-gain room";
-    return {
-      meta: [
-        { title: `${name} — WhatsApp contact-gain room | GainHub NG` },
-        { name: "description", content: `Join ${name}: published save-back rules, slot limits, member list and moderation history.` },
-        { property: "og:title", content: `${name} — contact-gain room` },
-        { property: "og:description", content: `Moderated WhatsApp save-back room with tracked participation.` },
-      ],
-    };
-  },
+  head: ({ params }) => ({
+    meta: [
+      { title: `${params.id.replace(/-/g, " ")} — WhatsApp contact-gain room | GainHub NG` },
+      {
+        name: "description",
+        content: `Join this contact-gain room: published save-back rules, slot limits, member list and moderation history.`,
+      },
+    ],
+  }),
   component: RoomPage,
 });
 
-const members = [
-  { name: "SwiftFix Gadgets", niche: "Phone repair", saveBack: 98 },
-  { name: "Adire Atelier", niche: "Fashion", saveBack: 94 },
-  { name: "Mama Ope Kitchen", niche: "Food", saveBack: 88 },
-  { name: "Rapid Dispatch NG", niche: "Logistics", saveBack: 71 },
-  { name: "Glow by Tola", niche: "Beauty", saveBack: 64 },
-];
-
 function RoomPage() {
   const { id } = Route.useParams();
-  const room = contactGainRooms.find((r) => r.id === id) ?? contactGainRooms[0]!;
+  const navigate = useNavigate();
+  const query = useRoom(id);
+  const { data: me } = useMe();
+  const join = useJoinRoom();
+  const report = useReportRoom();
+  const [reportText, setReportText] = useState("");
+
+  if (query.isLoading) {
+    return (
+      <PublicShell>
+        <div className="mx-auto max-w-7xl px-4 py-16">
+          <LoadingCard label="Loading room…" />
+        </div>
+      </PublicShell>
+    );
+  }
+  if (query.isError) {
+    return (
+      <PublicShell>
+        <div className="mx-auto max-w-7xl px-4 py-16">
+          <LoadError message={(query.error as Error)?.message} retry={() => void query.refetch()} />
+        </div>
+      </PublicShell>
+    );
+  }
+
+  const room = query.data!;
 
   return (
     <PublicShell>
       <PageHead
         eyebrow="Contact-gain room"
         title={room.name}
-        subtitle={`${room.purpose} • ${room.members.toLocaleString()} members • ${room.slotsLeft} slots left`}
+        subtitle={`${room.purpose} • ${room.members.toLocaleString()} members • ${room.slotsLeft ?? 0} slots left`}
         action={
           <div className="flex gap-2">
-            <Button className="gap-2">
+            <Button
+              className="gap-2"
+              disabled={join.isPending}
+              onClick={() =>
+                me
+                  ? join.mutate(room.id)
+                  : void navigate({ to: "/auth", search: { redirect: `/contact-gain/${room.id}` } })
+              }
+            >
               <MessageCircle className="size-4" /> Join and save all
             </Button>
-            <Button variant="outline" className="gap-2">
-              <ShieldAlert className="size-4" /> Report room
-            </Button>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="outline" className="gap-2">
+                  <ShieldAlert className="size-4" /> Report room
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Report “{room.name}”</DialogTitle>
+                </DialogHeader>
+                <Textarea
+                  placeholder="What's wrong with this room? Scam links, fake save-backs, impersonation…"
+                  value={reportText}
+                  onChange={(e) => setReportText(e.target.value)}
+                />
+                <DialogFooter>
+                  <Button
+                    disabled={reportText.trim().length < 5 || report.isPending}
+                    onClick={() =>
+                      report.mutate(
+                        { id: room.id, details: reportText },
+                        { onSuccess: () => setReportText("") },
+                      )
+                    }
+                  >
+                    {report.isPending ? "Sending…" : "Send report"}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </div>
         }
       />
@@ -63,26 +126,41 @@ function RoomPage() {
             <TabsTrigger value="activity">Activity</TabsTrigger>
           </TabsList>
           <TabsContent value="members" className="space-y-3 pt-6">
-            {members.map((m) => (
-              <Card key={m.name} className="card-surface">
-                <CardContent className="flex items-center gap-4 p-5">
-                  <span className="grid size-11 place-items-center rounded-xl bg-secondary font-semibold">
-                    {m.name.slice(0, 2)}
-                  </span>
-                  <div className="min-w-0">
-                    <p className="truncate font-medium">{m.name}</p>
-                    <p className="text-xs text-muted-foreground">{m.niche}</p>
-                  </div>
-                  <div className="ml-auto w-32">
-                    <p className="text-right text-xs text-muted-foreground">Save-back {m.saveBack}%</p>
-                    <Progress value={m.saveBack} className="mt-1 h-1.5" />
-                  </div>
-                  <Button size="sm" variant="outline">
-                    Save contact
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
+            {room.members.length === 0 ? (
+              <EmptyState
+                title="No members listed yet"
+                body="Be among the first to join and set the tone for this room."
+              />
+            ) : (
+              room.members.map((m) => (
+                <Card key={m.name} className="card-surface">
+                  <CardContent className="flex items-center gap-4 p-5">
+                    <span className="grid size-11 place-items-center rounded-xl bg-secondary font-semibold">
+                      {m.name.slice(0, 2)}
+                    </span>
+                    <div className="min-w-0">
+                      <p className="truncate font-medium">{m.name}</p>
+                      <p className="text-xs text-muted-foreground">{m.niche}</p>
+                    </div>
+                    <div className="ml-auto w-32">
+                      <p className="text-right text-xs text-muted-foreground">
+                        Save-back {m.saveBack}%
+                      </p>
+                      <Progress value={m.saveBack} className="mt-1 h-1.5" />
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() =>
+                        toast.success(`${m.name} saved — remember to save back within 24h!`)
+                      }
+                    >
+                      Save contact
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))
+            )}
           </TabsContent>
           <TabsContent value="rules" className="pt-6">
             <Card className="card-surface">
@@ -105,7 +183,9 @@ function RoomPage() {
                   <div className="grid h-40 place-items-center bg-hero-mesh text-xs text-muted-foreground">
                     Status post {i + 1}
                   </div>
-                  <CardContent className="p-3 text-xs text-muted-foreground">Posted by member {i + 1} • 2h</CardContent>
+                  <CardContent className="p-3 text-xs text-muted-foreground">
+                    Posted by member {i + 1} • 2h
+                  </CardContent>
                 </Card>
               ))}
             </div>
@@ -113,16 +193,19 @@ function RoomPage() {
           <TabsContent value="activity" className="pt-6">
             <Card className="card-surface">
               <CardContent className="divide-y p-0 text-sm">
-                {[
-                  "Amina joined the room",
-                  "3 members removed for not saving back",
-                  "Moderator reviewed 2 reports",
-                  "Room capacity increased to 5,000",
-                ].map((a) => (
-                  <p key={a} className="p-4 text-muted-foreground">
-                    {a}
-                  </p>
-                ))}
+                {room.activity.length === 0 ? (
+                  <p className="p-4 text-muted-foreground">No activity yet.</p>
+                ) : (
+                  room.activity.map((a) => (
+                    <div
+                      key={`${a.text}-${a.ts}`}
+                      className="flex items-center justify-between p-4"
+                    >
+                      <p className="text-muted-foreground">{a.text}</p>
+                      <span className="text-xs text-muted-foreground">{timeAgo(a.ts)}</span>
+                    </div>
+                  ))
+                )}
               </CardContent>
             </Card>
           </TabsContent>

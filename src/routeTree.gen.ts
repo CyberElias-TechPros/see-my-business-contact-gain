@@ -41,6 +41,7 @@ import { Route as AdminModerationRouteImport } from './routes/admin/moderation'
 import { Route as AdminReportsRouteImport } from './routes/admin/reports'
 import { Route as AdminReviewsRouteImport } from './routes/admin/reviews'
 import { Route as AdminSubscriptionsRouteImport } from './routes/admin/subscriptions'
+import { Route as AdminSuggestionsRouteImport } from './routes/admin/suggestions'
 import { Route as AdminSupportRouteImport } from './routes/admin/support'
 import { Route as AdminUsersRouteImport } from './routes/admin/users'
 import { Route as AdminVerificationRouteImport } from './routes/admin/verification'
@@ -232,6 +233,11 @@ const AdminSubscriptionsRoute = AdminSubscriptionsRouteImport.update({
   path: '/subscriptions',
   getParentRoute: () => AdminRouteRoute,
 } as any)
+const AdminSuggestionsRoute = AdminSuggestionsRouteImport.update({
+  id: '/suggestions',
+  path: '/suggestions',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
 const AdminSupportRoute = AdminSupportRouteImport.update({
   id: '/support',
   path: '/support',
@@ -415,6 +421,7 @@ export interface FileRoutesByFullPath {
   '/admin/reports': typeof AdminReportsRoute
   '/admin/reviews': typeof AdminReviewsRoute
   '/admin/subscriptions': typeof AdminSubscriptionsRoute
+  '/admin/suggestions': typeof AdminSuggestionsRoute
   '/admin/support': typeof AdminSupportRoute
   '/admin/users': typeof AdminUsersRoute
   '/admin/verification': typeof AdminVerificationRoute
@@ -477,6 +484,7 @@ export interface FileRoutesByTo {
   '/admin/reports': typeof AdminReportsRoute
   '/admin/reviews': typeof AdminReviewsRoute
   '/admin/subscriptions': typeof AdminSubscriptionsRoute
+  '/admin/suggestions': typeof AdminSuggestionsRoute
   '/admin/support': typeof AdminSupportRoute
   '/admin/users': typeof AdminUsersRoute
   '/admin/verification': typeof AdminVerificationRoute
@@ -542,6 +550,7 @@ export interface FileRoutesById {
   '/admin/reports': typeof AdminReportsRoute
   '/admin/reviews': typeof AdminReviewsRoute
   '/admin/subscriptions': typeof AdminSubscriptionsRoute
+  '/admin/suggestions': typeof AdminSuggestionsRoute
   '/admin/support': typeof AdminSupportRoute
   '/admin/users': typeof AdminUsersRoute
   '/admin/verification': typeof AdminVerificationRoute
@@ -608,6 +617,7 @@ export interface FileRouteTypes {
     | '/admin/reports'
     | '/admin/reviews'
     | '/admin/subscriptions'
+    | '/admin/suggestions'
     | '/admin/support'
     | '/admin/users'
     | '/admin/verification'
@@ -670,6 +680,7 @@ export interface FileRouteTypes {
     | '/admin/reports'
     | '/admin/reviews'
     | '/admin/subscriptions'
+    | '/admin/suggestions'
     | '/admin/support'
     | '/admin/users'
     | '/admin/verification'
@@ -734,6 +745,7 @@ export interface FileRouteTypes {
     | '/admin/reports'
     | '/admin/reviews'
     | '/admin/subscriptions'
+    | '/admin/suggestions'
     | '/admin/support'
     | '/admin/users'
     | '/admin/verification'
@@ -1023,6 +1035,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminSubscriptionsRouteImport
       parentRoute: typeof AdminRouteRoute
     }
+    '/admin/suggestions': {
+      id: '/admin/suggestions'
+      path: '/suggestions'
+      fullPath: '/admin/suggestions'
+      preLoaderRoute: typeof AdminSuggestionsRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
     '/admin/support': {
       id: '/admin/support'
       path: '/support'
@@ -1250,6 +1269,7 @@ interface AdminRouteRouteChildren {
   AdminReportsRoute: typeof AdminReportsRoute
   AdminReviewsRoute: typeof AdminReviewsRoute
   AdminSubscriptionsRoute: typeof AdminSubscriptionsRoute
+  AdminSuggestionsRoute: typeof AdminSuggestionsRoute
   AdminSupportRoute: typeof AdminSupportRoute
   AdminUsersRoute: typeof AdminUsersRoute
   AdminVerificationRoute: typeof AdminVerificationRoute
@@ -1270,6 +1290,7 @@ const AdminRouteRouteChildren: AdminRouteRouteChildren = {
   AdminReportsRoute: AdminReportsRoute,
   AdminReviewsRoute: AdminReviewsRoute,
   AdminSubscriptionsRoute: AdminSubscriptionsRoute,
+  AdminSuggestionsRoute: AdminSuggestionsRoute,
   AdminSupportRoute: AdminSupportRoute,
   AdminUsersRoute: AdminUsersRoute,
   AdminVerificationRoute: AdminVerificationRoute,
@@ -1368,3 +1389,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

@@ -1,12 +1,16 @@
 import { Link, Outlet, useRouterState } from "@tanstack/react-router";
 import type { LucideIcon } from "lucide-react";
-import { Bell, ChevronLeft, Menu } from "lucide-react";
+import { Bell, ChevronLeft, LogOut, Menu } from "lucide-react";
 import type { ReactNode } from "react";
+import { toast } from "sonner";
 import { Brand } from "@/components/site/PublicShell";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { backendMode } from "@/lib/api";
+import { useMe, useSignOut, useWs } from "@/lib/queries";
+import { qk } from "@/lib/queries";
 
 export type NavItem = { to: string; label: string; icon: LucideIcon; badge?: string };
 
@@ -15,7 +19,9 @@ function NavList({ items }: { items: NavItem[] }) {
   return (
     <nav className="flex flex-col gap-0.5">
       {items.map((item) => {
-        const active = path === item.to || (item.to !== "/app" && item.to !== "/admin" && path.startsWith(item.to));
+        const active =
+          path === item.to ||
+          (item.to !== "/app" && item.to !== "/admin" && path.startsWith(item.to));
         return (
           <Link
             key={item.to}
@@ -44,19 +50,31 @@ export function ConsoleShell({
   items,
   title,
   subtitle,
-  user,
+  admin = false,
 }: {
   items: NavItem[];
   title: string;
-  subtitle: string;
-  user: { name: string; role: string };
+  subtitle?: string;
+  admin?: boolean;
 }) {
+  const { data: me } = useMe();
+  const summary = useWs(qk.wsSummary, (b) => b.workspaceSummary());
+  const signOut = useSignOut();
+  const businessName = summary.data?.business.name;
+  const user = me ?? { name: "…", role: "" };
+  const resolvedSubtitle =
+    subtitle ?? (businessName ? `${businessName} • ${summary.data?.business.plan ?? ""} plan` : "");
+
   const sidebar = (
     <div className="flex h-full flex-col gap-6 bg-sidebar p-4">
       <div className="px-1">
         <Brand tone="invert" />
-        <p className="mt-3 text-xs font-semibold uppercase tracking-[0.16em] text-sidebar-primary">{title}</p>
-        <p className="text-xs text-sidebar-foreground/60">{subtitle}</p>
+        <p className="mt-3 text-xs font-semibold uppercase tracking-[0.16em] text-sidebar-primary">
+          {title}
+        </p>
+        {resolvedSubtitle ? (
+          <p className="text-xs text-sidebar-foreground/60">{resolvedSubtitle}</p>
+        ) : null}
       </div>
       <div className="flex-1 overflow-y-auto pr-1">
         <NavList items={items} />
@@ -68,20 +86,44 @@ export function ConsoleShell({
               {user.name
                 .split(" ")
                 .map((n) => n[0])
+                .slice(0, 2)
                 .join("")}
             </AvatarFallback>
           </Avatar>
           <div className="min-w-0">
-            <p className="truncate text-sm font-medium text-sidebar-accent-foreground">{user.name}</p>
-            <p className="truncate text-xs text-sidebar-foreground/60">{user.role}</p>
+            <p className="truncate text-sm font-medium text-sidebar-accent-foreground">
+              {user.name}
+            </p>
+            <p className="truncate text-xs capitalize text-sidebar-foreground/60">
+              {admin
+                ? "Platform administrator"
+                : user.role === "owner"
+                  ? "Business owner"
+                  : user.role}
+            </p>
           </div>
         </div>
-        <Link
-          to="/"
-          className="mt-3 flex items-center gap-1 text-xs text-sidebar-foreground/70 hover:text-sidebar-primary"
-        >
-          <ChevronLeft className="size-3" /> Back to directory
-        </Link>
+        <div className="mt-3 flex items-center justify-between">
+          <Link
+            to="/"
+            className="flex items-center gap-1 text-xs text-sidebar-foreground/70 hover:text-sidebar-primary"
+          >
+            <ChevronLeft className="size-3" /> Back to directory
+          </Link>
+          <button
+            className="flex items-center gap-1 text-xs text-sidebar-foreground/70 hover:text-destructive"
+            onClick={() =>
+              signOut.mutate(undefined, {
+                onSuccess: () => {
+                  toast.success("Signed out");
+                  void window.location.assign("/");
+                },
+              })
+            }
+          >
+            <LogOut className="size-3" /> Sign out
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -93,7 +135,12 @@ export function ConsoleShell({
         <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b bg-background/90 px-4 backdrop-blur">
           <Sheet>
             <SheetTrigger asChild>
-              <Button variant="outline" size="icon" className="lg:hidden" aria-label="Open navigation">
+              <Button
+                variant="outline"
+                size="icon"
+                className="lg:hidden"
+                aria-label="Open navigation"
+              >
                 <Menu className="size-4" />
               </Button>
             </SheetTrigger>
@@ -103,12 +150,23 @@ export function ConsoleShell({
           </Sheet>
           <p className="text-sm font-semibold">{title}</p>
           <div className="ml-auto flex items-center gap-2">
-            <Button variant="ghost" size="icon" aria-label="Notifications">
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Notifications"
+              onClick={() => toast.info("No new notifications")}
+            >
               <Bell className="size-4" />
             </Button>
-            <Badge variant="outline" className="hidden sm:inline-flex">
-              Demo data
-            </Badge>
+            {backendMode() === "demo" ? (
+              <Badge variant="outline" className="hidden sm:inline-flex">
+                Demo data
+              </Badge>
+            ) : (
+              <Badge variant="outline" className="hidden bg-primary/10 sm:inline-flex">
+                Live
+              </Badge>
+            )}
           </div>
         </header>
         <main className="mx-auto max-w-7xl px-4 py-6">

@@ -1,38 +1,77 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { SectionHead } from "@/components/console/ConsoleShell";
-import { Panel, SimpleTable, StatCard, BarTrend, SourceBars } from "@/components/kit";
+import { EmptyState, LoadError, LoadingCard, Panel } from "@/components/kit";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { trendData, sourceData } from "@/data/mock";
-
+import { Input } from "@/components/ui/input";
+import { qk, useAd, useAdMutation } from "@/lib/queries";
 
 export const Route = createFileRoute("/admin/config")({
   component: AdminConfig,
 });
 
 function AdminConfig() {
+  const config = useAd(qk.adConfig, (b) => b.adminConfig());
+  const [values, setValues] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    if (config.data) {
+      const next: Record<string, string> = {};
+      for (const entry of config.data) next[entry.key] = entry.value;
+      setValues(next);
+    }
+  }, [config.data]);
+
+  const save = useAdMutation((b, entries: Record<string, string>) => b.adminUpdateConfig(entries), {
+    success: "Configuration saved — applies on next request",
+    invalidate: [qk.adConfig, qk.adOverview],
+  });
+
+  if (config.isLoading) return <LoadingCard label="Loading configuration…" />;
+  if (config.isError)
+    return (
+      <LoadError message={(config.error as Error)?.message} retry={() => void config.refetch()} />
+    );
+
+  const items = config.data ?? [];
+  const dirty = items.some((e) => (values[e.key] ?? "") !== e.value);
+
   return (
     <div>
-      <SectionHead title="Configuration" subtitle="Platform-wide settings, limits and policy thresholds." action={<Button>Save</Button>} />
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Environments" value="3" delta="" hint="dev, preview, prod" />
-        <StatCard label="Rate limits" value="12" delta="" hint="policies" />
-        <StatCard label="Locales" value="2" delta="" hint="en-NG, pidgin" />
-        <StatCard label="Data region" value="Nigeria" delta="" hint="primary" />
-      </div>
-      <div className="mt-6 grid gap-4 lg:grid-cols-3">
-        <Panel title="Weekly contacts vs leads" className="lg:col-span-2">
-          <BarTrend data={trendData} />
-        </Panel>
-        <Panel title="Attribution by source">
-          <SourceBars data={sourceData} />
-        </Panel>
-      </div>
-      <div className="mt-6">
-        <Panel title="Settings" action={<Badge variant="outline">Demo data</Badge>}>
-          <SimpleTable columns={["Setting", "Value", "Notes"]} rows={[["Max gallery images", "30", "Per listing"], ["Room slot ceiling", "5,000", "Per contact-gain room"], ["Report auto-hide threshold", "5 reports", "Pending review"], ["NDPR retention", "24 months", "Then anonymised"], ["Moderation SLA", "30 minutes", "High-risk items"]]} />
-        </Panel>
-      </div>
+      <SectionHead
+        title="Configuration"
+        subtitle="Platform-wide settings — take effect immediately after saving."
+        action={
+          <Button disabled={!dirty || save.isPending} onClick={() => save.mutate(values)}>
+            {save.isPending ? "Saving…" : "Save configuration"}
+          </Button>
+        }
+      />
+      <Panel title="Settings">
+        {items.length === 0 ? (
+          <EmptyState title="No configuration" body="Config entries seed on first boot." />
+        ) : (
+          <div className="space-y-3">
+            {items.map((entry) => (
+              <div
+                key={entry.key}
+                className="grid items-center gap-2 rounded-xl border p-3 sm:grid-cols-[1fr_240px]"
+              >
+                <div className="min-w-0">
+                  <p className="truncate font-mono text-sm font-medium">{entry.key}</p>
+                  <p className="truncate text-xs text-muted-foreground">{entry.notes}</p>
+                </div>
+                <Input
+                  value={values[entry.key] ?? ""}
+                  onChange={(e) => setValues((v) => ({ ...v, [entry.key]: e.target.value }))}
+                  aria-label={entry.key}
+                />
+              </div>
+            ))}
+          </div>
+        )}
+      </Panel>
     </div>
   );
 }

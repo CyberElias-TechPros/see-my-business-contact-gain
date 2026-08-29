@@ -1,0 +1,22 @@
+{
+  "name": "gainhub-backend",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev --port 8787",
+    "deploy": "wrangler deploy",
+    "typecheck": "tsc --noEmit",
+    "db:seed:local": "node scripts/generate-seed.mjs > seed.local.sql && wrangler d1 execute gainhub --local --file=./schema.sql && wrangler d1 execute gainhub --local --file=./seed.local.sql",
+    "db:seed:remote": "node scripts/generate-seed.mjs > seed.remote.sql && wrangler d1 execute gainhub --remote --file=./schema.sql && wrangler d1 execute gainhub --remote --file=./seed.remote.sql",
+    "db:migrate:local": "wrangler d1 execute gainhub --local --file=./schema.sql",
+    "db:migrate:remote": "wrangler d1 execute gainhub --remote --file=./schema.sql"
+  },
+  "dependencies": {
+    "hono": "^4.6.14"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5",
+    "typescript": "^5.8.3",
+    "wrangler": "^4.27.0"
+  }
+}

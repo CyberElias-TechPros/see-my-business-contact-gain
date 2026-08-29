@@ -7,6 +7,7 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
+import { Toaster } from "sonner";
 import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
@@ -77,14 +78,20 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "GainHub NG — WhatsApp-first Nigerian business directory" },
+      {
+        name: "description",
+        content:
+          "Find verified Nigerian businesses, chat on WhatsApp instantly, and grow your contacts with tracked links, QR codes and a built-in CRM.",
+      },
+      { property: "og:title", content: "GainHub NG — WhatsApp-first Nigerian business directory" },
+      {
+        property: "og:description",
+        content:
+          "Nigeria's WhatsApp-first business directory and contact-gain network. Get found, get saved, get customers.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
     ],
     links: [
       {
@@ -108,6 +115,7 @@ function RootShell({ children }: { children: ReactNode }) {
       </head>
       <body>
         {children}
+        <Toaster richColors position="top-center" />
         <Scripts />
       </body>
     </html>

@@ -1,36 +1,124 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { toast } from "sonner";
 import { SectionHead } from "@/components/console/ConsoleShell";
-import { Panel, SimpleTable, StatCard, BarTrend, SourceBars } from "@/components/kit";
-import { Button } from "@/components/ui/button";
+import { EmptyState, LoadError, LoadingCard, Panel, StatCard, TimeAgo } from "@/components/kit";
 import { Badge } from "@/components/ui/badge";
-import { trendData, sourceData } from "@/data/mock";
-
+import { Button } from "@/components/ui/button";
+import { timeAgo } from "@/lib/api";
+import { qk, useAd, useAdMutation } from "@/lib/queries";
 
 export const Route = createFileRoute("/admin/reports")({
   component: AdminReports,
 });
 
 function AdminReports() {
+  const reports = useAd(qk.adReports, (b) => b.adminReports());
+  const update = useAdMutation(
+    (b, vars: { id: string; status: string }) => b.adminUpdateReport(vars.id, vars.status),
+    {
+      invalidate: [qk.adReports, qk.adOverview],
+    },
+  );
+
+  if (reports.isLoading) return <LoadingCard label="Loading reports…" />;
+  if (reports.isError)
+    return (
+      <LoadError message={(reports.error as Error)?.message} retry={() => void reports.refetch()} />
+    );
+
+  const items = reports.data ?? [];
+  const open = items.filter((r) => r.status === "Open");
+
   return (
     <div>
-      <SectionHead title="Reports" subtitle="Scam, impersonation and content reports from users." action={<Button>Assign batch</Button>} />
+      <SectionHead
+        title="Abuse reports"
+        subtitle="Reports submitted from listings, reviews, rooms and members."
+      />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Open" value="24" delta="-6" hint="this week" />
-        <StatCard label="Scam reports" value="11" delta="" hint="open" />
-        <StatCard label="Impersonation" value="6" delta="" hint="open" />
-        <StatCard label="Resolved" value="4,120" delta="" hint="all time" />
-      </div>
-      <div className="mt-6 grid gap-4 lg:grid-cols-3">
-        <Panel title="Weekly contacts vs leads" className="lg:col-span-2">
-          <BarTrend data={trendData} />
-        </Panel>
-        <Panel title="Attribution by source">
-          <SourceBars data={sourceData} />
-        </Panel>
+        <StatCard label="Open" value={String(open.length)} hint="needs action" />
+        <StatCard
+          label="Resolved"
+          value={String(items.filter((r) => r.status === "Resolved").length)}
+          hint="closed"
+        />
+        <StatCard
+          label="Dismissed"
+          value={String(items.filter((r) => r.status === "Dismissed").length)}
+          hint="no action"
+        />
+        <StatCard
+          label="Oldest open"
+          value={open.length ? timeAgo(Math.max(...open.map((r) => r.ts))) : "—"}
+          hint="in queue"
+        />
       </div>
       <div className="mt-6">
-        <Panel title="Report queue" action={<Badge variant="outline">Demo data</Badge>}>
-          <SimpleTable columns={["ID", "Target", "Reason", "Reporter", "Risk", "Age"]} rows={[["RP-501", "Quick Loans Naija", "Advance-fee scam", "Consumer", "High", "22m"], ["RP-500", "Profile #4412", "Impersonation", "Business owner", "Medium", "3h"], ["RP-499", "Room banner", "Adult content", "Moderator", "High", "5h"]]} />
+        <Panel title="Report queue">
+          {items.length === 0 ? (
+            <EmptyState
+              title="No reports"
+              body="Reports from the 'Report' button on listings land here."
+            />
+          ) : (
+            <div className="space-y-2">
+              {items.map((r) => (
+                <div key={r.id} className="rounded-xl border p-3 text-sm">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge variant="outline">{r.targetType}</Badge>
+                    <p className="font-medium">{r.targetLabel}</p>
+                    <Badge
+                      variant={
+                        r.status === "Open"
+                          ? "secondary"
+                          : r.status === "Resolved"
+                            ? "default"
+                            : "outline"
+                      }
+                    >
+                      {r.status}
+                    </Badge>
+                    <span className="text-xs text-muted-foreground">
+                      <TimeAgo minutes={r.ts} />
+                    </span>
+                  </div>
+                  <p className="mt-1">
+                    <span className="font-medium">{r.reason}.</span> {r.details}
+                  </p>
+                  {r.contact ? (
+                    <p className="text-xs text-muted-foreground">Reporter contact: {r.contact}</p>
+                  ) : null}
+                  {r.status === "Open" ? (
+                    <div className="mt-2 flex gap-2">
+                      <Button
+                        size="sm"
+                        onClick={() =>
+                          update.mutate(
+                            { id: r.id, status: "Resolved" },
+                            { onSuccess: () => toast.success("Marked resolved") },
+                          )
+                        }
+                      >
+                        Resolve
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() =>
+                          update.mutate(
+                            { id: r.id, status: "Dismissed" },
+                            { onSuccess: () => toast.success("Dismissed") },
+                          )
+                        }
+                      >
+                        Dismiss
+                      </Button>
+                    </div>
+                  ) : null}
+                </div>
+              ))}
+            </div>
+          )}
         </Panel>
       </div>
     </div>

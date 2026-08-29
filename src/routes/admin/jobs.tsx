@@ -1,36 +1,91 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { toast } from "sonner";
 import { SectionHead } from "@/components/console/ConsoleShell";
-import { Panel, SimpleTable, StatCard, BarTrend, SourceBars } from "@/components/kit";
-import { Button } from "@/components/ui/button";
+import { EmptyState, LoadError, LoadingCard, Panel, StatCard, TimeAgo } from "@/components/kit";
 import { Badge } from "@/components/ui/badge";
-import { trendData, sourceData } from "@/data/mock";
-
+import { Button } from "@/components/ui/button";
+import { qk, useAd, useAdMutation } from "@/lib/queries";
 
 export const Route = createFileRoute("/admin/jobs")({
   component: AdminJobs,
 });
 
 function AdminJobs() {
+  const jobs = useAd(qk.adJobs, (b) => b.adminJobs());
+  const run = useAdMutation((b, id: string) => b.adminRunJob(id), {
+    invalidate: [qk.adJobs, qk.adOverview],
+  });
+
+  if (jobs.isLoading) return <LoadingCard label="Loading jobs…" />;
+  if (jobs.isError)
+    return <LoadError message={(jobs.error as Error)?.message} retry={() => void jobs.refetch()} />;
+
+  const items = jobs.data ?? [];
+  const running = items.filter((j) => j.status === "Running").length;
+
   return (
     <div>
-      <SectionHead title="System jobs & queues" subtitle="Scheduled jobs, queues and automation monitoring." action={<Button>Retry failed</Button>} />
+      <SectionHead
+        title="System jobs"
+        subtitle="Scheduled maintenance — recomputes, digests, cleanups."
+      />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Queues healthy" value="6 / 6" delta="" hint="all green" />
-        <StatCard label="Jobs today" value="1.8M" delta="" hint="processed" />
-        <StatCard label="Failures" value="12" delta="-40%" hint="today" />
-        <StatCard label="Backlog" value="0" delta="" hint="messages" />
-      </div>
-      <div className="mt-6 grid gap-4 lg:grid-cols-3">
-        <Panel title="Weekly contacts vs leads" className="lg:col-span-2">
-          <BarTrend data={trendData} />
-        </Panel>
-        <Panel title="Attribution by source">
-          <SourceBars data={sourceData} />
-        </Panel>
+        <StatCard label="Jobs" value={String(items.length)} hint="scheduled" />
+        <StatCard label="Running" value={String(running)} hint="right now" />
+        <StatCard
+          label="Idle"
+          value={String(items.filter((j) => j.status === "Idle").length)}
+          hint="waiting cron"
+        />
+        <StatCard
+          label="Failed"
+          value={String(items.filter((j) => j.status === "Failed").length)}
+          hint="need attention"
+        />
       </div>
       <div className="mt-6">
-        <Panel title="Jobs" action={<Badge variant="outline">Demo data</Badge>}>
-          <SimpleTable columns={["Job", "Schedule", "Last run", "Duration", "Status"]} rows={[["Stale lead detection", "Hourly", "8 min ago", "12s", "OK"], ["Analytics aggregation", "Every 15 min", "3 min ago", "48s", "OK"], ["Search reindex", "Nightly", "02:00", "6m 20s", "OK"], ["Verification reminders", "Daily", "07:00", "31s", "OK"]]} />
+        <Panel title="Scheduler">
+          {items.length === 0 ? (
+            <EmptyState title="No jobs" body="Scheduled jobs appear here." />
+          ) : (
+            <div className="space-y-2">
+              {items.map((j) => (
+                <div
+                  key={j.id}
+                  className="flex flex-wrap items-center gap-3 rounded-xl border p-3 text-sm"
+                >
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium">{j.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      every {j.schedule} • last run {j.lastRun}
+                    </p>
+                    {j.output ? <p className="text-xs text-muted-foreground">{j.output}</p> : null}
+                  </div>
+                  <Badge
+                    variant={
+                      j.status === "Failed"
+                        ? "destructive"
+                        : j.status === "Running"
+                          ? "secondary"
+                          : "outline"
+                    }
+                  >
+                    {j.status}
+                  </Badge>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={run.isPending}
+                    onClick={() =>
+                      run.mutate(j.id, { onSuccess: () => toast.success(`${j.name} triggered`) })
+                    }
+                  >
+                    Run now
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
         </Panel>
       </div>
     </div>
