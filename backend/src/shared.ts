@@ -44,4 +44,6 @@ export type Business = {
   cover: string;
   status: string;
   hours?: HourRow[];
+  /** Set when a search query matched a catalogue item rather than the business. */
+  matchedOn?: { kind: "product" | "service"; name: string };
 };

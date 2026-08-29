@@ -10,25 +10,28 @@ import type {
   Claim,
   ConfigEntry,
   Contact,
+  ContactList,
   Conversation,
   Flag,
   Invoice,
   Job,
   Lead,
+  ListMember,
   LocationEntry,
   ModerationItem,
+  PersonListing,
   Report,
   Review,
   Room,
   RoomActivity,
   RoomMember,
+  SourceSlice,
   Suggestion,
   Task,
   TeamMember,
   Ticket,
   TrackedLink,
   TrendPoint,
-  SourceSlice,
   User,
 } from "@/lib/types";
 
@@ -67,6 +70,10 @@ export const dataset = raw as unknown as {
   config: ConfigEntry[];
   jobs: Job[];
   savedByUser: Record<string, string[]>;
+  // Contact-hub collections — absent in the seed file, created at runtime.
+  contactLists?: (ContactList & { userId: string })[];
+  contactListMembers?: Record<string, ListMember[]>;
+  personalListings?: PersonListing[];
   enquiries: unknown[];
   dataRequests: unknown[];
   events: unknown[];

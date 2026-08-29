@@ -112,3 +112,24 @@ against the live local Worker, add a Vite proxy or set
 - [ ] Enable Cloudflare Analytics / Vercel Analytics as needed.
 - [ ] The repo-root build writes `.wrangler/` and `.output/` — both are
       gitignored; never commit them.
+
+---
+
+## 5. Free-tier policy — paid services intentionally avoided
+
+The product plan references several paid integrations. This deployment uses
+**free alternatives only**, with no loss of core functionality:
+
+| Plan suggested | We use instead | Why it works |
+| --- | --- | --- |
+| SMS/OTP verification (Termii, Africa's Talking) | Sign-in-gated posting + human moderation | Listings and personal numbers are tied to a real account; abuse is handled by the report queue and admin removal |
+| Paystack / Flutterwave wallet | Upgrade **requests** (workspace → billing) | Paid tiers are recorded as invoices; payment is confirmed manually until scale justifies a gateway |
+| WhatsApp Business Cloud API | `wa.me` deep links only | Chat, pre-filled messages, product enquiries and QR attribution all work through official free deep links; no messaging server to run |
+| Google Maps / Mapbox | Address text + OSM directions links | Profile shows full address; "Directions" opens a free map link |
+| Cloudflare R2 image uploads | Theme-gradient covers + emoji identity | No object storage bill; listings still look consistent and load fast |
+| Cloudflare Queues | D1-backed job rows + admin "Run now" | Nightly recomputes can be triggered manually or by free Cron Triggers |
+| FCM push notifications | In-app notifications + email digests (admin) | No external push infrastructure required |
+
+This keeps the entire stack inside the **Cloudflare Workers/D1/KV free tier**
+and **Vercel Hobby** while matching the product plan's trust-and-safety model
+(report queues, moderation, daily add limits, one active listing per account).

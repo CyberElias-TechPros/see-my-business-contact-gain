@@ -160,6 +160,55 @@ function WorkspaceProfile() {
         <div className="space-y-4">
           <Card className="card-surface">
             <CardContent className="space-y-3 p-5 text-sm">
+              {(() => {
+                const checks: { label: string; done: boolean }[] = [
+                  { label: "Add a tagline", done: b.tagline.trim().length > 0 },
+                  {
+                    label: "Write your about section (300+ chars)",
+                    done: b.about.trim().length >= 300,
+                  },
+                  { label: "Add at least 3 services", done: b.services.length >= 3 },
+                  { label: "Add at least 1 product", done: b.products.length >= 1 },
+                  { label: "Add your address", done: b.address.trim().length > 0 },
+                  { label: "Add your WhatsApp number", done: b.whatsapp.trim().length > 0 },
+                  { label: "Add your opening hours", done: (b.hours?.length ?? 0) > 0 },
+                  { label: "Link a social account", done: b.socials.length > 0 },
+                  { label: "List your team", done: b.team.length > 0 },
+                ];
+                const done = checks.filter((c) => c.done).length;
+                const pct = Math.round((done / checks.length) * 100);
+                const missing = checks.filter((c) => !c.done).slice(0, 3);
+                return (
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <p className="font-semibold">Profile completeness</p>
+                      <span className="font-bold text-primary">{pct}%</span>
+                    </div>
+                    <div className="mt-2 h-2 overflow-hidden rounded-full bg-muted">
+                      <div
+                        className="h-full rounded-full bg-primary"
+                        style={{ width: `${pct}%` }}
+                      />
+                    </div>
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      Complete listings get up to 3× more WhatsApp contacts.
+                    </p>
+                    {missing.length ? (
+                      <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
+                        {missing.map((c) => (
+                          <li key={c.label}>+ {c.label}</li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="mt-2 text-xs text-primary">Fully complete — nice work!</p>
+                    )}
+                  </div>
+                );
+              })()}
+            </CardContent>
+          </Card>
+          <Card className="card-surface">
+            <CardContent className="space-y-3 p-5 text-sm">
               <p className="font-semibold">Listing status</p>
               <label className="flex items-center justify-between gap-3">
                 <span>Show as open now</span>

@@ -2,6 +2,7 @@ import { dataset, defaultHours } from "@/data/mock";
 import { ApiError, type Backend } from "@/lib/api";
 import type {
   Ad,
+  AddToListResult,
   AuditEntry,
   Automation,
   Business,
@@ -10,13 +11,17 @@ import type {
   Claim,
   ConfigEntry,
   Contact,
+  ContactList,
   Conversation,
   Flag,
   Invoice,
   Job,
   Lead,
+  ListMember,
+  ListStatus,
   Message,
   ModerationItem,
+  PersonListing,
   PublicMeta,
   Report,
   Review,
@@ -46,7 +51,13 @@ const SESSION_KEY = "gainhub.demo.session";
 type DemoState = typeof dataset & { seq: number };
 
 function seed(): DemoState {
-  return { ...structuredClone(dataset), seq: 10_000 };
+  return {
+    ...structuredClone(dataset),
+    contactLists: [],
+    contactListMembers: {},
+    personalListings: [],
+    seq: 10_000,
+  };
 }
 
 function load(): DemoState {
@@ -117,9 +128,26 @@ function demoSearch(params: SearchParams): SearchResult {
   let items = [...db().businesses];
   if (params.q) {
     const q = params.q.toLowerCase();
-    items = items.filter((b) =>
-      [b.name, b.tagline, b.about, b.city, b.state].some((v) => v.toLowerCase().includes(q)),
+    // Business-graph search: match the business OR any product/service it sells.
+    items = items.filter(
+      (b) =>
+        [b.name, b.tagline, b.about, b.city, b.state].some((v) => v.toLowerCase().includes(q)) ||
+        b.services.some((x) => x.name.toLowerCase().includes(q)) ||
+        b.products.some((x) => x.name.toLowerCase().includes(q)),
     );
+    for (const b of items) {
+      const inBase = [b.name, b.tagline, b.about, b.city, b.state].some((v) =>
+        v.toLowerCase().includes(q),
+      );
+      if (inBase) continue;
+      const svc = b.services.find((x) => x.name.toLowerCase().includes(q));
+      if (svc) {
+        b.matchedOn = { kind: "service", name: svc.name };
+        continue;
+      }
+      const prod = b.products.find((x) => x.name.toLowerCase().includes(q));
+      if (prod) b.matchedOn = { kind: "product", name: prod.name };
+    }
   }
   if (params.category) items = items.filter((b) => b.categorySlug === params.category);
   if (params.area)
@@ -563,6 +591,202 @@ export const demoBackend: Backend = {
   async myEnquiries() {
     currentUser();
     return Promise.resolve(db().enquiries as unknown as Record<string, unknown>[]);
+  },
+
+  // ------------------------------------------------------------- contact hub
+  async lists() {
+    const user = currentUser();
+    const d = db();
+    const lists = d.contactLists ?? (d.contactLists = []);
+    return Promise.resolve(
+      lists
+        .filter((l) => l.userId === user.email)
+        .map((l) => ({
+          id: l.id,
+          name: l.name,
+          businessCount: (d.contactListMembers?.[l.id] ?? []).length,
+          ts: l.ts,
+        })),
+    );
+  },
+  async createList(name: string) {
+    const user = currentUser();
+    const d = db();
+    const lists = d.contactLists ?? (d.contactLists = []);
+    const id = nextId("CL");
+    lists.push({ id, userId: user.email, name, businessCount: 0, ts: 0 });
+    d.contactListMembers = d.contactListMembers ?? {};
+    persist();
+    return Promise.resolve({ id });
+  },
+  async renameList(id: string, name: string) {
+    const user = currentUser();
+    const list = (db().contactLists ?? []).find((l) => l.id === id && l.userId === user.email);
+    if (!list) throw new ApiError("List not found", 404);
+    list.name = name;
+    persist();
+    return Promise.resolve();
+  },
+  async deleteList(id: string) {
+    const user = currentUser();
+    const d = db();
+    const lists = d.contactLists ?? (d.contactLists = []);
+    const idx = lists.findIndex((l) => l.id === id && l.userId === user.email);
+    if (idx >= 0) lists.splice(idx, 1);
+    if (d.contactListMembers) delete d.contactListMembers[id];
+    persist();
+    return Promise.resolve();
+  },
+  async listMembers(id: string) {
+    const user = currentUser();
+    const d = db();
+    const list = (d.contactLists ?? []).find((l) => l.id === id && l.userId === user.email);
+    if (!list) throw new ApiError("List not found", 404);
+    const members = d.contactListMembers?.[id] ?? [];
+    return Promise.resolve(
+      members
+        .map((m) => {
+          const business = d.businesses.find((b) => b.id === m.businessId);
+          return business ? { ...m, business } : null;
+        })
+        .filter((m): m is ListMember => m != null),
+    );
+  },
+  async addToList(id: string, businessIds: string[], source?: string) {
+    const user = currentUser();
+    const d = db();
+    const list = (d.contactLists ?? []).find((l) => l.id === id && l.userId === user.email);
+    if (!list) throw new ApiError("List not found", 404);
+    const all = d.contactListMembers ?? (d.contactListMembers = {});
+    const members = all[id] ?? (all[id] = []);
+    let added = 0;
+    let duplicates = 0;
+    for (const businessId of businessIds) {
+      if (members.some((m) => m.businessId === businessId)) {
+        duplicates += 1; // dedupe: a business lives once per list
+        continue;
+      }
+      members.push({
+        businessId,
+        business: d.businesses.find((b) => b.id === businessId) as Business,
+        status: "New",
+        tags: [],
+        note: "",
+        source: source ?? "Directory search",
+        ts: 0,
+      });
+      added += 1;
+    }
+    persist();
+    return Promise.resolve({ added, duplicates });
+  },
+  async updateListMember(listId, businessId, patch) {
+    const user = currentUser();
+    const d = db();
+    const member = (d.contactListMembers?.[listId] ?? []).find((m) => m.businessId === businessId);
+    if (!member || !(d.contactLists ?? []).some((l) => l.id === listId && l.userId === user.email))
+      throw new ApiError("List member not found", 404);
+    if (patch.status) member.status = patch.status;
+    if (patch.tags) member.tags = patch.tags;
+    if (patch.note !== undefined) member.note = patch.note;
+    persist();
+    return Promise.resolve();
+  },
+  async removeFromList(listId, businessId) {
+    const user = currentUser();
+    const d = db();
+    const members = d.contactListMembers?.[listId] ?? [];
+    const idx = members.findIndex((m) => m.businessId === businessId);
+    if (
+      idx >= 0 &&
+      (d.contactLists ?? []).some((l) => l.id === listId && l.userId === user.email)
+    ) {
+      members.splice(idx, 1);
+      persist();
+    }
+    return Promise.resolve();
+  },
+
+  // ------------------------------------------- personal contact-gain listings
+  async listings(params) {
+    const d = db();
+    let items = [...(d.personalListings ?? [])];
+    const q = params?.q?.toLowerCase();
+    if (q)
+      items = items.filter((l) =>
+        [l.displayName, l.ownerName, l.bio, l.category].some((v) => v.toLowerCase().includes(q)),
+      );
+    if (params?.category) items = items.filter((l) => l.category === params.category);
+    if (params?.state) items = items.filter((l) => l.state === params.state);
+    return Promise.resolve(items);
+  },
+  async createListing(data) {
+    const user = currentUser();
+    const d = db();
+    const listings = d.personalListings ?? (d.personalListings = []);
+    if (listings.some((l) => l.userId === user.email))
+      throw new ApiError(
+        "You already have an active listing — delete it before posting a new one",
+        409,
+      );
+    const id = nextId("PL");
+    listings.push({
+      id,
+      userId: user.email,
+      ownerName: user.name,
+      displayName: data.displayName,
+      category: data.category,
+      state: data.state ?? "",
+      bio: data.bio ?? "",
+      whatsapp: data.whatsapp,
+      adds: 0,
+      ts: 0,
+    });
+    persist();
+    return Promise.resolve({ id });
+  },
+  async myListings() {
+    const user = currentUser();
+    return Promise.resolve((db().personalListings ?? []).filter((l) => l.userId === user.email));
+  },
+  async deleteListing(id: string) {
+    const user = currentUser();
+    const d = db();
+    const listings = d.personalListings ?? (d.personalListings = []);
+    const idx = listings.findIndex((l) => l.id === id && l.userId === user.email);
+    if (idx >= 0) {
+      listings.splice(idx, 1);
+      persist();
+    }
+    return Promise.resolve();
+  },
+  async trackListingAdd(id: string) {
+    const d = db();
+    const listing = (d.personalListings ?? []).find((l) => l.id === id);
+    if (listing) {
+      listing.adds += 1;
+      persist();
+    }
+    return Promise.resolve();
+  },
+
+  // ------------------------------------------------------ review management
+  async workspaceReviews() {
+    const user = currentUser();
+    const d = db();
+    const mine = d.businesses.filter((b) => b.ownerId === user.id).map((b) => b.id);
+    return Promise.resolve(d.reviews.filter((r) => mine.includes(r.businessId)));
+  },
+  async replyToReview(id: string, reply: string) {
+    const user = currentUser();
+    const d = db();
+    const mine = d.businesses.filter((b) => b.ownerId === user.id).map((b) => b.id);
+    const review = d.reviews.find((r) => r.id === id && mine.includes(r.businessId));
+    if (!review) throw new ApiError("Review not found", 404);
+    review.reply = reply;
+    review.repliedAt = 0;
+    persist();
+    return Promise.resolve();
   },
 
   async workspaceSummary() {

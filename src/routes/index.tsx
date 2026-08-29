@@ -97,9 +97,12 @@ function Home() {
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="Phone repair in Ikeja…"
                   className="border-0 shadow-none focus-visible:ring-0"
-                  aria-label="Search businesses"
+                  aria-label="Search businesses, products and services"
                 />
                 <Button type="submit">Search</Button>
+                <Button type="button" variant="outline" asChild>
+                  <Link to="/contact-gain">I want contacts</Link>
+                </Button>
               </div>
             </form>
             <div className="mt-5 flex flex-wrap gap-2">

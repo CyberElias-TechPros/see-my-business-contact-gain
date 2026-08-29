@@ -18,6 +18,8 @@ import {
   validEmail,
 } from "../util";
 
+const relTs = (epoch: number) => Math.max(0, Math.round((nowMs() - epoch) / 60_000));
+
 type AppEnv = { Bindings: Env; Variables: { user: SessionUser | null } };
 
 export const publicRoutes = new Hono<AppEnv>();
@@ -89,7 +91,7 @@ publicRoutes.get("/businesses", async (c) => {
   if (q) {
     const like = `%${q}%`;
     where.push(
-      `(${["b.name", "b.tagline", "b.about", "b.city", "b.state"].map((col) => `${col} LIKE ${bind(like)}`).join(" OR ")})`,
+      `(${["b.name", "b.tagline", "b.about", "b.city", "b.state", "b.services", "b.products"].map((col) => `${col} LIKE ${bind(like)}`).join(" OR ")})`,
     );
   }
   if (category) where.push(`b.category_slug = ${bind(category)}`);
@@ -149,6 +151,24 @@ publicRoutes.get("/businesses", async (c) => {
     if (row.category_name) mapped.categoryName = row.category_name;
     return mapped;
   });
+  // When the query matched a catalogue item rather than the business itself,
+  // surface WHICH product/service matched so the UI can show it (business graph).
+  if (q) {
+    const ql = q.toLowerCase();
+    for (const item of items) {
+      const inBase = [item.name, item.tagline, item.about, item.city, item.state].some(
+        (v) => typeof v === "string" && v.toLowerCase().includes(ql),
+      );
+      if (inBase) continue;
+      const svc = item.services.find((x) => x.name.toLowerCase().includes(ql));
+      if (svc) {
+        item.matchedOn = { kind: "service", name: svc.name };
+        continue;
+      }
+      const prod = item.products.find((x) => x.name.toLowerCase().includes(ql));
+      if (prod) item.matchedOn = { kind: "product", name: prod.name };
+    }
+  }
   return c.json({
     items,
     total: total?.n ?? 0,
@@ -170,7 +190,7 @@ publicRoutes.get("/businesses/:id", async (c) => {
   if (row!.category_name) business.categoryName = row!.category_name;
   const [reviews, saved] = await Promise.all([
     c.env.DB.prepare(
-      `SELECT id, business_id AS businessId, author, rating, body, status, created_at AS ts
+      `SELECT id, business_id AS businessId, author, rating, body, reply, status, created_at AS ts
        FROM reviews WHERE business_id = ?1 AND status = 'Published' ORDER BY created_at DESC LIMIT 20`,
     )
       .bind(row!.id)
@@ -363,7 +383,7 @@ function mapRoom(r: Record<string, unknown>) {
     rule: r.rule,
     verifiedOnly: r.verified_only === 1,
     state: r.state,
-    status: r.status,
+    status: r.memberStatus,
     ownerId: r.owner_id,
     ts: Math.max(0, Math.round((nowMs() - Number(r.created_at)) / 60_000)),
   };
@@ -621,6 +641,286 @@ publicRoutes.delete("/me/saved/:businessId", async (c) => {
     `DELETE FROM saved_businesses WHERE user_id = ?1 AND business_id = ?2`,
   ).bind(user.id, c.req.param("businessId"));
   return c.json({ ok: true, saved: false });
+});
+
+// ------------------------------------------- personal contact-gain listings
+const LISTING_CATEGORIES = [
+  "Business networking",
+  "Jobs & hiring",
+  "Buy & sell",
+  "Comedy & entertainment",
+  "Study groups",
+  "Community & region",
+  "Other",
+];
+
+publicRoutes.get("/listings", async (c) => {
+  const q = c.req.query("q")?.trim().toLowerCase() ?? "";
+  const category = c.req.query("category")?.trim() ?? "";
+  const state = c.req.query("state")?.trim() ?? "";
+  const rows = await c.env.DB.prepare(
+    `SELECT id, user_id AS userId, owner_name AS ownerName, display_name AS displayName,
+            category, state, bio, whatsapp, adds, created_at AS ts
+     FROM personal_listings ORDER BY created_at DESC LIMIT 200`,
+  ).all<{
+    id: string;
+    userId: string;
+    ownerName: string;
+    displayName: string;
+    category: string;
+    state: string;
+    bio: string;
+    whatsapp: string;
+    adds: number;
+    ts: number;
+  }>();
+  let items = rows.results;
+  if (q)
+    items = items.filter((r) =>
+      [r.displayName, r.ownerName, r.bio, r.category].some((v) => v.toLowerCase().includes(q)),
+    );
+  if (category) items = items.filter((r) => r.category === category);
+  if (state) items = items.filter((r) => r.state === state);
+  return c.json({ items });
+});
+
+publicRoutes.post("/listings", async (c) => {
+  const user = getUser(c);
+  await rateLimit(c.env.DB, clientIp(c), "listings", 5, 60_000);
+  const b = await body(c);
+  const displayName = str(b.displayName, "Display name", { max: 80 });
+  const category = str(b.category, "Category", { max: 40 });
+  if (!LISTING_CATEGORIES.includes(category)) bad("Unknown category");
+  const whatsapp = str(b.whatsapp, "WhatsApp number", { max: 20 });
+  if (whatsapp.replace(/\D/g, "").length < 10) bad("Enter a valid WhatsApp number");
+  const existing = await c.env.DB.prepare(`SELECT id FROM personal_listings WHERE user_id = ?1`)
+    .bind(user.id)
+    .first();
+  if (existing) bad("You already have an active listing — delete it before posting a new one");
+  const id = newId("PL");
+  await c.env.DB.prepare(
+    `INSERT INTO personal_listings (id, user_id, owner_name, display_name, category, state, bio, whatsapp, adds, created_at)
+     VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, 0, ?9)`,
+  )
+    .bind(
+      id,
+      user.id,
+      user.name.slice(0, 80),
+      displayName,
+      category,
+      str(b.state, "State", { max: 40, optional: true }) || "",
+      str(b.bio, "Bio", { max: 280, optional: true }) || "",
+      whatsapp,
+      nowMs(),
+    )
+    .run();
+  return c.json({ ok: true, id });
+});
+
+publicRoutes.get("/me/listings", async (c) => {
+  const user = getUser(c);
+  const rows = await c.env.DB.prepare(
+    `SELECT id, user_id AS userId, owner_name AS ownerName, display_name AS displayName,
+            category, state, bio, whatsapp, adds, created_at AS ts
+     FROM personal_listings WHERE user_id = ?1 ORDER BY created_at DESC`,
+  )
+    .bind(user.id)
+    .all();
+  return c.json({ items: rows.results });
+});
+
+publicRoutes.delete("/listings/:id", async (c) => {
+  const user = getUser(c);
+  await c.env.DB.prepare(`DELETE FROM personal_listings WHERE id = ?1 AND user_id = ?2`)
+    .bind(c.req.param("id"), user.id)
+    .run();
+  return c.json({ ok: true });
+});
+
+publicRoutes.post("/listings/:id/adds", async (c) => {
+  // Counts a "save contact" tap. Optional auth: signed-in users get attribution
+  // and daily limits; anonymous taps are still counted.
+  const user = c.get("user");
+  const id = c.req.param("id");
+  const listing = await c.env.DB.prepare(`SELECT id FROM personal_listings WHERE id = ?1`)
+    .bind(id)
+    .first();
+  if (!listing) notFound("Listing not found");
+  if (user) {
+    // Free anti-spam guard: hard per-user daily cap via the rate_limits table
+    // (window = a UTC day, keyed by user id instead of ip).
+    await rateLimit(
+      c.env.DB,
+      user.id,
+      `listing_add:${new Date(nowMs()).toISOString().slice(0, 10)}`,
+      100,
+      86_400_000,
+    );
+  }
+  await c.env.DB.batch([
+    c.env.DB.prepare(`UPDATE personal_listings SET adds = adds + 1 WHERE id = ?1`).bind(id),
+    c.env.DB.prepare(
+      `INSERT INTO events (business_id, type, source, created_at) VALUES (?1, 'listing_add', 'Contact gain', ?2)`,
+    ).bind(id, nowMs()),
+  ]);
+  return c.json({ ok: true });
+});
+
+// ------------------------------------------------------------ contact lists
+publicRoutes.get("/me/lists", async (c) => {
+  const user = getUser(c);
+  const rows = await c.env.DB.prepare(
+    `SELECT l.id, l.name, l.created_at AS ts,
+            (SELECT COUNT(*) FROM contact_list_members m WHERE m.list_id = l.id) AS businessCount
+     FROM contact_lists l WHERE l.user_id = ?1 ORDER BY l.created_at DESC`,
+  )
+    .bind(user.id)
+    .all();
+  return c.json({ items: rows.results });
+});
+
+publicRoutes.post("/me/lists", async (c) => {
+  const user = getUser(c);
+  const b = await body(c);
+  const name = str(b.name, "List name", { max: 60 });
+  const id = newId("CL");
+  await c.env.DB.prepare(
+    `INSERT INTO contact_lists (id, user_id, name, created_at) VALUES (?1, ?2, ?3, ?4)`,
+  )
+    .bind(id, user.id, name, nowMs())
+    .run();
+  return c.json({ ok: true, id });
+});
+
+publicRoutes.patch("/me/lists/:id", async (c) => {
+  const user = getUser(c);
+  const b = await body(c);
+  const name = str(b.name, "List name", { max: 60 });
+  await c.env.DB.prepare(`UPDATE contact_lists SET name = ?1 WHERE id = ?2 AND user_id = ?3`).bind(
+    name,
+    c.req.param("id"),
+    user.id,
+  );
+  return c.json({ ok: true });
+});
+
+publicRoutes.delete("/me/lists/:id", async (c) => {
+  const user = getUser(c);
+  await c.env.DB.prepare(`DELETE FROM contact_lists WHERE id = ?1 AND user_id = ?2`)
+    .bind(c.req.param("id"), user.id)
+    .run();
+  return c.json({ ok: true });
+});
+
+publicRoutes.get("/me/lists/:id/members", async (c) => {
+  const user = getUser(c);
+  const list = await c.env.DB.prepare(`SELECT id FROM contact_lists WHERE id = ?1 AND user_id = ?2`)
+    .bind(c.req.param("id"), user.id)
+    .first();
+  if (!list) notFound("List not found");
+  const rows = await c.env.DB.prepare(
+    `SELECT m.business_id AS businessId, m.status AS memberStatus, m.tags, m.note, m.source, m.created_at AS ts,
+            b.* FROM contact_list_members m
+     JOIN businesses b ON b.id = m.business_id
+     WHERE m.list_id = ?1 ORDER BY m.created_at DESC`,
+  )
+    .bind(c.req.param("id"))
+    .all<Record<string, unknown>>();
+  const items = rows.results.map((r) => ({
+    businessId: r.businessId,
+    business: mapBusiness(r as unknown as BusinessRow),
+    status: r.memberStatus,
+    tags: parseJson<string[]>(r.tags as string, []),
+    note: r.note,
+    source: r.source,
+    ts: relTs(Number(r.ts)),
+  }));
+  return c.json({ items });
+});
+
+publicRoutes.post("/me/lists/:id/members", async (c) => {
+  const user = getUser(c);
+  const b = await body(c);
+  const businessIds = Array.isArray(b.businessIds) ? b.businessIds.slice(0, 200) : [];
+  if (businessIds.length === 0) bad("Select at least one business");
+  const list = await c.env.DB.prepare(`SELECT id FROM contact_lists WHERE id = ?1 AND user_id = ?2`)
+    .bind(c.req.param("id"), user.id)
+    .first();
+  if (!list) notFound("List not found");
+  const source = str(b.source, "Source", { max: 60, optional: true }) || "Directory search";
+  let added = 0;
+  let duplicates = 0;
+  const now = nowMs();
+  for (const bid of businessIds) {
+    const exists = await c.env.DB.prepare(
+      `SELECT 1 AS x FROM contact_list_members WHERE list_id = ?1 AND business_id = ?2`,
+    )
+      .bind(list.id, String(bid))
+      .first();
+    if (exists) {
+      duplicates += 1;
+      continue;
+    }
+    await c.env.DB.prepare(
+      `INSERT INTO contact_list_members (list_id, business_id, status, tags, note, source, created_at)
+       VALUES (?1, ?2, 'New', '[]', '', ?3, ?4)`,
+    )
+      .bind(list.id, String(bid), source, now)
+      .run();
+    added += 1;
+  }
+  return c.json({ ok: true, added, duplicates });
+});
+
+publicRoutes.patch("/me/lists/:id/members/:businessId", async (c) => {
+  const user = getUser(c);
+  const listId = c.req.param("id");
+  const bid = c.req.param("businessId");
+  const own = await c.env.DB.prepare(`SELECT id FROM contact_lists WHERE id = ?1 AND user_id = ?2`)
+    .bind(listId, user.id)
+    .first();
+  if (!own) notFound("List not found");
+  const b = await body(c);
+  const sets: string[] = [];
+  const binds: unknown[] = [];
+  let n = 0;
+  if (b.status !== undefined) {
+    const status = str(b.status, "status", { max: 20 });
+    n += 1;
+    sets.push(`status = ?${n}`);
+    binds.push(status);
+  }
+  if (b.tags !== undefined) {
+    if (!Array.isArray(b.tags)) bad("tags must be an array");
+    n += 1;
+    sets.push(`tags = ?${n}`);
+    binds.push(JSON.stringify(b.tags.map((t: unknown) => String(t).slice(0, 30)).slice(0, 12)));
+  }
+  if (b.note !== undefined) {
+    n += 1;
+    sets.push(`note = ?${n}`);
+    binds.push(str(b.note, "note", { max: 500 }));
+  }
+  if (sets.length === 0) bad("Nothing to update");
+  await c.env.DB.prepare(
+    `UPDATE contact_list_members SET ${sets.join(", ")} WHERE list_id = ?${n + 1} AND business_id = ?${n + 2}`,
+  )
+    .bind(...binds, listId, bid)
+    .run();
+  return c.json({ ok: true });
+});
+
+publicRoutes.delete("/me/lists/:id/members/:businessId", async (c) => {
+  const user = getUser(c);
+  const listId = c.req.param("id");
+  const own = await c.env.DB.prepare(`SELECT id FROM contact_lists WHERE id = ?1 AND user_id = ?2`)
+    .bind(listId, user.id)
+    .first();
+  if (!own) notFound("List not found");
+  await c.env.DB.prepare(`DELETE FROM contact_list_members WHERE list_id = ?1 AND business_id = ?2`)
+    .bind(listId, c.req.param("businessId"))
+    .run();
+  return c.json({ ok: true });
 });
 
 publicRoutes.get("/me/reviews", async (c) => {

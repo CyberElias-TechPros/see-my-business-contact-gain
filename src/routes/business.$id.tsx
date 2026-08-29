@@ -12,9 +12,13 @@ import {
   VerifiedBadge,
 } from "@/components/kit";
 import { CallButton, SaveButton, ShareButton, WhatsAppButton } from "@/components/actions";
+import { QRCodeSVG } from "qrcode.react";
+import { Download, IdCard, QrCode } from "lucide-react";
+import { downloadBusinessVCard } from "@/lib/vcard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
@@ -62,6 +66,7 @@ function BusinessProfile() {
   const [service, setService] = useState("");
   const [reviewBody, setReviewBody] = useState("");
   const [reviewRating, setReviewRating] = useState(5);
+  const [qrOpen, setQrOpen] = useState(false);
 
   if (query.isLoading) {
     return (
@@ -140,6 +145,19 @@ function BusinessProfile() {
             <CallButton business={b} size="lg" />
             <SaveButton business={b} saved={saved} />
             <ShareButton business={b} />
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={() => {
+                downloadBusinessVCard(b);
+                toast.success("Contact card downloaded — open it to save the business");
+              }}
+            >
+              <IdCard className="size-4" /> Save contact
+            </Button>
+            <Button variant="outline" size="lg" onClick={() => setQrOpen(true)}>
+              <QrCode className="size-4" /> QR code
+            </Button>
           </div>
         </div>
 
@@ -260,6 +278,7 @@ function BusinessProfile() {
                             label="Ask price"
                             size="sm"
                             className="mt-3 w-full"
+                            message={`Hi ${b.name}! I'm interested in your ${p.name} (${p.price}). I found it on GainHub NG.`}
                           />
                         </CardContent>
                       </Card>
@@ -304,6 +323,12 @@ function BusinessProfile() {
                         </div>
                         <p className="mt-2 text-sm text-muted-foreground">{r.body}</p>
                         <p className="mt-2 text-xs text-muted-foreground">{timeAgo(r.ts)}</p>
+                        {r.reply ? (
+                          <div className="mt-3 rounded-lg border-l-2 border-primary bg-muted/60 px-4 py-3">
+                            <p className="text-xs font-semibold">Reply from {b.name}</p>
+                            <p className="mt-1 text-sm text-muted-foreground">{r.reply}</p>
+                          </div>
+                        ) : null}
                       </CardContent>
                     </Card>
                   ))
@@ -537,6 +562,52 @@ function BusinessProfile() {
           </section>
         ) : null}
       </div>
+      {/* Business profile QR — scannable print asset for shop fronts & flyers */}
+      <Dialog open={qrOpen} onOpenChange={setQrOpen}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>{b.name} — QR code</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col items-center gap-4 py-2">
+            <div className="qr-holder rounded-2xl border bg-white p-4">
+              <QRCodeSVG
+                value={
+                  typeof window !== "undefined"
+                    ? `${window.location.origin}/business/${b.id}`
+                    : `/business/${b.id}`
+                }
+                size={192}
+              />
+            </div>
+            <p className="text-center text-sm text-muted-foreground">
+              Print this on your shop window, receipts or flyers — one scan opens your full profile
+              where customers can chat with you on WhatsApp.
+            </p>
+            <Button
+              variant="outline"
+              onClick={() => {
+                const svg = document.querySelector<HTMLCanvasElement | SVGSVGElement>(
+                  "[data-qr] svg",
+                );
+                const el = document.querySelector<SVGSVGElement>(".qr-holder svg");
+                const source = el ?? svg;
+                if (!source) return;
+                const xml = new XMLSerializer().serializeToString(source);
+                const blob = new Blob([xml], { type: "image/svg+xml" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `${b.id}-qr.svg`;
+                a.click();
+                URL.revokeObjectURL(url);
+                toast.success("QR downloaded (SVG — ready to print)");
+              }}
+            >
+              <Download className="size-4" /> Download QR
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </PublicShell>
   );
 }

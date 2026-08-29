@@ -20,6 +20,7 @@ import { Route as CategoriesRouteImport } from './routes/categories'
 import { Route as ClaimRouteImport } from './routes/claim'
 import { Route as CompareRouteImport } from './routes/compare'
 import { Route as HelpRouteImport } from './routes/help'
+import { Route as HubRouteImport } from './routes/hub'
 import { Route as JoinRouteImport } from './routes/join'
 import { Route as LocationsRouteImport } from './routes/locations'
 import { Route as PricingRouteImport } from './routes/pricing'
@@ -59,6 +60,7 @@ import { Route as AppLinksRouteImport } from './routes/app/links'
 import { Route as AppPipelineRouteImport } from './routes/app/pipeline'
 import { Route as AppProductsRouteImport } from './routes/app/products'
 import { Route as AppProfileRouteImport } from './routes/app/profile'
+import { Route as AppReviewsRouteImport } from './routes/app/reviews'
 import { Route as AppSettingsRouteImport } from './routes/app/settings'
 import { Route as AppTasksRouteImport } from './routes/app/tasks'
 import { Route as AppTeamRouteImport } from './routes/app/team'
@@ -126,6 +128,11 @@ const CompareRoute = CompareRouteImport.update({
 const HelpRoute = HelpRouteImport.update({
   id: '/help',
   path: '/help',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HubRoute = HubRouteImport.update({
+  id: '/hub',
+  path: '/hub',
   getParentRoute: () => rootRouteImport,
 } as any)
 const JoinRoute = JoinRouteImport.update({
@@ -323,6 +330,11 @@ const AppProfileRoute = AppProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => AppRouteRoute,
 } as any)
+const AppReviewsRoute = AppReviewsRouteImport.update({
+  id: '/reviews',
+  path: '/reviews',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 const AppSettingsRoute = AppSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -401,6 +413,7 @@ export interface FileRoutesByFullPath {
   '/claim': typeof ClaimRoute
   '/compare': typeof CompareRoute
   '/help': typeof HelpRoute
+  '/hub': typeof HubRoute
   '/join': typeof JoinRoute
   '/locations': typeof LocationsRouteWithChildren
   '/pricing': typeof PricingRoute
@@ -438,6 +451,7 @@ export interface FileRoutesByFullPath {
   '/app/pipeline': typeof AppPipelineRoute
   '/app/products': typeof AppProductsRoute
   '/app/profile': typeof AppProfileRoute
+  '/app/reviews': typeof AppReviewsRoute
   '/app/settings': typeof AppSettingsRoute
   '/app/tasks': typeof AppTasksRoute
   '/app/team': typeof AppTeamRoute
@@ -464,6 +478,7 @@ export interface FileRoutesByTo {
   '/claim': typeof ClaimRoute
   '/compare': typeof CompareRoute
   '/help': typeof HelpRoute
+  '/hub': typeof HubRoute
   '/join': typeof JoinRoute
   '/locations': typeof LocationsRouteWithChildren
   '/pricing': typeof PricingRoute
@@ -501,6 +516,7 @@ export interface FileRoutesByTo {
   '/app/pipeline': typeof AppPipelineRoute
   '/app/products': typeof AppProductsRoute
   '/app/profile': typeof AppProfileRoute
+  '/app/reviews': typeof AppReviewsRoute
   '/app/settings': typeof AppSettingsRoute
   '/app/tasks': typeof AppTasksRoute
   '/app/team': typeof AppTeamRoute
@@ -530,6 +546,7 @@ export interface FileRoutesById {
   '/claim': typeof ClaimRoute
   '/compare': typeof CompareRoute
   '/help': typeof HelpRoute
+  '/hub': typeof HubRoute
   '/join': typeof JoinRoute
   '/locations': typeof LocationsRouteWithChildren
   '/pricing': typeof PricingRoute
@@ -567,6 +584,7 @@ export interface FileRoutesById {
   '/app/pipeline': typeof AppPipelineRoute
   '/app/products': typeof AppProductsRoute
   '/app/profile': typeof AppProfileRoute
+  '/app/reviews': typeof AppReviewsRoute
   '/app/settings': typeof AppSettingsRoute
   '/app/tasks': typeof AppTasksRoute
   '/app/team': typeof AppTeamRoute
@@ -597,6 +615,7 @@ export interface FileRouteTypes {
     | '/claim'
     | '/compare'
     | '/help'
+    | '/hub'
     | '/join'
     | '/locations'
     | '/pricing'
@@ -634,6 +653,7 @@ export interface FileRouteTypes {
     | '/app/pipeline'
     | '/app/products'
     | '/app/profile'
+    | '/app/reviews'
     | '/app/settings'
     | '/app/tasks'
     | '/app/team'
@@ -660,6 +680,7 @@ export interface FileRouteTypes {
     | '/claim'
     | '/compare'
     | '/help'
+    | '/hub'
     | '/join'
     | '/locations'
     | '/pricing'
@@ -697,6 +718,7 @@ export interface FileRouteTypes {
     | '/app/pipeline'
     | '/app/products'
     | '/app/profile'
+    | '/app/reviews'
     | '/app/settings'
     | '/app/tasks'
     | '/app/team'
@@ -725,6 +747,7 @@ export interface FileRouteTypes {
     | '/claim'
     | '/compare'
     | '/help'
+    | '/hub'
     | '/join'
     | '/locations'
     | '/pricing'
@@ -762,6 +785,7 @@ export interface FileRouteTypes {
     | '/app/pipeline'
     | '/app/products'
     | '/app/profile'
+    | '/app/reviews'
     | '/app/settings'
     | '/app/tasks'
     | '/app/team'
@@ -791,6 +815,7 @@ export interface RootRouteChildren {
   ClaimRoute: typeof ClaimRoute
   CompareRoute: typeof CompareRoute
   HelpRoute: typeof HelpRoute
+  HubRoute: typeof HubRoute
   JoinRoute: typeof JoinRoute
   LocationsRoute: typeof LocationsRouteWithChildren
   PricingRoute: typeof PricingRoute
@@ -886,6 +911,13 @@ declare module '@tanstack/react-router' {
       path: '/help'
       fullPath: '/help'
       preLoaderRoute: typeof HelpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hub': {
+      id: '/hub'
+      path: '/hub'
+      fullPath: '/hub'
+      preLoaderRoute: typeof HubRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/join': {
@@ -1161,6 +1193,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppProfileRouteImport
       parentRoute: typeof AppRouteRoute
     }
+    '/app/reviews': {
+      id: '/app/reviews'
+      path: '/reviews'
+      fullPath: '/app/reviews'
+      preLoaderRoute: typeof AppReviewsRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
     '/app/settings': {
       id: '/app/settings'
       path: '/settings'
@@ -1315,6 +1354,7 @@ interface AppRouteRouteChildren {
   AppPipelineRoute: typeof AppPipelineRoute
   AppProductsRoute: typeof AppProductsRoute
   AppProfileRoute: typeof AppProfileRoute
+  AppReviewsRoute: typeof AppReviewsRoute
   AppSettingsRoute: typeof AppSettingsRoute
   AppTasksRoute: typeof AppTasksRoute
   AppTeamRoute: typeof AppTeamRoute
@@ -1335,6 +1375,7 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppPipelineRoute: AppPipelineRoute,
   AppProductsRoute: AppProductsRoute,
   AppProfileRoute: AppProfileRoute,
+  AppReviewsRoute: AppReviewsRoute,
   AppSettingsRoute: AppSettingsRoute,
   AppTasksRoute: AppTasksRoute,
   AppTeamRoute: AppTeamRoute,
@@ -1369,6 +1410,7 @@ const rootRouteChildren: RootRouteChildren = {
   ClaimRoute: ClaimRoute,
   CompareRoute: CompareRoute,
   HelpRoute: HelpRoute,
+  HubRoute: HubRoute,
   JoinRoute: JoinRoute,
   LocationsRoute: LocationsRouteWithChildren,
   PricingRoute: PricingRoute,

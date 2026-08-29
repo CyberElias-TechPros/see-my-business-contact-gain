@@ -1,6 +1,7 @@
 import { dataset, defaultHours, peekBusiness } from "@/data/mock";
 import type {
   Ad,
+  AddToListResult,
   AuditEntry,
   Automation,
   Business,
@@ -9,13 +10,17 @@ import type {
   Claim,
   ConfigEntry,
   Contact,
+  ContactList,
   Conversation,
   Flag,
   Invoice,
   Job,
   Lead,
+  ListMember,
+  ListStatus,
   Message,
   ModerationItem,
+  PersonListing,
   PublicMeta,
   Report,
   Review,
@@ -23,13 +28,13 @@ import type {
   RoomDetail,
   SearchParams,
   SearchResult,
+  SourceSlice,
   Suggestion,
   Task,
   TeamMember,
   Ticket,
   TrackedLink,
   TrendPoint,
-  SourceSlice,
   User,
   WorkspaceSummary,
 } from "@/lib/types";
@@ -111,11 +116,15 @@ const reqPatch = <T>(path: string, body?: unknown) => http<T>("PATCH", path, bod
 const reqPut = <T>(path: string, body?: unknown) => http<T>("PUT", path, body);
 const reqDel = <T>(path: string) => http<T>("DELETE", path);
 
-/** Build a wa.me deep link with attribution text. */
-export function waLink(business: Pick<Business, "whatsapp" | "name">, source?: string): string {
+/** Build a wa.me deep link with attribution text (or a custom pre-filled message). */
+export function waLink(
+  business: Pick<Business, "whatsapp" | "name">,
+  source?: string,
+  message?: string,
+): string {
   const digits = business.whatsapp.replace(/\D/g, "");
   const text = encodeURIComponent(
-    `Hi ${business.name}! I found you on GainHub NG${source ? ` (${source})` : ""}.`,
+    message ?? `Hi ${business.name}! I found you on GainHub NG${source ? ` (${source})` : ""}.`,
   );
   return `https://wa.me/${digits}?text=${text}`;
 }
@@ -237,6 +246,37 @@ export interface Backend {
   unsaveBusiness(id: string): Promise<void>;
   myReviews(): Promise<Review[]>;
   myEnquiries(): Promise<Record<string, unknown>[]>;
+
+  // Contact hub — private per-user contact lists over the public directory.
+  lists(): Promise<ContactList[]>;
+  createList(name: string): Promise<{ id: string }>;
+  renameList(id: string, name: string): Promise<void>;
+  deleteList(id: string): Promise<void>;
+  listMembers(id: string): Promise<ListMember[]>;
+  addToList(id: string, businessIds: string[], source?: string): Promise<AddToListResult>;
+  updateListMember(
+    listId: string,
+    businessId: string,
+    patch: { status?: ListStatus; tags?: string[]; note?: string },
+  ): Promise<void>;
+  removeFromList(listId: string, businessId: string): Promise<void>;
+
+  // Personal contact-gain listings ("post a number").
+  listings(params?: { q?: string; category?: string; state?: string }): Promise<PersonListing[]>;
+  createListing(data: {
+    displayName: string;
+    category: string;
+    state?: string;
+    bio?: string;
+    whatsapp: string;
+  }): Promise<{ id: string }>;
+  myListings(): Promise<PersonListing[]>;
+  deleteListing(id: string): Promise<void>;
+  trackListingAdd(id: string): Promise<void>;
+
+  // Owner review management.
+  workspaceReviews(): Promise<Review[]>;
+  replyToReview(id: string, reply: string): Promise<void>;
 
   workspaceSummary(): Promise<WorkspaceSummary & { business: Business }>;
   workspaceLeads(): Promise<Lead[]>;
@@ -429,6 +469,67 @@ class HttpBackend implements Backend {
     return reqGet<{ items: Record<string, unknown>[] }>("/me/enquiries").then((r) => r.items);
   }
 
+  lists() {
+    return reqGet<{ items: ContactList[] }>("/me/lists").then((r) => r.items);
+  }
+  createList(name: string) {
+    return reqPost<{ id: string }>("/me/lists", { name });
+  }
+  renameList(id: string, name: string) {
+    return reqPatch(`/me/lists/${id}`, { name }).then(() => undefined);
+  }
+  deleteList(id: string) {
+    return reqDel(`/me/lists/${id}`).then(() => undefined);
+  }
+  listMembers(id: string) {
+    return reqGet<{ items: ListMember[] }>(`/me/lists/${id}/members`).then((r) => r.items);
+  }
+  addToList(id: string, businessIds: string[], source?: string) {
+    return reqPost<AddToListResult>(`/me/lists/${id}/members`, { businessIds, source });
+  }
+  updateListMember(
+    listId: string,
+    businessId: string,
+    patch: { status?: ListStatus; tags?: string[]; note?: string },
+  ) {
+    return reqPatch(`/me/lists/${listId}/members/${businessId}`, patch).then(() => undefined);
+  }
+  removeFromList(listId: string, businessId: string) {
+    return reqDel(`/me/lists/${listId}/members/${businessId}`).then(() => undefined);
+  }
+  listings(params?: { q?: string; category?: string; state?: string }) {
+    const qs = new URLSearchParams();
+    if (params?.q) qs.set("q", params.q);
+    if (params?.category) qs.set("category", params.category);
+    if (params?.state) qs.set("state", params.state);
+    return reqGet<{ items: PersonListing[] }>(`/listings?${qs.toString()}`).then((r) => r.items);
+  }
+  createListing(data: {
+    displayName: string;
+    category: string;
+    state?: string;
+    bio?: string;
+    whatsapp: string;
+  }) {
+    return reqPost<{ id: string }>("/listings", data);
+  }
+  myListings() {
+    return reqGet<{ items: PersonListing[] }>("/me/listings").then((r) => r.items);
+  }
+  deleteListing(id: string) {
+    return reqDel(`/listings/${id}`).then(() => undefined);
+  }
+  trackListingAdd(id: string) {
+    return reqPost(`/listings/${id}/adds`)
+      .then(() => undefined)
+      .catch(() => undefined);
+  }
+  workspaceReviews() {
+    return reqGet<{ items: Review[] }>("/workspace/reviews").then((r) => r.items);
+  }
+  replyToReview(id: string, reply: string) {
+    return reqPatch(`/workspace/reviews/${id}`, { reply }).then(() => undefined);
+  }
   workspaceSummary() {
     return reqGet<WorkspaceSummary & { business: Business }>("/workspace/summary");
   }

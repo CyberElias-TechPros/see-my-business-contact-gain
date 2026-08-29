@@ -229,35 +229,35 @@
       ],
       "services": [
         {
-          "name": "Standard service",
-          "price": "₦15,000",
-          "note": "Same-day where possible"
+          "name": "Same-day phone repair",
+          "price": "from ₦15,000",
+          "note": "60-90 min"
         },
         {
-          "name": "Premium service",
-          "price": "₦45,000",
-          "note": "Priority handling"
+          "name": "Laptop diagnostics",
+          "price": "₦5,000",
+          "note": "Free if repaired"
         },
         {
-          "name": "Consultation",
-          "price": "Free",
-          "note": "On WhatsApp"
+          "name": "Data recovery",
+          "price": "from ₦25,000",
+          "note": "48h turnaround"
         }
       ],
       "products": [
         {
-          "name": "Starter package",
-          "price": "₦25,000",
+          "name": "Screen replacement (iPhone 11-13)",
+          "price": "₦38,000",
           "tag": "Popular"
         },
         {
-          "name": "Bundle offer",
-          "price": "₦60,000",
+          "name": "Refurbished laptops (Core i5)",
+          "price": "₦185,000",
           "tag": "Offer"
         },
         {
-          "name": "Enterprise",
-          "price": "Request quote",
+          "name": "Office 365 setup",
+          "price": "₦12,000",
           "tag": "B2B"
         }
       ],
@@ -357,36 +357,36 @@
       ],
       "services": [
         {
-          "name": "Standard service",
-          "price": "₦15,000",
-          "note": "Same-day where possible"
+          "name": "Owambe catering",
+          "price": "from ₦2,500/plate",
+          "note": "Lagos-wide"
         },
         {
-          "name": "Premium service",
-          "price": "₦45,000",
-          "note": "Priority handling"
+          "name": "Corporate lunch delivery",
+          "price": "₦4,500/plate",
+          "note": "Mon-Fri"
         },
         {
-          "name": "Consultation",
-          "price": "Free",
-          "note": "On WhatsApp"
+          "name": "Small chops platters",
+          "price": "from ₦25,000",
+          "note": "24h notice"
         }
       ],
       "products": [
         {
-          "name": "Starter package",
-          "price": "₦25,000",
+          "name": "Party tray (50 guests)",
+          "price": "₦120,000",
+          "tag": "B2B"
+        },
+        {
+          "name": "Weekly meal plan",
+          "price": "₦35,000",
           "tag": "Popular"
         },
         {
-          "name": "Bundle offer",
-          "price": "₦60,000",
+          "name": "Peppered beef (1kg)",
+          "price": "₦8,500",
           "tag": "Offer"
-        },
-        {
-          "name": "Enterprise",
-          "price": "Request quote",
-          "tag": "B2B"
         }
       ],
       "amenities": [
@@ -481,35 +481,30 @@
       ],
       "services": [
         {
-          "name": "Standard service",
-          "price": "₦15,000",
-          "note": "Same-day where possible"
+          "name": "Custom tailoring",
+          "price": "from ₦20,000",
+          "note": "5-7 days"
         },
         {
-          "name": "Premium service",
-          "price": "₦45,000",
-          "note": "Priority handling"
-        },
-        {
-          "name": "Consultation",
-          "price": "Free",
-          "note": "On WhatsApp"
+          "name": "Dye workshop (groups)",
+          "price": "₦15,000/person",
+          "note": "Saturdays"
         }
       ],
       "products": [
         {
-          "name": "Starter package",
-          "price": "₦25,000",
+          "name": "Hand-dyed adire kaftan",
+          "price": "₦28,000",
           "tag": "Popular"
         },
         {
-          "name": "Bundle offer",
-          "price": "₦60,000",
-          "tag": "Offer"
+          "name": "Batik throw pillow set",
+          "price": "₦18,500",
+          "tag": "New"
         },
         {
-          "name": "Enterprise",
-          "price": "Request quote",
+          "name": "Custom adire fabric (6 yards)",
+          "price": "₦42,000",
           "tag": "B2B"
         }
       ],
@@ -605,35 +600,35 @@
       ],
       "services": [
         {
-          "name": "Standard service",
-          "price": "₦15,000",
-          "note": "Same-day where possible"
+          "name": "Hydrating facial",
+          "price": "₦25,000",
+          "note": "60 min"
         },
         {
-          "name": "Premium service",
-          "price": "₦45,000",
-          "note": "Priority handling"
+          "name": "Bridal makeup",
+          "price": "from ₦80,000",
+          "note": "On location"
         },
         {
-          "name": "Consultation",
-          "price": "Free",
-          "note": "On WhatsApp"
+          "name": "Gele tying class",
+          "price": "₦20,000",
+          "note": "2 sessions"
         }
       ],
       "products": [
         {
-          "name": "Starter package",
-          "price": "₦25,000",
+          "name": "Glow facial kit",
+          "price": "₦32,000",
           "tag": "Popular"
         },
         {
-          "name": "Bundle offer",
-          "price": "₦60,000",
+          "name": "Shea body butter (500ml)",
+          "price": "₦9,500",
           "tag": "Offer"
         },
         {
-          "name": "Enterprise",
-          "price": "Request quote",
+          "name": "Bridal glow package",
+          "price": "₦150,000",
           "tag": "B2B"
         }
       ],
@@ -729,36 +724,26 @@
       ],
       "services": [
         {
-          "name": "Standard service",
-          "price": "₦15,000",
-          "note": "Same-day where possible"
+          "name": "real estate consultation",
+          "price": "₦10,000",
+          "note": "Free follow-up"
         },
         {
-          "name": "Premium service",
-          "price": "₦45,000",
-          "note": "Priority handling"
-        },
-        {
-          "name": "Consultation",
-          "price": "Free",
-          "note": "On WhatsApp"
+          "name": "Express request",
+          "price": "from ₦15,000",
+          "note": "Same-day"
         }
       ],
       "products": [
         {
-          "name": "Starter package",
-          "price": "₦25,000",
+          "name": "KeyHomes starter bundle",
+          "price": "₦45,000",
           "tag": "Popular"
         },
         {
-          "name": "Bundle offer",
-          "price": "₦60,000",
+          "name": "Home delivery pack",
+          "price": "₦18,000",
           "tag": "Offer"
-        },
-        {
-          "name": "Enterprise",
-          "price": "Request quote",
-          "tag": "B2B"
         }
       ],
       "amenities": [
@@ -853,36 +838,26 @@
       ],
       "services": [
         {
-          "name": "Standard service",
-          "price": "₦15,000",
-          "note": "Same-day where possible"
+          "name": "logistics consultation",
+          "price": "₦10,000",
+          "note": "Free follow-up"
         },
         {
-          "name": "Premium service",
-          "price": "₦45,000",
-          "note": "Priority handling"
-        },
-        {
-          "name": "Consultation",
-          "price": "Free",
-          "note": "On WhatsApp"
+          "name": "Express request",
+          "price": "from ₦15,000",
+          "note": "Same-day"
         }
       ],
       "products": [
         {
-          "name": "Starter package",
-          "price": "₦25,000",
+          "name": "Rapid starter bundle",
+          "price": "₦45,000",
           "tag": "Popular"
         },
         {
-          "name": "Bundle offer",
-          "price": "₦60,000",
+          "name": "Home delivery pack",
+          "price": "₦18,000",
           "tag": "Offer"
-        },
-        {
-          "name": "Enterprise",
-          "price": "Request quote",
-          "tag": "B2B"
         }
       ],
       "amenities": [
@@ -977,36 +952,26 @@
       ],
       "services": [
         {
-          "name": "Standard service",
-          "price": "₦15,000",
-          "note": "Same-day where possible"
+          "name": "events consultation",
+          "price": "₦10,000",
+          "note": "Free follow-up"
         },
         {
-          "name": "Premium service",
-          "price": "₦45,000",
-          "note": "Priority handling"
-        },
-        {
-          "name": "Consultation",
-          "price": "Free",
-          "note": "On WhatsApp"
+          "name": "Express request",
+          "price": "from ₦15,000",
+          "note": "Same-day"
         }
       ],
       "products": [
         {
-          "name": "Starter package",
-          "price": "₦25,000",
+          "name": "Crown starter bundle",
+          "price": "₦45,000",
           "tag": "Popular"
         },
         {
-          "name": "Bundle offer",
-          "price": "₦60,000",
+          "name": "Home delivery pack",
+          "price": "₦18,000",
           "tag": "Offer"
-        },
-        {
-          "name": "Enterprise",
-          "price": "Request quote",
-          "tag": "B2B"
         }
       ],
       "amenities": [
@@ -1101,36 +1066,26 @@
       ],
       "services": [
         {
-          "name": "Standard service",
-          "price": "₦15,000",
-          "note": "Same-day where possible"
+          "name": "auto consultation",
+          "price": "₦10,000",
+          "note": "Free follow-up"
         },
         {
-          "name": "Premium service",
-          "price": "₦45,000",
-          "note": "Priority handling"
-        },
-        {
-          "name": "Consultation",
-          "price": "Free",
-          "note": "On WhatsApp"
+          "name": "Express request",
+          "price": "from ₦15,000",
+          "note": "Same-day"
         }
       ],
       "products": [
         {
-          "name": "Starter package",
-          "price": "₦25,000",
+          "name": "AutoPlug starter bundle",
+          "price": "₦45,000",
           "tag": "Popular"
         },
         {
-          "name": "Bundle offer",
-          "price": "₦60,000",
+          "name": "Home delivery pack",
+          "price": "₦18,000",
           "tag": "Offer"
-        },
-        {
-          "name": "Enterprise",
-          "price": "Request quote",
-          "tag": "B2B"
         }
       ],
       "amenities": [
@@ -1225,36 +1180,26 @@
       ],
       "services": [
         {
-          "name": "Standard service",
-          "price": "₦15,000",
-          "note": "Same-day where possible"
+          "name": "health consultation",
+          "price": "₦10,000",
+          "note": "Free follow-up"
         },
         {
-          "name": "Premium service",
-          "price": "₦45,000",
-          "note": "Priority handling"
-        },
-        {
-          "name": "Consultation",
-          "price": "Free",
-          "note": "On WhatsApp"
+          "name": "Express request",
+          "price": "from ₦15,000",
+          "note": "Same-day"
         }
       ],
       "products": [
         {
-          "name": "Starter package",
-          "price": "₦25,000",
+          "name": "WellCare starter bundle",
+          "price": "₦45,000",
           "tag": "Popular"
         },
         {
-          "name": "Bundle offer",
-          "price": "₦60,000",
+          "name": "Home delivery pack",
+          "price": "₦18,000",
           "tag": "Offer"
-        },
-        {
-          "name": "Enterprise",
-          "price": "Request quote",
-          "tag": "B2B"
         }
       ],
       "amenities": [
@@ -1349,36 +1294,26 @@
       ],
       "services": [
         {
-          "name": "Standard service",
-          "price": "₦15,000",
-          "note": "Same-day where possible"
+          "name": "education consultation",
+          "price": "₦10,000",
+          "note": "Free follow-up"
         },
         {
-          "name": "Premium service",
-          "price": "₦45,000",
-          "note": "Priority handling"
-        },
-        {
-          "name": "Consultation",
-          "price": "Free",
-          "note": "On WhatsApp"
+          "name": "Express request",
+          "price": "from ₦15,000",
+          "note": "Same-day"
         }
       ],
       "products": [
         {
-          "name": "Starter package",
-          "price": "₦25,000",
+          "name": "BrightPath starter bundle",
+          "price": "₦45,000",
           "tag": "Popular"
         },
         {
-          "name": "Bundle offer",
-          "price": "₦60,000",
+          "name": "Home delivery pack",
+          "price": "₦18,000",
           "tag": "Offer"
-        },
-        {
-          "name": "Enterprise",
-          "price": "Request quote",
-          "tag": "B2B"
         }
       ],
       "amenities": [
@@ -1473,36 +1408,26 @@
       ],
       "services": [
         {
-          "name": "Standard service",
-          "price": "₦15,000",
-          "note": "Same-day where possible"
+          "name": "professionals consultation",
+          "price": "₦10,000",
+          "note": "Free follow-up"
         },
         {
-          "name": "Premium service",
-          "price": "₦45,000",
-          "note": "Priority handling"
-        },
-        {
-          "name": "Consultation",
-          "price": "Free",
-          "note": "On WhatsApp"
+          "name": "Express request",
+          "price": "from ₦15,000",
+          "note": "Same-day"
         }
       ],
       "products": [
         {
-          "name": "Starter package",
-          "price": "₦25,000",
+          "name": "Okoro starter bundle",
+          "price": "₦45,000",
           "tag": "Popular"
         },
         {
-          "name": "Bundle offer",
-          "price": "₦60,000",
+          "name": "Home delivery pack",
+          "price": "₦18,000",
           "tag": "Offer"
-        },
-        {
-          "name": "Enterprise",
-          "price": "Request quote",
-          "tag": "B2B"
         }
       ],
       "amenities": [
@@ -1597,36 +1522,26 @@
       ],
       "services": [
         {
-          "name": "Standard service",
-          "price": "₦15,000",
-          "note": "Same-day where possible"
+          "name": "home services consultation",
+          "price": "₦10,000",
+          "note": "Free follow-up"
         },
         {
-          "name": "Premium service",
-          "price": "₦45,000",
-          "note": "Priority handling"
-        },
-        {
-          "name": "Consultation",
-          "price": "Free",
-          "note": "On WhatsApp"
+          "name": "Express request",
+          "price": "from ₦15,000",
+          "note": "Same-day"
         }
       ],
       "products": [
         {
-          "name": "Starter package",
-          "price": "₦25,000",
+          "name": "FixIt starter bundle",
+          "price": "₦45,000",
           "tag": "Popular"
         },
         {
-          "name": "Bundle offer",
-          "price": "₦60,000",
+          "name": "Home delivery pack",
+          "price": "₦18,000",
           "tag": "Offer"
-        },
-        {
-          "name": "Enterprise",
-          "price": "Request quote",
-          "tag": "B2B"
         }
       ],
       "amenities": [

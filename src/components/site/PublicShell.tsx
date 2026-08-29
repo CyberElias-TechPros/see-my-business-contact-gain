@@ -9,6 +9,7 @@ const nav = [
   { to: "/categories", label: "Categories" },
   { to: "/locations", label: "Locations" },
   { to: "/contact-gain", label: "Contact Gain" },
+  { to: "/hub", label: "My Contacts" },
   { to: "/pricing", label: "Pricing" },
   { to: "/help", label: "Help" },
 ];

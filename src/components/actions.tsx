@@ -13,6 +13,7 @@ export function WhatsAppButton({
   label = "Chat on WhatsApp",
   variant = "default",
   className,
+  message,
 }: {
   business: Business;
   source?: string;
@@ -20,6 +21,8 @@ export function WhatsAppButton({
   label?: string;
   variant?: "default" | "outline" | "secondary" | "ghost";
   className?: string;
+  /** Custom pre-filled WhatsApp message (e.g. a specific product enquiry). */
+  message?: string;
 }) {
   const track = useTrackEvent();
   return (
@@ -33,7 +36,7 @@ export function WhatsAppButton({
           type: "contact",
           source: source ?? "Directory profile",
         });
-        window.open(waLink(business, source), "_blank", "noopener");
+        window.open(waLink(business, source, message), "_blank", "noopener");
       }}
     >
       <MessageCircle className="size-4" /> {label}

@@ -48,6 +48,8 @@ export type Business = {
   ts: number; // minutes ago the record was created/updated
   cover: string;
   hours?: HourRow[];
+  /** Set when a search query matched a catalogue item rather than the business. */
+  matchedOn?: { kind: "product" | "service"; name: string };
 };
 
 export type Category = { slug: string; name: string; icon: string; count: number };
@@ -71,6 +73,51 @@ export type Review = {
   rating: number;
   body: string;
   status: string;
+  ts: number;
+  reply?: string;
+  repliedAt?: number;
+};
+
+// ------------------------------------------------------------- contact hub
+// "Contact gain" engine: private per-user contact lists over the public
+// directory. Public business data stays global; everything here is scoped by
+// user_id and never leaks between users.
+
+export type ListStatus =
+  "New" | "Contacted" | "Responded" | "Interested" | "Not interested" | "Archived";
+
+export type ContactList = {
+  id: string;
+  name: string;
+  businessCount: number;
+  ts: number;
+};
+
+export type ListMember = {
+  businessId: string;
+  business: Business;
+  status: ListStatus;
+  tags: string[];
+  note: string;
+  source: string;
+  ts: number;
+};
+
+export type AddToListResult = { added: number; duplicates: number };
+
+// -------------------------------------------------- personal contact listings
+// The informal Nigerian "contact gain" practice: individuals publish their
+// WhatsApp contact by category/location so others can one-tap add them.
+export type PersonListing = {
+  id: string;
+  userId: string;
+  ownerName: string;
+  displayName: string;
+  category: string;
+  state: string;
+  bio: string;
+  whatsapp: string;
+  adds: number;
   ts: number;
 };
 

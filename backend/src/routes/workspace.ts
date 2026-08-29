@@ -255,6 +255,34 @@ workspaceRoutes.delete("/leads/:id", async (c) => {
 });
 
 // ------------------------------------------------------------------- tasks
+// ------------------------------------------------------- reviews & replies
+workspaceRoutes.get("/reviews", async (c) => {
+  const biz = await resolveBusiness(c);
+  const rows = await c.env.DB.prepare(
+    `SELECT id, business_id AS businessId, author, rating, body, reply, status, created_at AS ts
+     FROM reviews WHERE business_id = ?1 ORDER BY created_at DESC LIMIT 100`,
+  )
+    .bind(biz.id)
+    .all();
+  return c.json({ items: rows.results });
+});
+
+workspaceRoutes.patch("/reviews/:id", async (c) => {
+  const user = getUser(c);
+  const biz = await resolveBusiness(c);
+  const b = await body(c);
+  const reply = str(b.reply, "Reply", { max: 600 });
+  const review = await c.env.DB.prepare(`SELECT id FROM reviews WHERE id = ?1 AND business_id = ?2`)
+    .bind(c.req.param("id"), biz.id)
+    .first();
+  if (!review) notFound("Review not found");
+  await c.env.DB.prepare(`UPDATE reviews SET reply = ?1 WHERE id = ?2`)
+    .bind(reply, c.req.param("id"))
+    .run();
+  await audit(c.env.DB, user.name, `Replied to a review on ${biz.id}`, biz.id);
+  return c.json({ ok: true });
+});
+
 workspaceRoutes.get("/tasks", async (c) => {
   const biz = await resolveBusiness(c);
   const rows = await c.env.DB.prepare(

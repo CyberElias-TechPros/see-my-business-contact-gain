@@ -1,8 +1,18 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { ChevronLeft, ChevronRight, LayoutGrid, MapPin, SlidersHorizontal, X } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  LayoutGrid,
+  ListPlus,
+  MapPin,
+  SlidersHorizontal,
+  X,
+} from "lucide-react";
 import { PublicShell, PageHead } from "@/components/site/PublicShell";
 import { BusinessCard, EmptyState, LoadError, LoadingCard } from "@/components/kit";
+import { useMe, useHubLists, useCreateList, useAddToList } from "@/lib/queries";
+import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -17,6 +27,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Slider } from "@/components/ui/slider";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useBusinesses, useMeta } from "@/lib/queries";
@@ -146,11 +157,26 @@ function SearchPage() {
   const items = results.data?.items ?? [];
   const total = results.data?.total ?? 0;
 
+  // ---- contact-gain selection mode: tick businesses, save the batch to a list
+  const { data: me } = useMe();
+  const hubLists = useHubLists();
+  const createList = useCreateList();
+  const [selected, setSelected] = useState<string[]>([]);
+  const [saveOpen, setSaveOpen] = useState(false);
+  const [newListName, setNewListName] = useState("");
+  const [selectedListId, setSelectedListId] = useState<string>("");
+  const [selecting, setSelecting] = useState(false);
+  const addToList = useAddToList(selectedListId);
+  const toggleSelect = (id: string) =>
+    setSelected((sel) =>
+      sel.includes(id) ? sel.filter((x) => x !== id) : sel.length < 50 ? [...sel, id] : sel,
+    );
+
   return (
     <PublicShell>
       <PageHead
         eyebrow="Directory"
-        title="Search businesses"
+        title="Search businesses, products & services"
         subtitle={
           meta
             ? `${meta.stats.businesses.toLocaleString()} listings across ${meta.stats.states} states. Ranked by relevance, responsiveness and verification level.`
@@ -369,9 +395,28 @@ function SearchPage() {
             />
           ) : view === "grid" ? (
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-              {items.map((b) => (
-                <BusinessCard key={b.id} business={b} />
-              ))}
+              {items.map((b) =>
+                selecting ? (
+                  <label
+                    key={b.id}
+                    className={`relative block cursor-pointer rounded-2xl border p-3 transition-colors ${
+                      selected.includes(b.id)
+                        ? "border-primary ring-1 ring-primary"
+                        : "hover:bg-muted/40"
+                    }`}
+                  >
+                    <Checkbox
+                      className="absolute right-3 top-3 z-10 bg-background"
+                      checked={selected.includes(b.id)}
+                      onCheckedChange={() => toggleSelect(b.id)}
+                      aria-label={`Select ${b.name}`}
+                    />
+                    <BusinessCard business={b} />
+                  </label>
+                ) : (
+                  <BusinessCard key={b.id} business={b} />
+                ),
+              )}
             </div>
           ) : (
             <AreaView
@@ -380,6 +425,53 @@ function SearchPage() {
               activeArea={params.area}
             />
           )}
+
+          {items.length > 0 ? (
+            <div className="sticky bottom-4 z-20 mt-6">
+              {selecting ? (
+                <Card className="card-surface border-primary/40 shadow-lg">
+                  <CardContent className="flex flex-wrap items-center gap-3 p-3 text-sm">
+                    <span className="font-medium">{selected.length} selected</span>
+                    <span className="hidden text-muted-foreground sm:inline">
+                      Tick up to 50 businesses, then save them to a contact list.
+                    </span>
+                    <div className="ml-auto flex gap-2">
+                      <Button
+                        size="sm"
+                        disabled={selected.length === 0}
+                        onClick={() => {
+                          if (!me) {
+                            toast.error("Sign in to save contact lists");
+                            void navigate({ to: "/auth", search: { redirect: "/search" } });
+                            return;
+                          }
+                          setSaveOpen(true);
+                        }}
+                      >
+                        Save to list
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => setSelected([])}>
+                        Clear
+                      </Button>
+                      <Button size="sm" variant="ghost" onClick={() => setSelecting(false)}>
+                        Done
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="flex justify-center">
+                  <Button
+                    variant="outline"
+                    className="shadow-lg"
+                    onClick={() => setSelecting(true)}
+                  >
+                    <ListPlus className="size-4" /> Select &amp; save contacts
+                  </Button>
+                </div>
+              )}
+            </div>
+          ) : null}
 
           {results.data && results.data.pages > 1 ? (
             <Card className="card-surface mt-8">
@@ -408,6 +500,86 @@ function SearchPage() {
           ) : null}
         </div>
       </div>
+      {/* Save selection to a contact list */}
+      <Dialog open={saveOpen} onOpenChange={setSaveOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Save {selected.length} businesses to a list</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Choose a list</Label>
+              <Select value={selectedListId} onValueChange={setSelectedListId}>
+                <SelectTrigger className="mt-2">
+                  <SelectValue placeholder="Pick a list…" />
+                </SelectTrigger>
+                <SelectContent>
+                  {(hubLists.data ?? []).map((l) => (
+                    <SelectItem key={l.id} value={l.id}>
+                      {l.name} ({l.businessCount})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-center gap-2">
+              <Separator className="flex-1" />
+              <span className="text-xs text-muted-foreground">or create new</span>
+              <Separator className="flex-1" />
+            </div>
+            <div className="flex gap-2">
+              <Input
+                placeholder="List name — e.g. Lagos hotels"
+                value={newListName}
+                onChange={(e) => setNewListName(e.target.value)}
+              />
+              <Button
+                variant="secondary"
+                disabled={createList.isPending || newListName.trim().length < 2}
+                onClick={() =>
+                  createList.mutate(
+                    { name: newListName, onSuccess: (id) => setSelectedListId(id) },
+                    { onSuccess: () => setNewListName("") },
+                  )
+                }
+              >
+                Create
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Saved contacts are private to your account — the businesses never see your notes.
+              Manage them in{" "}
+              <Link to="/hub" className="text-primary">
+                My Contacts
+              </Link>
+              .
+            </p>
+          </div>
+          <Button
+            className="w-full"
+            disabled={!selectedListId || addToList.isPending}
+            onClick={() =>
+              addToList.mutate(
+                { businessIds: selected, source: "Directory search" },
+                {
+                  onSuccess: (r) => {
+                    toast.success(
+                      r.duplicates > 0
+                        ? `Saved ${r.added} — ${r.duplicates} already in the list`
+                        : `Saved ${r.added} to your list`,
+                    );
+                    setSaveOpen(false);
+                    setSelected([]);
+                    setSelecting(false);
+                  },
+                },
+              )
+            }
+          >
+            {addToList.isPending ? "Saving…" : `Save ${selected.length} to list`}
+          </Button>
+        </DialogContent>
+      </Dialog>
     </PublicShell>
   );
 }

@@ -197,6 +197,12 @@ export function BusinessCard({ business }: { business: Business }) {
           </span>
           {business.openNow ? <span className="text-primary">Open now</span> : <span>Closed</span>}
         </div>
+        {business.matchedOn ? (
+          <p className="rounded-lg bg-primary/10 px-2 py-1 text-xs text-primary">
+            Matches your search: {business.matchedOn.name}{" "}
+            <span className="opacity-70">({business.matchedOn.kind})</span>
+          </p>
+        ) : null}
         <div className="flex items-center justify-between gap-2 pt-1">
           <VerifiedBadge level={business.verified} />
           <Button

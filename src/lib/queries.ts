@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { getBackend, backendMode } from "@/lib/api";
-import type { SearchParams } from "@/lib/types";
+import { getBackend, backendMode, type Backend } from "@/lib/api";
+import type { ListStatus, SearchParams } from "@/lib/types";
 
 /**
  * Single source of React Query hooks. Every hook resolves the active backend
@@ -32,6 +32,12 @@ export const qk = {
   wsProfile: ["ws-profile"] as const,
   wsInvoices: ["ws-invoices"] as const,
   wsAudit: ["ws-audit"] as const,
+  wsReviews: ["ws-reviews"] as const,
+  hubLists: ["hub-lists"] as const,
+  hubMembers: (id: string) => ["hub-members", id] as const,
+  listings: (params?: { q?: string; category?: string; state?: string }) =>
+    ["listings", params ?? {}] as const,
+  myListings: ["my-listings"] as const,
   wsAnalytics: ["ws-analytics"] as const,
   adOverview: ["ad-overview"] as const,
   adUsers: (q: string) => ["ad-users", q] as const,
@@ -357,6 +363,145 @@ const WS_ALL: readonly (readonly unknown[])[] = [
   qk.wsAudit,
   qk.wsAnalytics,
 ];
+
+// ------------------------------------------------------------- contact hub
+export function useHubLists() {
+  return useQuery({
+    queryKey: qk.hubLists,
+    queryFn: async () => (await getBackend()).lists(),
+    retry: false,
+  });
+}
+
+export function useHubMembers(id: string) {
+  return useQuery({
+    queryKey: qk.hubMembers(id),
+    queryFn: async () => (await getBackend()).listMembers(id),
+    enabled: Boolean(id),
+  });
+}
+
+function useHubMutation<TVars, TData = void>(
+  fn: (b: Awaited<ReturnType<typeof getBackend>>, vars: TVars) => Promise<TData>,
+  invalidate: readonly (readonly unknown[])[] = [qk.hubLists],
+) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (vars: TVars) => fn(await getBackend(), vars),
+    onSuccess: async () => {
+      for (const key of invalidate) await qc.invalidateQueries({ queryKey: key });
+    },
+    onError: (e) => toast.error(errMessage(e)),
+  });
+}
+
+export function useCreateList() {
+  return useHubMutation((b, vars: { name: string; onSuccess?: (id: string) => void }) =>
+    b.createList(vars.name).then((r) => {
+      vars.onSuccess?.(r.id);
+      return r;
+    }),
+  );
+}
+
+export function useDeleteList() {
+  return useHubMutation((b, id: string) => b.deleteList(id));
+}
+
+export function useAddToList(listId: string) {
+  return useHubMutation(
+    (b, vars: { businessIds: string[]; source?: string }) =>
+      b.addToList(listId, vars.businessIds, vars.source),
+    [qk.hubLists, qk.hubMembers(listId)],
+  );
+}
+
+export function useUpdateListMember(listId: string) {
+  return useHubMutation(
+    (
+      b,
+      vars: { businessId: string; patch: { status?: ListStatus; tags?: string[]; note?: string } },
+    ) => b.updateListMember(listId, vars.businessId, vars.patch),
+    [qk.hubLists, qk.hubMembers(listId)],
+  );
+}
+
+export function useRemoveFromList(listId: string) {
+  return useHubMutation(
+    (b, vars: { businessId: string }) => b.removeFromList(listId, vars.businessId),
+    [qk.hubLists, qk.hubMembers(listId)],
+  );
+}
+
+// ------------------------------------------------- personal listings (people)
+export function useListings(params?: { q?: string; category?: string; state?: string }) {
+  return useQuery({
+    queryKey: qk.listings(params),
+    queryFn: async () => (await getBackend()).listings(params),
+  });
+}
+
+export function useMyListings() {
+  return useQuery({
+    queryKey: qk.myListings,
+    queryFn: async () => (await getBackend()).myListings(),
+    retry: false,
+  });
+}
+
+function useListingMutation<TVars>(
+  fn: (b: Awaited<ReturnType<typeof getBackend>>, vars: TVars) => Promise<unknown>,
+) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (vars: TVars) => fn(await getBackend(), vars),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["listings"] });
+      void qc.invalidateQueries({ queryKey: qk.myListings });
+    },
+    onError: (e) => toast.error(errMessage(e)),
+  });
+}
+
+export function useCreateListing() {
+  return useListingMutation((b, vars: Parameters<Backend["createListing"]>[0]) =>
+    b.createListing(vars),
+  );
+}
+
+export function useDeleteListing() {
+  return useListingMutation((b, id: string) => b.deleteListing(id));
+}
+
+export function useTrackListingAdd() {
+  return useMutation({
+    mutationFn: async ({ id }: { id: string }) => (await getBackend()).trackListingAdd(id),
+  });
+}
+
+// --------------------------------------------------------- owner review replies
+export function useWorkspaceReviews() {
+  return useQuery({
+    queryKey: qk.wsReviews,
+    queryFn: async () => (await getBackend()).workspaceReviews(),
+    retry: false,
+  });
+}
+
+export function useReplyReview() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (vars: { id: string; reply: string }) => {
+      const backend = await getBackend();
+      return backend.replyToReview(vars.id, vars.reply);
+    },
+    onSuccess: () => {
+      toast.success("Reply published — it now shows under the review");
+      void qc.invalidateQueries({ queryKey: qk.wsReviews });
+    },
+    onError: (e) => toast.error(errMessage(e)),
+  });
+}
 
 export function useWs<T>(
   key: readonly unknown[],
