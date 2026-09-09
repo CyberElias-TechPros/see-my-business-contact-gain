@@ -17,10 +17,10 @@ browser ──(same origin)──► TanStack Start (SSR + SPA)
 
 ## Two data paths, on purpose
 
-| Need | Use | Why |
-| --- | --- | --- |
-| Data that must exist in the first HTML (SEO, shareable URLs, loaders) | `serverApiFetch` from `src/lib/server-api.ts`, wrapped in `queryOptions` in `src/lib/queries.ts` | A loader runs on the server, where a relative URL has no origin. The server function also carries the visitor's `Cookie` header to the API, so SSR renders logged-in state instead of flashing it in afterwards. |
-| Mutations the visitor triggers (enquiry, review, save, workspace forms) | `apiFetch` from `src/lib/api-client.ts` | Browser-only. It calls the **same origin** (`/api/v1/...`), which is what makes the `SameSite=Lax` session cookie first-party, and it attaches `X-CSRF-Token` from the cached session payload. |
+| Need                                                                    | Use                                                                                              | Why                                                                                                                                                                                                              |
+| ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Data that must exist in the first HTML (SEO, shareable URLs, loaders)   | `serverApiFetch` from `src/lib/server-api.ts`, wrapped in `queryOptions` in `src/lib/queries.ts` | A loader runs on the server, where a relative URL has no origin. The server function also carries the visitor's `Cookie` header to the API, so SSR renders logged-in state instead of flashing it in afterwards. |
+| Mutations the visitor triggers (enquiry, review, save, workspace forms) | `apiFetch` from `src/lib/api-client.ts`                                                          | Browser-only. It calls the **same origin** (`/api/v1/...`), which is what makes the `SameSite=Lax` session cookie first-party, and it attaches `X-CSRF-Token` from the cached session payload.                   |
 
 Do not import `@tanstack/react-start/server` from a module reachable by the client bundle; only
 `*.server.ts`-style helpers and `createServerFn` handlers run server-side (the client build stubs
@@ -60,16 +60,16 @@ Never render fabricated photography, fabricated counts, or a "demo" feed on a pu
    `Route.useLoaderData()` in the file becomes `undefined` — while `tsc` reports errors only at the
    call sites, hundreds of lines away. Annotate `head`'s parameter explicitly:
    `head: ({ params, loaderData }: { params: { slug: string }; loaderData?: unknown }) => …`, then
-   cast `loaderData as LoaderData | undefined` inside. Annotating with a type that *mentions*
+   cast `loaderData as LoaderData | undefined` inside. Annotating with a type that _mentions_
    `LoaderData` re-creates the cycle, so `unknown` + cast is the working form.
 2. **`validateSearch` schemas must be optional in and out.** A `.default()` turns the parsed object
-   into one that *requires* `sort`/`page`, so every `<Link to="/search">` suddenly needs a `search`
+   into one that _requires_ `sort`/`page`, so every `<Link to="/search">` suddenly needs a `search`
    prop and canonical URLs fill with `?page=1&sort=relevance`. Put defaults in a `toFilters()`
    helper instead.
 3. **`exactOptionalPropertyTypes`** forbids `{ coverUrl: undefined }`. Either omit the key
    (`...(value ? { key: value } : {})`) or type the field `?: T | undefined`.
 4. **Route file renames matter for nesting.** `locations.tsx` + `locations.$slug.tsx` makes the
-   detail page a *child* of the index page; because the index has no `<Outlet/>`, `/locations/lagos`
+   detail page a _child_ of the index page; because the index has no `<Outlet/>`, `/locations/lagos`
    rendered the index and dropped the detail component. A segment that has children needs
    `locations.index.tsx` for its index route. `npm run build` (or the dev server) regenerates
    `src/routeTree.gen.ts`; `tsc` alone will not.
@@ -79,7 +79,7 @@ Never render fabricated photography, fabricated counts, or a "demo" feed on a pu
 - **Real 404s.** Unknown slugs throw `notFound()` from the loader; the API's own 404 additionally
   sets the HTTP status inside `serverApiFetch`, so a delisted listing leaves the index instead of
   serving cached or fallback content under a live URL.
-- **Canonical + `robots` on every public route.** Canonicals use the *slug*, so the same listing
+- **Canonical + `robots` on every public route.** Canonicals use the _slug_, so the same listing
   reached by id (`/business/biz_swiftfix`) self-canonicalises to `/business/swiftfix-gadgets`.
   Pagination beyond page 1 is `noindex,follow`; `/app` and `/admin` are `noindex,nofollow,noarchive`
   via their layout routes, and `src/server.ts` puts the same instruction in an `X-Robots-Tag`

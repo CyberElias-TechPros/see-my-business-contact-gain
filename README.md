@@ -1,17 +1,17 @@
 # GainHub NG
 
 A Nigerian business directory, contact-gain rooms and SMB CRM. Consumers find a verified
-trader, make contact through WhatsApp or an enquiry form, and the *source* of that contact is
+trader, make contact through WhatsApp or an enquiry form, and the _source_ of that contact is
 recorded — so the business can see which flyer, QR code, campaign link or room produced the
 lead. That attribution loop is the product; the directory is how it starts.
 
 Three surfaces share one data layer:
 
-| Surface       | Audience            | Routes                                    |
-| ------------- | ------------------- | ----------------------------------------- |
-| Discovery     | Consumers           | `/`, `/search`, `/business/:slug`, `/category/:slug`, `/locations/:slug`, `/compare` |
-| Console       | Business owners     | `/app/*` — profile, catalogue, media, leads, enquiries, links, rooms, analytics, team, billing |
-| Moderation    | GainHub staff       | `/admin/*` — listings, reports, claims, verification, users, flags, jobs, audit log |
+| Surface    | Audience        | Routes                                                                                         |
+| ---------- | --------------- | ---------------------------------------------------------------------------------------------- |
+| Discovery  | Consumers       | `/`, `/search`, `/business/:slug`, `/category/:slug`, `/locations/:slug`, `/compare`           |
+| Console    | Business owners | `/app/*` — profile, catalogue, media, leads, enquiries, links, rooms, analytics, team, billing |
+| Moderation | GainHub staff   | `/admin/*` — listings, reports, claims, verification, users, flags, jobs, audit log            |
 
 ## Architecture
 
@@ -56,17 +56,18 @@ on mock data) are in [docs/FRONTEND.md](docs/FRONTEND.md).
 
 ## Verification
 
-| Command              | What it proves                                                      |
-| -------------------- | ------------------------------------------------------------------- |
-| `npm run typecheck`  | frontend **and** Worker under the strict root config                 |
-| `npm run lint`       | eslint + prettier (0 errors is the bar)                              |
-| `npm run check:sql`  | every SQL literal in the Worker prepared against the real schema, plus parameter arity |
-| `npm run check:deploy` | wrangler config: real resource ids, https URLs, no committed secrets |
-| `npm run check:lock` | the committed `bun.lock` matches package.json, which is what Vercel installs from |
-| `npm test`           | 47 tests in workerd — domain rules, auth, authorisation, triggers, limits |
-| `npm run smoke`      | 136–139 checks against a *running* API (`worker/dev/smoke.mjs`; the count moves with the seeded pending review) |
-| `npm run build`      | production frontend build                                            |
-| `npm run verify`     | all of the above except deploy/smoke                                 |
+| Command                | What it proves                                                                                                  |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `npm run typecheck`    | frontend **and** Worker under the strict root config                                                            |
+| `npm run lint`         | eslint, 0 errors is the bar                                                                                     |
+| `npm run format:check` | prettier over every file the repo ships, so prose and tables do not drift                                       |
+| `npm run check:sql`    | every SQL literal in the Worker prepared against the real schema, plus parameter arity                          |
+| `npm run check:deploy` | wrangler config: real resource ids, https URLs, no committed secrets                                            |
+| `npm run check:lock`   | the committed `bun.lock` matches package.json, which is what Vercel installs from                               |
+| `npm test`             | 47 tests in workerd — domain rules, auth, authorisation, triggers, limits                                       |
+| `npm run smoke`        | 136–139 checks against a _running_ API (`worker/dev/smoke.mjs`; the count moves with the seeded pending review) |
+| `npm run build`        | production frontend build                                                                                       |
+| `npm run verify`       | all of the above except deploy/smoke                                                                            |
 
 `check:sql` exists because a wrong table alias in a template string typechecks cleanly and
 only fails when a customer hits the page; it has caught several of those, and one 500 that no
@@ -86,12 +87,12 @@ the real D1/KV/R2 for this project yet, so a remote deploy must fail until they 
 
 Read this before demoing or extending:
 
-* **Implemented and locally verified** — auth, sessions, CSRF, listing CRUD, catalogue, media
+- **Implemented and locally verified** — auth, sessions, CSRF, listing CRUD, catalogue, media
   upload tickets, reviews + owner replies, enquiries → attributed leads, CRM pipeline, rooms,
   links/QR + click tracking, analytics, admin moderation queue, rate limiting, cron jobs, the
   email queue (structured log when no provider key is configured).
-* **Environment-dependent** — transactional email (needs `RESEND_API_KEY`), custom domains and
+- **Environment-dependent** — transactional email (needs `RESEND_API_KEY`), custom domains and
   the R2 bucket (need the Cloudflare resources), anything that reads `API_URL` in production.
-* **Not implemented** — payment collection (billing is plan metadata only; no Paystack/Flutterwave
+- **Not implemented** — payment collection (billing is plan metadata only; no Paystack/Flutterwave
   integration), image transcoding (bytes are stored as uploaded; size and magic bytes are
   validated), mobile apps.

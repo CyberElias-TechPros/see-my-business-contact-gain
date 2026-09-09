@@ -19,13 +19,13 @@ leaves a listing whose stars disagree with its reviews. For a product whose enti
 
 Compute the derived values in the database, in triggers attached to the rows that change them:
 
-| Trigger | Effect |
-| ------- | ------ |
+| Trigger                                                           | Effect                                                                                |
+| ----------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
 | `reviews_recalc_after_insert` / `_after_update` / `_after_delete` | recompute `businesses.rating_avg`, `rating_count` from `status = 'published'` reviews |
-| `leads_contacts_gained_after_insert` / `_after_delete` | `businesses.contacts_gained` from distinct non-lost leads |
-| `room_members_recount_after_insert` / `_after_update` | `rooms.member_count` from `status = 'active'` memberships |
-| `room_members_score_after_update` | `rooms.avg_save_back` from members' scores |
-| `businesses_search_after_insert` / `_after_update` | rebuild `business_search_index.search_text` |
+| `leads_contacts_gained_after_insert` / `_after_delete`            | `businesses.contacts_gained` from distinct non-lost leads                             |
+| `room_members_recount_after_insert` / `_after_update`             | `rooms.member_count` from `status = 'active'` memberships                             |
+| `room_members_score_after_update`                                 | `rooms.avg_save_back` from members' scores                                            |
+| `businesses_search_after_insert` / `_after_update`                | rebuild `business_search_index.search_text`                                           |
 
 `business_search_index.business_id` is `ON DELETE CASCADE`, so the haystack needs no delete
 trigger. Application code **reads** these columns and never writes them; `UPDATE businesses SET
@@ -39,18 +39,18 @@ one D1 write per page view is the wrong tool for that volume
 
 ## Consequences
 
-* **Gained:** the numbers cannot drift, whatever writes the table — including a hand-run
+- **Gained:** the numbers cannot drift, whatever writes the table — including a hand-run
   `wrangler d1 execute`, a future import script, or a bug in a handler nobody reviewed. Seed
   data gets correct aggregates for free (the seed inserts rows and lets the triggers do the math,
   which is how we noticed the seed needed no aggregate statements at all).
-* **Cost:** trigger bodies are invisible to `tsc` and to the frontend; a mistake shows up only at
+- **Cost:** trigger bodies are invisible to `tsc` and to the frontend; a mistake shows up only at
   runtime. Mitigated by `npm run check:sql`, which builds a real SQLite database from
   `worker/migrations/*.sql`, executes `dev/seed.sql` end to end, and prepares every statement in
   `worker/src/**` against that schema — so a trigger referencing a renamed column fails the check
   rather than the listing page.
-* **Cost:** recalculation is a `SELECT … FROM reviews WHERE business_id = ?` per review write.
+- **Cost:** recalculation is a `SELECT … FROM reviews WHERE business_id = ?` per review write.
   Bounded by one review per author per business, and trivially fast at this scale.
-* **Rollback:** triggers live in migration files; dropping one is a new migration, and the
+- **Rollback:** triggers live in migration files; dropping one is a new migration, and the
   columns they write can be rebuilt from source rows at any time by re-running the same aggregate
   (the recalculation is a full recompute per business, not an increment — deliberately, so
   `UPDATE businesses SET rating_avg = (SELECT …)` is always a valid repair).

@@ -32,28 +32,28 @@ session are cheap.
 
 ## Consequences
 
-* **Gained:** predictable behaviour with zero index maintenance; substring matching means
+- **Gained:** predictable behaviour with zero index maintenance; substring matching means
   "adire" finds "Adìrè Atelier" (accents are folded at index time by the trigger); relevance is a
   formula we control and can explain in the admin console; no FTS5 tokenizer surprises in D1.
-* **Cost:** no typo tolerance, no stemming, no BM25. `LIKE '%term%'` cannot use an index, so the
+- **Cost:** no typo tolerance, no stemming, no BM25. `LIKE '%term%'` cannot use an index, so the
   scan is O(corpus) — acceptable at this size, and the corpus is one row per business, not one
   row per word. Relevance is intentionally coarse; the first page of "pharmacy" in Ikeja is
   ordered by rating, verification and freshness, which is what a consumer of this product
   actually wants.
-* **Known limits, documented rather than hidden:** a query shorter than 2 characters is answered
+- **Known limits, documented rather than hidden:** a query shorter than 2 characters is answered
   with `ambiguousQuery` + suggestions instead of a full scan; results beyond page 50 of a
   1 000-listing corpus will get slower; a `q` with 6+ tokens is truncated to 6.
 
 ## Alternatives considered
 
-* **FTS5 virtual table in D1** — genuinely attractive (`bm25`, `PREFIX` queries), rejected for now
+- **FTS5 virtual table in D1** — genuinely attractive (`bm25`, `PREFIX` queries), rejected for now
   because D1's FTS5 support is still uneven across regions, an FTS index must be rebuilt if the
-  tokenizer changes, and it does not help with the part that matters here: matching *accented*
+  tokenizer changes, and it does not help with the part that matters here: matching _accented_
   Nigerian trade names, for which a folded haystack + LIKE is strictly better than the default
   unicode61 tokenizer. The trigger surface is identical (a second table to maintain), so nothing
   in the current design blocks swapping it in — the `searchText` column is the contract.
-* **Algolia/Typesense/Meilisearch sidecar** — rejected: an external index for a directory whose
+- **Algolia/Typesense/Meilisearch sidecar** — rejected: an external index for a directory whose
   freshness requirement is "a published listing appears within a minute" is a second source of
   truth, an API key to rotate and a bill.
-* **`normalize()` + FTS** — SQLite's `normalize()` is ICU-dependent in D1; folding accents at
+- **`normalize()` + FTS** — SQLite's `normalize()` is ICU-dependent in D1; folding accents at
   write time into the haystack is deterministic and testable.

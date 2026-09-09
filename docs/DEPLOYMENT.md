@@ -2,10 +2,10 @@
 
 Two deployments, one repository:
 
-| Piece        | Platform            | Artifact                                   |
-| ------------ | ------------------- | ------------------------------------------ |
-| Frontend     | Vercel              | TanStack Start (SSR + static assets)        |
-| API          | Cloudflare Workers  | `worker/` — D1, KV, R2, Queues, Cron        |
+| Piece    | Platform           | Artifact                             |
+| -------- | ------------------ | ------------------------------------ |
+| Frontend | Vercel             | TanStack Start (SSR + static assets) |
+| API      | Cloudflare Workers | `worker/` — D1, KV, R2, Queues, Cron |
 
 The split is deliberate: pages need a Node-capable renderer and edge caching for HTML, the API
 needs D1/KV/R2 and a request path that never waits for a container to boot. Follow the steps in
@@ -42,14 +42,14 @@ npx wrangler queues create gainhub-notifications-staging          # staging queu
 
 Each `create` prints an id. Paste them into `worker/wrangler.jsonc`:
 
-| Config key                                        | From the output of            |
-| ------------------------------------------------- | ----------------------------- |
-| `account_id`                                       | `wrangler accounts list`      |
-| `d1_databases[0].database_id`                      | `d1 create gainhub`           |
-| `kv_namespaces[0].id`                              | `kv namespace create GAINHUB_KV` |
+| Config key                                         | From the output of                    |
+| -------------------------------------------------- | ------------------------------------- |
+| `account_id`                                       | `wrangler accounts list`              |
+| `d1_databases[0].database_id`                      | `d1 create gainhub`                   |
+| `kv_namespaces[0].id`                              | `kv namespace create GAINHUB_KV`      |
 | `r2_buckets[0].bucket_name`                        | already correct unless you renamed it |
 | `queues.producers[0].queue` / `consumers[0].queue` | `queues create gainhub-notifications` |
-| `env.staging.*`                                    | the `-staging` equivalents    |
+| `env.staging.*`                                    | the `-staging` equivalents            |
 
 `database_name` must stay in sync with the D1 you created; `binding` names must not change
 (`DB`, `KV`, `MEDIA`, `EMAIL_QUEUE`) — they are the property names in `worker/env.d.ts` and in
@@ -147,7 +147,7 @@ check:lock` is the local equivalent, and it names the package; run `bun install`
 lockfile when it complains. Do not commit `package-lock.json` alongside it (it is gitignored):
 Vercel's package-manager detection would then prefer npm, whose strict peer resolution this tree
 does not satisfy. Do not set an
-output directory: the Lovable Vite config runs nitro with `cloudflare-module` as its *default*,
+output directory: the Lovable Vite config runs nitro with `cloudflare-module` as its _default_,
 and nitro's own platform detection overrides that during a Vercel build (`NITRO_PRESET` /
 `.vercel` detection), which is what emits `.vercel/output`. Locally `npm run build` writes
 `.output/` — that difference is expected, not a misconfiguration. Only pin
@@ -156,12 +156,12 @@ artifact anyway.
 
 Environment variables — per environment (Production, Preview, Development):
 
-| Name              | Production                                | Staging                        |
-| ----------------- | ----------------------------------------- | ------------------------------ |
-| `PUBLIC_URL`      | `https://gainhub.ng`                       | `https://staging.gainhub.ng`   |
-| `API_URL`         | `https://api.gainhub.ng`                   | `https://staging-api.gainhub.ng` |
-| `API_INTERNAL_URL`| `https://api.gainhub.ng`                   | `https://staging-api.gainhub.ng` |
-| `COOKIE_STRATEGY` | `same-origin-proxy`                        | same                            |
+| Name               | Production               | Staging                          |
+| ------------------ | ------------------------ | -------------------------------- |
+| `PUBLIC_URL`       | `https://gainhub.ng`     | `https://staging.gainhub.ng`     |
+| `API_URL`          | `https://api.gainhub.ng` | `https://staging-api.gainhub.ng` |
+| `API_INTERNAL_URL` | `https://api.gainhub.ng` | `https://staging-api.gainhub.ng` |
+| `COOKIE_STRATEGY`  | `same-origin-proxy`      | same                             |
 
 `API_URL` is what the browser talks to (absolute media URLs, WhatsApp links);
 `API_INTERNAL_URL` is what **server rendering** uses, so SSR data fetching never pays a
@@ -215,42 +215,42 @@ the right source.
 
 ## 7. After the first deploy
 
-* `GET /api/v1/admin/jobs` shows the last run of every cron job (`flush_view_counters`,
+- `GET /api/v1/admin/jobs` shows the last run of every cron job (`flush_view_counters`,
   `aggregate_daily`, `moderation_sla`, `stale_leads`, `purge_*`, `weekly_digest`). A job that has
   not run in a day is a red flag long before users mention stale analytics.
-* Cron is declared in `wrangler.jsonc` (`*/15 * * * *` and `17 3 * * *` UTC ≈ 2:17am Lagos).
+- Cron is declared in `wrangler.jsonc` (`*/15 * * * *` and `17 3 * * *` UTC ≈ 2:17am Lagos).
   To rehearse a run: `npx wrangler trigger deploy` is not a thing — call the Worker's scheduled
   handler from `wrangler dev` (`curl -X POST http://localhost:8787/cdn-cgi/local/scheduled`) or
   use the dashboard's "Test" button on the cron trigger.
-* Set the Workers analytics/alarm thresholds you care about (error rate, CPU, D1 read rows) —
+- Set the Workers analytics/alarm thresholds you care about (error rate, CPU, D1 read rows) —
   D1's free tier is 5M reads/day, which this API's caching layer exists to protect.
-* Back up before destructive work: `npx wrangler d1 export gainhub --remote --file=backup.sql`,
+- Back up before destructive work: `npx wrangler d1 export gainhub --remote --file=backup.sql`,
   or the dashboard's point-in-time restore (7 days).
 
 ## 8. Rollback
 
-* **Worker**: `npx wrangler deployments list` → `npx wrangler rollback <version-id>`. Bindings,
+- **Worker**: `npx wrangler deployments list` → `npx wrangler rollback <version-id>`. Bindings,
   vars and cron/queue triggers are part of a version, so a rollback also reverts config.
-* **Frontend**: Vercel → Deployments → "Promote to Production" on the previous deployment.
-* **Database**: migrations are additive precisely so that rollback does not require a schema
-  revert. If a migration must be undone, write a *new* migration that restores the old shape
+- **Frontend**: Vercel → Deployments → "Promote to Production" on the previous deployment.
+- **Database**: migrations are additive precisely so that rollback does not require a schema
+  revert. If a migration must be undone, write a _new_ migration that restores the old shape
   (copy values into a shadow table first); do not edit history.
 
 ## Notes on limits that shaped the code
 
-* `limits.cpu_ms = 200`. Password hashing is PBKDF2-SHA256 at 210,000 iterations, which costs
+- `limits.cpu_ms = 200`. Password hashing is PBKDF2-SHA256 at 210,000 iterations, which costs
   tens of milliseconds of CPU; at Workers' default budget every sign-in would abort on a CPU
   exception that never reproduces locally. If you must run on the free plan (30ms CPU per
   invocation, 10ms per request by default there), lower `PBKDF2_ITERATIONS` **and** rehash on
   login — `needsRehash()` in `worker/src/crypto.ts` already rewrites hashes at the old cost when
   a user signs in, so the transition is automatic for anyone who logs in.
-* KV allows one write per key per second. That is why the rate limiter uses a bucket suffix
+- KV allows one write per key per second. That is why the rate limiter uses a bucket suffix
   (`rl:<name>:<identity>:<window-index>`) instead of incrementing one key, and why view counters
   are batched in KV and flushed by cron instead of written per request.
-* D1 has no transactions and no `RETURNING`; multi-statement writes go through `DB.write`
+- D1 has no transactions and no `RETURNING`; multi-statement writes go through `DB.write`
   (`batch`), and derived counters come from triggers, so a partial write cannot leave a listing
   with an average that disagrees with its reviews.
-* Queue consumers receive at most 50 messages per batch; `max_batch_size = 25` keeps the email
+- Queue consumers receive at most 50 messages per batch; `max_batch_size = 25` keeps the email
   sender inside the provider's request body limits, with `max_retries = 3` and
   `retry_delay = 30s`. Malformed messages are acknowledged (a retry would not fix them);
   provider 5xx throws, so the message is retried.

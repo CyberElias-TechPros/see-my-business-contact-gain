@@ -15,6 +15,25 @@ import { defineConfig } from "@lovable.dev/vite-tanstack-config";
  */
 const apiOrigin = process.env["VITE_API_ORIGIN"] ?? "http://localhost:8787";
 
+/**
+ * Vite 8 rejects any `Host` it does not recognise with a 403, which is correct on a developer
+ * laptop and wrong in every sandbox: a preview URL like `3000-<hash>.e2b.app` (or a tunnel,
+ * Gitpod, Codesandbox) reaches the dev server with a host name no config could have listed
+ * ahead of time. `VITE_ALLOWED_HOSTS` opts those hosts in — comma-separated, a leading dot
+ * matches subdomains (`.e2b.app`), and `all` disables the check for throwaway environments
+ * where the DNS-rebinding protection has no meaning. Unset keeps Vite's strict default.
+ */
+const requestedHosts = (process.env["VITE_ALLOWED_HOSTS"] ?? "").trim();
+const allowedHosts =
+  requestedHosts === "all"
+    ? (true as const)
+    : requestedHosts
+      ? requestedHosts
+          .split(",")
+          .map((host) => host.trim())
+          .filter(Boolean)
+      : undefined;
+
 const apiProxy = {
   target: apiOrigin,
   changeOrigin: true,
@@ -31,6 +50,7 @@ export default defineConfig({
   },
   vite: {
     server: {
+      ...(allowedHosts ? { allowedHosts } : {}),
       proxy: {
         "/api/v1": apiProxy,
         "/media": apiProxy,
