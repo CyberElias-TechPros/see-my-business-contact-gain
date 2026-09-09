@@ -168,7 +168,21 @@ export function Stars({ rating }: { rating: number }) {
 export function BusinessCard({ business }: { business: Business }) {
   return (
     <Card className="card-surface group overflow-hidden transition-shadow hover:shadow-lift">
-      <div className={`h-24 ${business.cover}`} />
+      {business.coverUrl ? (
+        <div className="h-24 overflow-hidden bg-secondary">
+          {/* The API serves media with immutable caching and a 1x1 placeholder is pointless
+              here: covers are small, and a broken image falls back to the monogram below. */}
+          <img
+            src={business.coverUrl}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+          />
+        </div>
+      ) : (
+        <div className={`h-24 ${business.cover}`} aria-hidden="true" />
+      )}
       <CardContent className="-mt-8 space-y-3 p-5">
         <div className="grid size-14 place-items-center rounded-2xl border-4 border-card bg-secondary font-display text-lg font-bold">
           {business.name.slice(0, 2)}
@@ -195,9 +209,21 @@ export function BusinessCard({ business }: { business: Business }) {
         </div>
         <div className="flex items-center justify-between gap-2 pt-1">
           <VerifiedBadge level={business.verified} />
-          <Button size="sm" className="gap-1">
-            <MessageCircle className="size-3.5" /> WhatsApp
-          </Button>
+          {business.whatsappUrl ? (
+            <Button size="sm" variant="secondary" className="gap-1" asChild>
+              <a href={business.whatsappUrl} target="_blank" rel="noopener noreferrer nofollow">
+                <MessageCircle className="size-3.5" /> WhatsApp
+              </a>
+            </Button>
+          ) : (
+            <Link
+              to="/business/$id"
+              params={{ id: business.id }}
+              className="text-xs font-medium text-primary hover:underline"
+            >
+              Send an enquiry
+            </Link>
+          )}
         </div>
       </CardContent>
     </Card>

@@ -13,7 +13,7 @@ import { defineConfig } from "@lovable.dev/vite-tanstack-config";
  * `fetch("/api/v1/…")` would hit the Vite server, get index.html back for an unmatched path, and
  * the app would look logged-out forever.
  */
-const apiOrigin = process.env.VITE_API_ORIGIN ?? "http://localhost:8787";
+const apiOrigin = process.env["VITE_API_ORIGIN"] ?? "http://localhost:8787";
 
 const apiProxy = {
   target: apiOrigin,

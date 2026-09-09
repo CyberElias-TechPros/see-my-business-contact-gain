@@ -6,7 +6,26 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { businesses, categories, contactGainRooms, locations } from "@/data/mock";
+import {
+  directoryQuery,
+  roomsQuery,
+  taxonomyQuery,
+  toCardBusiness,
+  type Taxonomy,
+} from "@/lib/queries.ts";
+import type { RoomTile } from "@/lib/queries.ts";
+import type { DirectoryResponse } from "../../shared/api.ts";
+
+/**
+ * The homepage reads the same endpoints as `/search`, so the numbers below can never disagree
+ * with the listing pages, and none of them is typed into this file.
+ */
+type LoaderData = {
+  taxonomy: Taxonomy;
+  featured: DirectoryResponse;
+  newest: DirectoryResponse;
+  rooms: { items: RoomTile[]; total: number };
+};
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -15,16 +34,50 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Find verified Nigerian businesses, chat on WhatsApp instantly, and grow your contacts with tracked links, QR codes and a built-in CRM.",
+          "Find verified Nigerian businesses, chat on WhatsApp instantly, and grow your contacts with tracked links, QR codes and a built-in workspace.",
       },
+      { property: "og:type", content: "website" },
+      { property: "og:site_name", content: "GainHub NG" },
       { property: "og:title", content: "GainHub NG — WhatsApp Contact Gain & Business Directory" },
       {
         property: "og:description",
         content:
           "Nigeria's WhatsApp-first business directory and contact-gain network. Get found, get saved, get customers.",
       },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "robots", content: "index,follow,max-snippet:-1,max-image-preview:large" },
+    ],
+    links: [{ rel: "canonical", href: "/" }],
+    scripts: [
+      {
+        type: "application/ld+json" as const,
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          name: "GainHub NG",
+          url: "https://gainhub.ng/",
+          // Tells Google it may render a sitelinks search box that jumps straight to /search.
+          potentialAction: {
+            "@type": "SearchAction",
+            target: {
+              "@type": "EntryPoint",
+              urlTemplate: "https://gainhub.ng/search?q={search_term_string}",
+            },
+            "query-input": "required name=search_term_string",
+          },
+        }),
+      },
     ],
   }),
+  loader: async ({ context }): Promise<LoaderData> => {
+    const [taxonomy, featured, newest, rooms] = await Promise.all([
+      context.queryClient.ensureQueryData(taxonomyQuery()),
+      context.queryClient.ensureQueryData(directoryQuery({ sort: "rating", perPage: 8 })),
+      context.queryClient.ensureQueryData(directoryQuery({ sort: "newest", perPage: 4 })),
+      context.queryClient.ensureQueryData(roomsQuery()),
+    ]);
+    return { taxonomy, featured, newest, rooms };
+  },
   component: Home,
 });
 
@@ -32,7 +85,7 @@ const pillars = [
   {
     icon: Search,
     title: "Public discovery",
-    body: "SEO-friendly profiles, category and location landing pages, near-me search and map view.",
+    body: "Listing, category and location pages with real opening hours, ratings and a canonical URL each.",
   },
   {
     icon: MessageCircle,
@@ -42,12 +95,12 @@ const pillars = [
   {
     icon: Users,
     title: "Contact-gain rooms",
-    body: "Moderated save-back circles so vendors grow status reach without dropping numbers in random groups.",
+    body: "Moderated save-back circles with published rules, so vendors grow status reach in the open.",
   },
   {
     icon: Zap,
-    title: "Automation engine",
-    body: "Auto-tag, auto-assign, follow-up reminders and stale-lead detection out of the box.",
+    title: "A workspace, not a spreadsheet",
+    body: "Leads, follow-up reminders, tracked links and QR codes for the shop counter.",
   },
   {
     icon: QrCode,
@@ -57,11 +110,21 @@ const pillars = [
   {
     icon: ShieldCheck,
     title: "Trust & safety",
-    body: "Verification levels, AI pre-screening, report flows and NDPR-aligned data handling.",
+    body: "Verification levels, risk-scored reports, review replies that stay on the record.",
   },
 ];
 
 function Home() {
+  const { taxonomy, featured, newest, rooms } = Route.useLoaderData();
+
+  const citiesWithListings = taxonomy.locations.filter((location) => location.count > 0).length;
+  const busyCategories = taxonomy.categories.filter((category) => category.count > 0).length;
+  const stats: [string, string][] = [
+    [featured.meta.total.toLocaleString("en-NG"), "Published listings"],
+    [String(busyCategories), "Categories with stock"],
+    [String(citiesWithListings), "Cities covered"],
+  ];
+
   return (
     <PublicShell>
       <section className="border-b bg-hero-mesh">
@@ -77,61 +140,84 @@ function Home() {
               A business directory and WhatsApp contact-gain network built for how Nigerians
               actually buy — search, check the photos, then chat.
             </p>
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <div className="flex flex-1 items-center gap-2 rounded-xl border bg-card p-2 shadow-soft">
-                <Search className="ml-2 size-4 text-muted-foreground" />
+            {/* A real GET form: it works before JavaScript loads, on a 2G connection, and in a
+                browser that blocks scripts — and it is exactly what /search parses. */}
+            <form action="/search" method="get" className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <div className="flex flex-1 items-center gap-2 rounded-xl border bg-card p-2 shadow-soft focus-within:ring-2 focus-within:ring-ring">
+                <Search className="ml-2 size-4 text-muted-foreground" aria-hidden="true" />
                 <Input
+                  name="q"
                   placeholder="Phone repair in Ikeja…"
                   className="border-0 shadow-none focus-visible:ring-0"
-                  aria-label="Search businesses"
+                  aria-label="Search businesses by trade, area or city"
                 />
-                <Button asChild>
-                  <Link to="/search">Search</Link>
-                </Button>
+                <Button type="submit">Search</Button>
               </div>
-            </div>
-            <div className="mt-5 flex flex-wrap gap-2">
-              {categories.slice(0, 5).map((c) => (
-                <Link key={c.slug} to="/category/$slug" params={{ slug: c.slug }}>
-                  <Badge variant="outline" className="bg-card">
-                    {c.name}
-                  </Badge>
-                </Link>
-              ))}
-            </div>
-            <dl className="mt-10 grid grid-cols-3 gap-4 max-w-md">
-              {[
-                ["58,400", "Listed businesses"],
-                ["1.2M", "WhatsApp chats started"],
-                ["36", "States covered"],
-              ].map(([v, l]) => (
-                <div key={l}>
-                  <dt className="font-display text-2xl font-bold">{v}</dt>
-                  <dd className="text-xs text-muted-foreground">{l}</dd>
+            </form>
+            <nav aria-label="Popular categories" className="mt-5 flex flex-wrap gap-2">
+              {taxonomy.categories
+                .filter((category) => category.count > 0)
+                .slice(0, 5)
+                .map((category) => (
+                  <Link key={category.slug} to="/category/$slug" params={{ slug: category.slug }}>
+                    <Badge variant="outline" className="bg-card">
+                      {category.name}
+                    </Badge>
+                  </Link>
+                ))}
+            </nav>
+            <dl className="mt-10 grid max-w-md grid-cols-3 gap-4">
+              {stats.map(([value, label]) => (
+                <div key={label}>
+                  <dt className="font-display text-2xl font-bold">{value}</dt>
+                  <dd className="text-xs text-muted-foreground">{label}</dd>
                 </div>
               ))}
             </dl>
           </div>
+
           <Card className="card-surface self-center">
             <CardContent className="space-y-4 p-6">
-              <p className="text-sm font-semibold">Live lead feed (demo)</p>
-              {[
-                ["SwiftFix Gadgets", "New WhatsApp lead from Ikeja QR", "now"],
-                ["Adire Atelier", "Quote requested — aso-oke set", "2m"],
-                ["Rapid Dispatch NG", "Lead assigned to Amina B.", "5m"],
-                ["Glow by Tola", "New 5★ review published", "9m"],
-              ].map(([n, t, w]) => (
-                <div key={t} className="flex items-start gap-3 rounded-xl border bg-background p-3">
-                  <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary">
-                    <MessageCircle className="size-4" />
-                  </span>
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium">{n}</p>
-                    <p className="truncate text-xs text-muted-foreground">{t}</p>
-                  </div>
-                  <span className="ml-auto text-xs text-muted-foreground">{w}</span>
-                </div>
-              ))}
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-semibold">Newest listings</p>
+                <Link
+                  to="/search"
+                  search={{ sort: "newest" }}
+                  className="text-xs font-medium text-primary hover:underline"
+                >
+                  See all
+                </Link>
+              </div>
+              {newest.items.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  No published listings yet — the first one takes about six minutes to write.
+                </p>
+              ) : (
+                newest.items.map((item) => (
+                  <Link
+                    key={item.id}
+                    to="/business/$id"
+                    params={{ id: item.slug }}
+                    className="flex items-start gap-3 rounded-xl border bg-background p-3 transition-shadow hover:shadow-lift"
+                  >
+                    <span
+                      className={`grid size-9 shrink-0 place-items-center rounded-lg text-white ${toCardBusiness(item).cover}`}
+                      aria-hidden="true"
+                    >
+                      <MessageCircle className="size-4" />
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block truncate text-sm font-medium">{item.name}</span>
+                      <span className="block truncate text-xs text-muted-foreground">
+                        {item.tagline}
+                      </span>
+                    </span>
+                    <span className="ml-auto shrink-0 text-xs text-muted-foreground">
+                      {item.area ?? item.city}
+                    </span>
+                  </Link>
+                ))
+              )}
               <Button asChild variant="outline" className="w-full">
                 <Link to="/app">Open business workspace</Link>
               </Button>
@@ -147,14 +233,14 @@ function Home() {
           manages the contacts it gains.
         </p>
         <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {pillars.map((p) => (
-            <Card key={p.title} className="card-surface">
+          {pillars.map((pillar) => (
+            <Card key={pillar.title} className="card-surface">
               <CardContent className="p-6">
                 <span className="grid size-10 place-items-center rounded-xl bg-primary/10 text-primary">
-                  <p.icon className="size-5" />
+                  <pillar.icon className="size-5" />
                 </span>
-                <h3 className="mt-4 text-lg font-semibold">{p.title}</h3>
-                <p className="mt-2 text-sm text-muted-foreground">{p.body}</p>
+                <h3 className="mt-4 text-lg font-semibold">{pillar.title}</h3>
+                <p className="mt-2 text-sm text-muted-foreground">{pillar.body}</p>
               </CardContent>
             </Card>
           ))}
@@ -163,16 +249,22 @@ function Home() {
 
       <section className="mx-auto max-w-7xl px-4 pb-16">
         <div className="flex items-end justify-between">
-          <h2 className="text-2xl font-bold md:text-3xl">Featured businesses</h2>
+          <div>
+            <h2 className="text-2xl font-bold md:text-3xl">Top-rated right now</h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Ranked on the rating customers actually left — the review count is printed on every
+              card, so a 5.0 from one review never outranks a 4.7 from forty.
+            </p>
+          </div>
           <Button asChild variant="ghost" className="gap-1">
-            <Link to="/search">
-              See all <ArrowRight className="size-4" />
+            <Link to="/search" search={{ sort: "rating" }}>
+              See all <ArrowRight className="size-4" aria-hidden="true" />
             </Link>
           </Button>
         </div>
         <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {businesses.slice(0, 8).map((b) => (
-            <BusinessCard key={b.id} business={b} />
+          {featured.items.map((item) => (
+            <BusinessCard key={item.id} business={toCardBusiness(item)} />
           ))}
         </div>
       </section>
@@ -184,7 +276,8 @@ function Home() {
               <h2 className="text-2xl font-bold md:text-3xl">Contact-gain rooms</h2>
               <p className="mt-2 max-w-2xl text-muted-foreground">
                 Moderated save-back circles with published rules, slot limits and verified-only
-                options.
+                options.{" "}
+                {rooms.total === 0 ? "None are open yet — start one." : `${rooms.total} open now.`}
               </p>
             </div>
             <Button asChild variant="outline">
@@ -192,21 +285,26 @@ function Home() {
             </Button>
           </div>
           <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {contactGainRooms.map((r) => (
-              <Card key={r.id} className="card-surface">
+            {rooms.items.slice(0, 4).map((room) => (
+              <Card key={room.id} className="card-surface">
                 <CardContent className="space-y-3 p-5">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-semibold">{r.name}</h3>
-                    {r.verifiedOnly ? <Badge variant="secondary">Verified only</Badge> : null}
+                  <div className="flex items-center justify-between gap-2">
+                    <h3 className="font-semibold">{room.name}</h3>
+                    {room.verifiedOnly ? <Badge variant="secondary">Verified only</Badge> : null}
                   </div>
-                  <p className="text-sm text-muted-foreground">{r.purpose}</p>
-                  <p className="text-xs text-muted-foreground">Rule: {r.rule}</p>
+                  <p className="text-sm text-muted-foreground">{room.purpose.replace(/-/g, " ")}</p>
+                  <p className="text-xs text-muted-foreground">Rule: {room.houseRule}</p>
                   <div className="flex items-center justify-between text-xs">
-                    <span>{r.members.toLocaleString()} members</span>
-                    <span className="text-primary">{r.slotsLeft} slots left</span>
+                    <span>
+                      {room.memberCount.toLocaleString("en-NG")} of{" "}
+                      {room.capacity.toLocaleString("en-NG")} members
+                    </span>
+                    <span className={room.slotsLeft > 0 ? "text-primary" : "text-muted-foreground"}>
+                      {room.slotsLeft > 0 ? `${room.slotsLeft} slots left` : "Full"}
+                    </span>
                   </div>
                   <Button asChild size="sm" variant="outline" className="w-full">
-                    <Link to="/contact-gain/$id" params={{ id: r.id }}>
+                    <Link to="/contact-gain/$id" params={{ id: room.slug }}>
                       View room
                     </Link>
                   </Button>
@@ -220,18 +318,25 @@ function Home() {
       <section className="mx-auto max-w-7xl px-4 py-16">
         <h2 className="text-2xl font-bold md:text-3xl">Browse by location</h2>
         <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {locations.map((l) => (
+          {taxonomy.locations.map((location) => (
             <Link
-              key={l.slug}
+              key={location.id}
               to="/locations/$slug"
-              params={{ slug: l.slug }}
-              className="card-surface flex items-center justify-between p-5 transition-shadow hover:shadow-lift"
+              params={{ slug: location.slug }}
+              className="card-surface flex items-center justify-between gap-3 p-5 transition-shadow hover:shadow-lift"
             >
-              <div>
-                <p className="font-semibold">{l.name}</p>
-                <p className="text-sm text-muted-foreground">{l.areas.slice(0, 3).join(" • ")}</p>
+              <div className="min-w-0">
+                <p className="font-semibold">{location.name}</p>
+                <p className="truncate text-sm text-muted-foreground">
+                  {location.areas.slice(0, 3).join(" • ")}
+                </p>
               </div>
-              <span className="text-sm text-primary">{l.count.toLocaleString()}</span>
+              <span
+                className="shrink-0 text-sm text-primary"
+                title={`${location.count} published listings`}
+              >
+                {location.count.toLocaleString("en-NG")}
+              </span>
             </Link>
           ))}
         </div>

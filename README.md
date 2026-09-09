@@ -50,7 +50,9 @@ npm run db:migrate:local && npm run db:seed:local   # demo dataset, password: Ga
 
 Then sign in as `ada@gainhub.dev` (admin), `hello@lumea.ng` (owner of a published listing) or
 `ngozi@example.com` (consumer). Full loop, fixtures and the three test suites are in
-[docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).
+[docs/DEVELOPMENT.md](docs/DEVELOPMENT.md); the rules the frontend follows (server functions, the
+path allow-list, canonical/robots policy, the `head`+`loader` typing trap and which routes are still
+on mock data) are in [docs/FRONTEND.md](docs/FRONTEND.md).
 
 ## Verification
 

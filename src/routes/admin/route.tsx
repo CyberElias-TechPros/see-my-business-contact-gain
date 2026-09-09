@@ -41,6 +41,12 @@ const items: NavItem[] = [
 ];
 
 export const Route = createFileRoute("/admin")({
+  // `head` on a layout route is merged into every child match, so this one line keeps the whole
+  // admin console out of search engines; src/server.ts additionally sends `X-Robots-Tag` for these prefixes
+  // so a route added tomorrow cannot leak before its own metadata is written.
+  head: () => ({
+    meta: [{ name: "robots", content: "noindex, nofollow, noarchive, noimageindex" }],
+  }),
   component: Layout,
 });
 

@@ -90,14 +90,28 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      // Defaults only: every public route overrides title/description/canonical. A 404 or an
+      // error page therefore still identifies the product instead of shipping a template name.
+      { title: "GainHub NG — WhatsApp-first business directory for Nigeria" },
+      {
+        name: "description",
+        content:
+          "Find verified Nigerian businesses with real photos, prices, opening hours and reviews, then message them on WhatsApp or send an enquiry.",
+      },
+      { name: "author", content: "GainHub NG" },
+      { property: "og:site_name", content: "GainHub NG" },
+      { property: "og:title", content: "GainHub NG — WhatsApp-first business directory" },
+      {
+        property: "og:description",
+        content:
+          "Get found, get saved, get customers — Nigeria's WhatsApp-first business directory.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:site", content: "@gainhubng" },
+      // A person who lands on an error page should not hand Google a "successful" 200 body; the
+      // status code is set by the handler, this only keeps the page out of the index meanwhile.
+      { name: "robots", content: "index,follow" },
     ],
     links: [
       {

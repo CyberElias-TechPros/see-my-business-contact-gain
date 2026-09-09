@@ -21,7 +21,6 @@ import { Route as ClaimRouteImport } from './routes/claim'
 import { Route as CompareRouteImport } from './routes/compare'
 import { Route as HelpRouteImport } from './routes/help'
 import { Route as JoinRouteImport } from './routes/join'
-import { Route as LocationsRouteImport } from './routes/locations'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as ReportRouteImport } from './routes/report'
 import { Route as SearchRouteImport } from './routes/search'
@@ -70,6 +69,7 @@ import { Route as LegalCookiesRouteImport } from './routes/legal.cookies'
 import { Route as LegalDataRequestRouteImport } from './routes/legal.data-request'
 import { Route as LegalPrivacyRouteImport } from './routes/legal.privacy'
 import { Route as LegalTermsRouteImport } from './routes/legal.terms'
+import { Route as LocationsIndexRouteImport } from './routes/locations.index'
 import { Route as LocationsSlugRouteImport } from './routes/locations.$slug'
 
 const IndexRoute = IndexRouteImport.update({
@@ -130,11 +130,6 @@ const HelpRoute = HelpRouteImport.update({
 const JoinRoute = JoinRouteImport.update({
   id: '/join',
   path: '/join',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LocationsRoute = LocationsRouteImport.update({
-  id: '/locations',
-  path: '/locations',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PricingRoute = PricingRouteImport.update({
@@ -377,10 +372,15 @@ const LegalTermsRoute = LegalTermsRouteImport.update({
   path: '/legal/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LocationsIndexRoute = LocationsIndexRouteImport.update({
+  id: '/locations/',
+  path: '/locations/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LocationsSlugRoute = LocationsSlugRouteImport.update({
-  id: '/$slug',
-  path: '/$slug',
-  getParentRoute: () => LocationsRoute,
+  id: '/locations/$slug',
+  path: '/locations/$slug',
+  getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -396,7 +396,6 @@ export interface FileRoutesByFullPath {
   '/compare': typeof CompareRoute
   '/help': typeof HelpRoute
   '/join': typeof JoinRoute
-  '/locations': typeof LocationsRouteWithChildren
   '/pricing': typeof PricingRoute
   '/report': typeof ReportRoute
   '/search': typeof SearchRoute
@@ -446,6 +445,7 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AdminIndexRoute
   '/app/': typeof AppIndexRoute
   '/contact-gain/': typeof ContactGainIndexRoute
+  '/locations/': typeof LocationsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -458,7 +458,6 @@ export interface FileRoutesByTo {
   '/compare': typeof CompareRoute
   '/help': typeof HelpRoute
   '/join': typeof JoinRoute
-  '/locations': typeof LocationsRouteWithChildren
   '/pricing': typeof PricingRoute
   '/report': typeof ReportRoute
   '/search': typeof SearchRoute
@@ -508,6 +507,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminIndexRoute
   '/app': typeof AppIndexRoute
   '/contact-gain': typeof ContactGainIndexRoute
+  '/locations': typeof LocationsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -523,7 +523,6 @@ export interface FileRoutesById {
   '/compare': typeof CompareRoute
   '/help': typeof HelpRoute
   '/join': typeof JoinRoute
-  '/locations': typeof LocationsRouteWithChildren
   '/pricing': typeof PricingRoute
   '/report': typeof ReportRoute
   '/search': typeof SearchRoute
@@ -573,6 +572,7 @@ export interface FileRoutesById {
   '/admin/': typeof AdminIndexRoute
   '/app/': typeof AppIndexRoute
   '/contact-gain/': typeof ContactGainIndexRoute
+  '/locations/': typeof LocationsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -589,7 +589,6 @@ export interface FileRouteTypes {
     | '/compare'
     | '/help'
     | '/join'
-    | '/locations'
     | '/pricing'
     | '/report'
     | '/search'
@@ -639,6 +638,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/app/'
     | '/contact-gain/'
+    | '/locations/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -651,7 +651,6 @@ export interface FileRouteTypes {
     | '/compare'
     | '/help'
     | '/join'
-    | '/locations'
     | '/pricing'
     | '/report'
     | '/search'
@@ -701,6 +700,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/app'
     | '/contact-gain'
+    | '/locations'
   id:
     | '__root__'
     | '/'
@@ -715,7 +715,6 @@ export interface FileRouteTypes {
     | '/compare'
     | '/help'
     | '/join'
-    | '/locations'
     | '/pricing'
     | '/report'
     | '/search'
@@ -765,6 +764,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/app/'
     | '/contact-gain/'
+    | '/locations/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -780,7 +780,6 @@ export interface RootRouteChildren {
   CompareRoute: typeof CompareRoute
   HelpRoute: typeof HelpRoute
   JoinRoute: typeof JoinRoute
-  LocationsRoute: typeof LocationsRouteWithChildren
   PricingRoute: typeof PricingRoute
   ReportRoute: typeof ReportRoute
   SearchRoute: typeof SearchRoute
@@ -794,7 +793,9 @@ export interface RootRouteChildren {
   LegalDataRequestRoute: typeof LegalDataRequestRoute
   LegalPrivacyRoute: typeof LegalPrivacyRoute
   LegalTermsRoute: typeof LegalTermsRoute
+  LocationsSlugRoute: typeof LocationsSlugRoute
   ContactGainIndexRoute: typeof ContactGainIndexRoute
+  LocationsIndexRoute: typeof LocationsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -881,13 +882,6 @@ declare module '@tanstack/react-router' {
       path: '/join'
       fullPath: '/join'
       preLoaderRoute: typeof JoinRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/locations': {
-      id: '/locations'
-      path: '/locations'
-      fullPath: '/locations'
-      preLoaderRoute: typeof LocationsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/pricing': {
@@ -1226,12 +1220,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LegalTermsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/locations/': {
+      id: '/locations/'
+      path: '/locations'
+      fullPath: '/locations/'
+      preLoaderRoute: typeof LocationsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/locations/$slug': {
       id: '/locations/$slug'
-      path: '/$slug'
+      path: '/locations/$slug'
       fullPath: '/locations/$slug'
       preLoaderRoute: typeof LocationsSlugRouteImport
-      parentRoute: typeof LocationsRoute
+      parentRoute: typeof rootRouteImport
     }
   }
 }
@@ -1324,18 +1325,6 @@ const AppRouteRouteWithChildren = AppRouteRoute._addFileChildren(
   AppRouteRouteChildren,
 )
 
-interface LocationsRouteChildren {
-  LocationsSlugRoute: typeof LocationsSlugRoute
-}
-
-const LocationsRouteChildren: LocationsRouteChildren = {
-  LocationsSlugRoute: LocationsSlugRoute,
-}
-
-const LocationsRouteWithChildren = LocationsRoute._addFileChildren(
-  LocationsRouteChildren,
-)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRouteRoute: AdminRouteRouteWithChildren,
@@ -1349,7 +1338,6 @@ const rootRouteChildren: RootRouteChildren = {
   CompareRoute: CompareRoute,
   HelpRoute: HelpRoute,
   JoinRoute: JoinRoute,
-  LocationsRoute: LocationsRouteWithChildren,
   PricingRoute: PricingRoute,
   ReportRoute: ReportRoute,
   SearchRoute: SearchRoute,
@@ -1363,7 +1351,9 @@ const rootRouteChildren: RootRouteChildren = {
   LegalDataRequestRoute: LegalDataRequestRoute,
   LegalPrivacyRoute: LegalPrivacyRoute,
   LegalTermsRoute: LegalTermsRoute,
+  LocationsSlugRoute: LocationsSlugRoute,
   ContactGainIndexRoute: ContactGainIndexRoute,
+  LocationsIndexRoute: LocationsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

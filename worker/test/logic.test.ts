@@ -5,6 +5,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { buildCookie } from "../src/http.ts";
+import type { Env } from "../src/types.ts";
 import {
   ALLOWED_UPLOAD_TYPES,
   BUSINESS_STATUSES,
@@ -164,7 +165,11 @@ describe("session cookies", () => {
   const asEnv = (overrides: Record<string, string>) => overrides as unknown as Env;
 
   it("scopes the cookie to COOKIE_DOMAIN outside development", () => {
-    const production = buildCookie(asEnv({ APP_ENV: "production", COOKIE_DOMAIN: "gainhub.ng" }), "gh_session", "a.b");
+    const production = buildCookie(
+      asEnv({ APP_ENV: "production", COOKIE_DOMAIN: "gainhub.ng" }),
+      "gh_session",
+      "a.b",
+    );
     expect(production).toContain("Domain=gainhub.ng");
     expect(production).toContain("Secure");
     expect(production).toContain("HttpOnly");
@@ -172,7 +177,11 @@ describe("session cookies", () => {
   });
 
   it("drops the Domain attribute in development, where localhost cannot store it", () => {
-    const dev = buildCookie(asEnv({ APP_ENV: "development", COOKIE_DOMAIN: "gainhub.ng" }), "gh_session", "a.b");
+    const dev = buildCookie(
+      asEnv({ APP_ENV: "development", COOKIE_DOMAIN: "gainhub.ng" }),
+      "gh_session",
+      "a.b",
+    );
     expect(dev).not.toContain("Domain=");
     // …and with it the Secure flag, so an http:// preview can still hold a session.
     expect(dev).not.toContain("Secure");

@@ -26,7 +26,12 @@ export type Business = {
   plan: "Free" | "Growth" | "Pro";
   contactsGained: number;
   savedBy: number;
+  /** Tailwind background class: a deterministic cover for listings without an approved photo. */
   cover: string;
+  /** Same-origin URL of the approved cover image, when the listing has one. */
+  coverUrl?: string | undefined;
+  /** wa.me link with the business's own number, so the card's CTA is a real conversation. */
+  whatsappUrl?: string | undefined;
 };
 
 const hours = [
