@@ -10,9 +10,16 @@ export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
       { title: "Sign in or create an account — GainHub NG" },
-      { name: "description", content: "Sign in to manage your saved businesses, enquiries and business workspace on GainHub NG." },
+      {
+        name: "description",
+        content:
+          "Sign in to manage your saved businesses, enquiries and business workspace on GainHub NG.",
+      },
       { property: "og:title", content: "Sign in — GainHub NG" },
-      { property: "og:description", content: "Access your account, saved businesses and business workspace." },
+      {
+        property: "og:description",
+        content: "Access your account, saved businesses and business workspace.",
+      },
     ],
   }),
   component: AuthPage,
@@ -26,8 +33,12 @@ function AuthPage() {
           <CardContent className="p-6">
             <Tabs defaultValue="signin">
               <TabsList className="w-full">
-                <TabsTrigger value="signin" className="flex-1">Sign in</TabsTrigger>
-                <TabsTrigger value="signup" className="flex-1">Create account</TabsTrigger>
+                <TabsTrigger value="signin" className="flex-1">
+                  Sign in
+                </TabsTrigger>
+                <TabsTrigger value="signup" className="flex-1">
+                  Create account
+                </TabsTrigger>
               </TabsList>
               <TabsContent value="signin" className="space-y-4 pt-6">
                 <div>
@@ -39,7 +50,9 @@ function AuthPage() {
                   <Input type="password" className="mt-2" />
                 </div>
                 <Button className="w-full">Sign in</Button>
-                <Button variant="outline" className="w-full">Send WhatsApp OTP instead</Button>
+                <Button variant="outline" className="w-full">
+                  Send WhatsApp OTP instead
+                </Button>
                 <p className="text-center text-xs text-muted-foreground">
                   Forgot your password? <span className="text-primary">Reset it</span>
                 </p>
@@ -59,7 +72,10 @@ function AuthPage() {
                 </div>
                 <Button className="w-full">Create account</Button>
                 <p className="text-center text-xs text-muted-foreground">
-                  Listing a business? <Link to="/join" className="text-primary">Start onboarding</Link>
+                  Listing a business?{" "}
+                  <Link to="/join" className="text-primary">
+                    Start onboarding
+                  </Link>
                 </p>
               </TabsContent>
             </Tabs>

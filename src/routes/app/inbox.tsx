@@ -13,7 +13,11 @@ export const Route = createFileRoute("/app/inbox")({
 function WorkspaceInbox() {
   return (
     <div>
-      <SectionHead title="Inbox" subtitle="Every WhatsApp conversation, tagged and assigned automatically." action={<Button>Compose</Button>} />
+      <SectionHead
+        title="Inbox"
+        subtitle="Every WhatsApp conversation, tagged and assigned automatically."
+        action={<Button>Compose</Button>}
+      />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Unread" value="3" delta="" hint="conversations" />
         <StatCard label="Assigned to me" value="12" delta="" hint="open" />
@@ -30,7 +34,10 @@ function WorkspaceInbox() {
       </div>
       <div className="mt-6">
         <Panel title="Conversations" action={<Badge variant="outline">Demo data</Badge>}>
-          <SimpleTable columns={["Contact", "Last message", "Tag", "Assigned", "Time"]} rows={conversations.map((c) => [c.name, c.last, c.tag, c.assigned, c.time])} />
+          <SimpleTable
+            columns={["Contact", "Last message", "Tag", "Assigned", "Time"]}
+            rows={conversations.map((c) => [c.name, c.last, c.tag, c.assigned, c.time])}
+          />
         </Panel>
       </div>
     </div>

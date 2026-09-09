@@ -12,9 +12,16 @@ export const Route = createFileRoute("/claim")({
   head: () => ({
     meta: [
       { title: "Claim your business listing — GainHub NG" },
-      { name: "description", content: "Already listed? Claim your business profile with CAC documents, a utility bill or shop verification and take control." },
+      {
+        name: "description",
+        content:
+          "Already listed? Claim your business profile with CAC documents, a utility bill or shop verification and take control.",
+      },
       { property: "og:title", content: "Claim your business listing — GainHub NG" },
-      { property: "og:description", content: "Prove ownership and take control of your public profile and leads." },
+      {
+        property: "og:description",
+        content: "Prove ownership and take control of your public profile and leads.",
+      },
     ],
   }),
   component: ClaimPage,
@@ -39,7 +46,10 @@ function ClaimPage() {
               <Label>Matching listings</Label>
               <RadioGroup defaultValue={businesses[0]!.id} className="space-y-2">
                 {businesses.slice(0, 3).map((b) => (
-                  <label key={b.id} className="flex items-center gap-3 rounded-xl border p-3 text-sm">
+                  <label
+                    key={b.id}
+                    className="flex items-center gap-3 rounded-xl border p-3 text-sm"
+                  >
                     <RadioGroupItem value={b.id} />
                     <span>
                       <span className="font-medium">{b.name}</span>

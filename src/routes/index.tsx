@@ -20,7 +20,8 @@ export const Route = createFileRoute("/")({
       { property: "og:title", content: "GainHub NG — WhatsApp Contact Gain & Business Directory" },
       {
         property: "og:description",
-        content: "Nigeria's WhatsApp-first business directory and contact-gain network. Get found, get saved, get customers.",
+        content:
+          "Nigeria's WhatsApp-first business directory and contact-gain network. Get found, get saved, get customers.",
       },
     ],
   }),
@@ -28,12 +29,36 @@ export const Route = createFileRoute("/")({
 });
 
 const pillars = [
-  { icon: Search, title: "Public discovery", body: "SEO-friendly profiles, category and location landing pages, near-me search and map view." },
-  { icon: MessageCircle, title: "WhatsApp-first contact", body: "One tap opens a chat. Every conversation is attributed to the exact listing or campaign." },
-  { icon: Users, title: "Contact-gain rooms", body: "Moderated save-back circles so vendors grow status reach without dropping numbers in random groups." },
-  { icon: Zap, title: "Automation engine", body: "Auto-tag, auto-assign, follow-up reminders and stale-lead detection out of the box." },
-  { icon: QrCode, title: "Tracked links & QR", body: "Print a QR for your shop, put a link in your bio, and see which one brings customers." },
-  { icon: ShieldCheck, title: "Trust & safety", body: "Verification levels, AI pre-screening, report flows and NDPR-aligned data handling." },
+  {
+    icon: Search,
+    title: "Public discovery",
+    body: "SEO-friendly profiles, category and location landing pages, near-me search and map view.",
+  },
+  {
+    icon: MessageCircle,
+    title: "WhatsApp-first contact",
+    body: "One tap opens a chat. Every conversation is attributed to the exact listing or campaign.",
+  },
+  {
+    icon: Users,
+    title: "Contact-gain rooms",
+    body: "Moderated save-back circles so vendors grow status reach without dropping numbers in random groups.",
+  },
+  {
+    icon: Zap,
+    title: "Automation engine",
+    body: "Auto-tag, auto-assign, follow-up reminders and stale-lead detection out of the box.",
+  },
+  {
+    icon: QrCode,
+    title: "Tracked links & QR",
+    body: "Print a QR for your shop, put a link in your bio, and see which one brings customers.",
+  },
+  {
+    icon: ShieldCheck,
+    title: "Trust & safety",
+    body: "Verification levels, AI pre-screening, report flows and NDPR-aligned data handling.",
+  },
 ];
 
 function Home() {
@@ -49,8 +74,8 @@ function Home() {
               Get found. Get saved. <span className="text-gradient-brand">Get customers.</span>
             </h1>
             <p className="mt-5 max-w-xl text-lg text-muted-foreground">
-              A business directory and WhatsApp contact-gain network built for how Nigerians actually buy — search,
-              check the photos, then chat.
+              A business directory and WhatsApp contact-gain network built for how Nigerians
+              actually buy — search, check the photos, then chat.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <div className="flex flex-1 items-center gap-2 rounded-xl border bg-card p-2 shadow-soft">
@@ -118,8 +143,8 @@ function Home() {
       <section className="mx-auto max-w-7xl px-4 py-16">
         <h2 className="text-2xl font-bold md:text-3xl">Two connected worlds, one platform</h2>
         <p className="mt-2 max-w-2xl text-muted-foreground">
-          A public discovery network for customers, and a private workspace where every business manages the contacts it
-          gains.
+          A public discovery network for customers, and a private workspace where every business
+          manages the contacts it gains.
         </p>
         <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {pillars.map((p) => (
@@ -158,7 +183,8 @@ function Home() {
             <div>
               <h2 className="text-2xl font-bold md:text-3xl">Contact-gain rooms</h2>
               <p className="mt-2 max-w-2xl text-muted-foreground">
-                Moderated save-back circles with published rules, slot limits and verified-only options.
+                Moderated save-back circles with published rules, slot limits and verified-only
+                options.
               </p>
             </div>
             <Button asChild variant="outline">
@@ -217,7 +243,8 @@ function Home() {
             Ready to turn WhatsApp chats into a real customer list?
           </h2>
           <p className="mt-4 max-w-xl text-ink-foreground/75">
-            Create your profile in minutes, publish your services and products, and let every enquiry land in one inbox.
+            Create your profile in minutes, publish your services and products, and let every
+            enquiry land in one inbox.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Button asChild size="lg">

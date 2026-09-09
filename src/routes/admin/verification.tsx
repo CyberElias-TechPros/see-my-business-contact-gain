@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { trendData, sourceData } from "@/data/mock";
 
-
 export const Route = createFileRoute("/admin/verification")({
   component: AdminVerification,
 });
@@ -13,7 +12,11 @@ export const Route = createFileRoute("/admin/verification")({
 function AdminVerification() {
   return (
     <div>
-      <SectionHead title="Verification" subtitle="Document review and badge levels." action={<Button>Open queue</Button>} />
+      <SectionHead
+        title="Verification"
+        subtitle="Document review and badge levels."
+        action={<Button>Open queue</Button>}
+      />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="In queue" value="112" delta="" hint="submissions" />
         <StatCard label="Approved today" value="64" delta="" hint="documents" />
@@ -30,7 +33,14 @@ function AdminVerification() {
       </div>
       <div className="mt-6">
         <Panel title="Verification queue" action={<Badge variant="outline">Demo data</Badge>}>
-          <SimpleTable columns={["ID", "Business", "Level requested", "Documents", "Waiting"]} rows={[["V-901", "Mama Ope Kitchen", "Documents", "CAC, utility bill", "2 days"], ["V-900", "AutoPlug Mechanics", "Phone", "OTP pending", "1 day"], ["V-899", "KeyHomes Realty", "Premium", "CAC, site photos", "4 hours"]]} />
+          <SimpleTable
+            columns={["ID", "Business", "Level requested", "Documents", "Waiting"]}
+            rows={[
+              ["V-901", "Mama Ope Kitchen", "Documents", "CAC, utility bill", "2 days"],
+              ["V-900", "AutoPlug Mechanics", "Phone", "OTP pending", "1 day"],
+              ["V-899", "KeyHomes Realty", "Premium", "CAC, site photos", "4 hours"],
+            ]}
+          />
         </Panel>
       </div>
     </div>

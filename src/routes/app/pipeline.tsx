@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { trendData, sourceData } from "@/data/mock";
 
-
 export const Route = createFileRoute("/app/pipeline")({
   component: WorkspacePipeline,
 });
@@ -13,7 +12,11 @@ export const Route = createFileRoute("/app/pipeline")({
 function WorkspacePipeline() {
   return (
     <div>
-      <SectionHead title="Pipeline" subtitle="Drag leads through your configurable stages." action={<Button>Add stage</Button>} />
+      <SectionHead
+        title="Pipeline"
+        subtitle="Drag leads through your configurable stages."
+        action={<Button>Add stage</Button>}
+      />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Open value" value="₦4.1M" delta="+9%" hint="in pipeline" />
         <StatCard label="Win rate" value="32%" delta="+2pts" hint="this month" />
@@ -30,7 +33,17 @@ function WorkspacePipeline() {
       </div>
       <div className="mt-6">
         <Panel title="Deals by stage" action={<Badge variant="outline">Demo data</Badge>}>
-          <SimpleTable columns={["Stage", "Deals", "Value", "Avg age"]} rows={[["New", "23", "₦640,000", "1 day"], ["Qualified", "18", "₦1.2M", "3 days"], ["Quotation", "9", "₦1.4M", "6 days"], ["Follow up", "7", "₦860,000", "9 days"], ["Won", "12", "₦2.4M", "—"], ["Lost", "5", "₦310,000", "—"]]} />
+          <SimpleTable
+            columns={["Stage", "Deals", "Value", "Avg age"]}
+            rows={[
+              ["New", "23", "₦640,000", "1 day"],
+              ["Qualified", "18", "₦1.2M", "3 days"],
+              ["Quotation", "9", "₦1.4M", "6 days"],
+              ["Follow up", "7", "₦860,000", "9 days"],
+              ["Won", "12", "₦2.4M", "—"],
+              ["Lost", "5", "₦310,000", "—"],
+            ]}
+          />
         </Panel>
       </div>
     </div>

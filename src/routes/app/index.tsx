@@ -13,7 +13,11 @@ export const Route = createFileRoute("/app/")({
 function WorkspaceDashboard() {
   return (
     <div>
-      <SectionHead title="Dashboard" subtitle="Everything happening across your listings, leads and campaigns." action={<Button>New campaign</Button>} />
+      <SectionHead
+        title="Dashboard"
+        subtitle="Everything happening across your listings, leads and campaigns."
+        action={<Button>New campaign</Button>}
+      />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Contacts gained" value="5,210" delta="+12%" hint="this week" />
         <StatCard label="New leads" value="412" delta="+8%" hint="this week" />
@@ -30,7 +34,10 @@ function WorkspaceDashboard() {
       </div>
       <div className="mt-6">
         <Panel title="Latest leads" action={<Badge variant="outline">Demo data</Badge>}>
-          <SimpleTable columns={["Lead", "Name", "Source", "Stage", "Value", "Agent", "Updated"]} rows={leads.map((l) => [l.id, l.name, l.source, l.stage, l.value, l.agent, l.updated])} />
+          <SimpleTable
+            columns={["Lead", "Name", "Source", "Stage", "Value", "Agent", "Updated"]}
+            rows={leads.map((l) => [l.id, l.name, l.source, l.stage, l.value, l.agent, l.updated])}
+          />
         </Panel>
       </div>
     </div>

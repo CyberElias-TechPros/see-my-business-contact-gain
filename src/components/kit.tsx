@@ -4,7 +4,14 @@ import type { ReactNode } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import type { Business } from "@/data/mock";
 
 export function StatCard({
@@ -137,7 +144,11 @@ export function SourceBars({ data }: { data: { label: string; value: number }[] 
 export function VerifiedBadge({ level }: { level: Business["verified"] }) {
   if (level === "unverified") return <Badge variant="outline">Unverified</Badge>;
   const label =
-    level === "premium" ? "Premium verified" : level === "documents" ? "Documents verified" : `${level} verified`;
+    level === "premium"
+      ? "Premium verified"
+      : level === "documents"
+        ? "Documents verified"
+        : `${level} verified`;
   return (
     <Badge className="gap-1 capitalize">
       <BadgeCheck className="size-3" /> {label}
@@ -164,7 +175,11 @@ export function BusinessCard({ business }: { business: Business }) {
         </div>
         <div>
           <div className="flex items-start justify-between gap-2">
-            <Link to="/business/$id" params={{ id: business.id }} className="font-semibold hover:text-primary">
+            <Link
+              to="/business/$id"
+              params={{ id: business.id }}
+              className="font-semibold hover:text-primary"
+            >
               {business.name}
             </Link>
             <Stars rating={business.rating} />

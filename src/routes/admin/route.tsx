@@ -1,5 +1,23 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { BadgeCheck, BarChart3, Cpu, CreditCard, FileCheck, Flag, Headphones, LayoutDashboard, Megaphone, ScrollText, Settings, ShieldAlert, Star, Store, Tags, ToggleLeft, Users } from "lucide-react";
+import {
+  BadgeCheck,
+  BarChart3,
+  Cpu,
+  CreditCard,
+  FileCheck,
+  Flag,
+  Headphones,
+  LayoutDashboard,
+  Megaphone,
+  ScrollText,
+  Settings,
+  ShieldAlert,
+  Star,
+  Store,
+  Tags,
+  ToggleLeft,
+  Users,
+} from "lucide-react";
 import { ConsoleShell, type NavItem } from "@/components/console/ConsoleShell";
 
 const items: NavItem[] = [
@@ -27,5 +45,12 @@ export const Route = createFileRoute("/admin")({
 });
 
 function Layout() {
-  return <ConsoleShell items={items} title="Admin console" subtitle="Platform operations" user={{ name: "Ada Balogun", role: "Platform administrator" }} />;
+  return (
+    <ConsoleShell
+      items={items}
+      title="Admin console"
+      subtitle="Platform operations"
+      user={{ name: "Ada Balogun", role: "Platform administrator" }}
+    />
+  );
 }

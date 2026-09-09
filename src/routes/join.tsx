@@ -8,7 +8,13 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { categories, locations } from "@/data/mock";
 
@@ -18,10 +24,14 @@ export const Route = createFileRoute("/join")({
       { title: "List your business free — GainHub NG onboarding" },
       {
         name: "description",
-        content: "Create a full business profile in minutes: category, address, hours, services, products, photos and a WhatsApp contact button.",
+        content:
+          "Create a full business profile in minutes: category, address, hours, services, products, photos and a WhatsApp contact button.",
       },
       { property: "og:title", content: "List your business free — GainHub NG" },
-      { property: "og:description", content: "Publish a complete profile and start receiving WhatsApp leads today." },
+      {
+        property: "og:description",
+        content: "Publish a complete profile and start receiving WhatsApp leads today.",
+      },
     ],
   }),
   component: JoinPage,
@@ -53,8 +63,15 @@ function JoinPage() {
           <Progress value={45} className="mt-3 h-2" />
           <ol className="mt-4 space-y-2 text-sm">
             {steps.map((s, i) => (
-              <li key={s} className={`flex items-center gap-2 ${i < 4 ? "text-primary" : "text-muted-foreground"}`}>
-                {i < 4 ? <Check className="size-4" /> : <span className="grid size-4 place-items-center text-xs">{i + 1}</span>}
+              <li
+                key={s}
+                className={`flex items-center gap-2 ${i < 4 ? "text-primary" : "text-muted-foreground"}`}
+              >
+                {i < 4 ? (
+                  <Check className="size-4" />
+                ) : (
+                  <span className="grid size-4 place-items-center text-xs">{i + 1}</span>
+                )}
                 {s}
               </li>
             ))}
@@ -113,7 +130,10 @@ function JoinPage() {
             </div>
             <div className="sm:col-span-2">
               <Label>About your business</Label>
-              <Textarea className="mt-2" placeholder="What you do, who you serve, and how fast you respond" />
+              <Textarea
+                className="mt-2"
+                placeholder="What you do, who you serve, and how fast you respond"
+              />
             </div>
             <div className="sm:col-span-2 space-y-2">
               <p className="text-sm font-medium">Lead capture</p>

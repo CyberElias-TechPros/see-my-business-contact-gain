@@ -5,7 +5,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { contactGainRooms } from "@/data/mock";
 
 export const Route = createFileRoute("/contact-gain/")({
@@ -18,7 +24,10 @@ export const Route = createFileRoute("/contact-gain/")({
           "Join moderated WhatsApp contact-gain rooms with published save-back rules, slot limits and verified-only options. Grow your status reach safely.",
       },
       { property: "og:title", content: "WhatsApp contact-gain rooms — GainHub NG" },
-      { property: "og:description", content: "Moderated save-back circles for Nigerian vendors and hustlers." },
+      {
+        property: "og:description",
+        content: "Moderated save-back circles for Nigerian vendors and hustlers.",
+      },
     ],
   }),
   component: ContactGainPage,
@@ -40,9 +49,21 @@ function ContactGainPage() {
       <div className="mx-auto max-w-7xl space-y-10 px-4 py-12">
         <div className="grid gap-4 md:grid-cols-3">
           {[
-            { icon: Users, t: "Save-back score", d: "Members who never save back lose access. Your score is visible before you join." },
-            { icon: ShieldCheck, t: "Moderated content", d: "AI pre-screening plus human review for nudity, scams and impersonation." },
-            { icon: Users, t: "Slot limits", d: "Rooms cap membership so status reach stays useful and phones stay usable." },
+            {
+              icon: Users,
+              t: "Save-back score",
+              d: "Members who never save back lose access. Your score is visible before you join.",
+            },
+            {
+              icon: ShieldCheck,
+              t: "Moderated content",
+              d: "AI pre-screening plus human review for nudity, scams and impersonation.",
+            },
+            {
+              icon: Users,
+              t: "Slot limits",
+              d: "Rooms cap membership so status reach stays useful and phones stay usable.",
+            },
           ].map((x) => (
             <Card key={x.t} className="card-surface">
               <CardContent className="p-6">
@@ -79,7 +100,11 @@ function ContactGainPage() {
               <CardContent className="space-y-3 p-6">
                 <div className="flex items-center justify-between gap-2">
                   <h3 className="text-lg font-semibold">{r.name}</h3>
-                  {r.verifiedOnly ? <Badge>Verified only</Badge> : <Badge variant="outline">Open</Badge>}
+                  {r.verifiedOnly ? (
+                    <Badge>Verified only</Badge>
+                  ) : (
+                    <Badge variant="outline">Open</Badge>
+                  )}
                 </div>
                 <p className="text-sm text-muted-foreground">{r.purpose}</p>
                 <div className="grid grid-cols-3 gap-2 rounded-xl bg-muted p-3 text-center text-xs">

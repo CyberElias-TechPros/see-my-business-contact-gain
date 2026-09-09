@@ -13,7 +13,11 @@ export const Route = createFileRoute("/admin/claims")({
 function AdminClaims() {
   return (
     <div>
-      <SectionHead title="Claims" subtitle="Ownership requests and contested listings." action={<Button>Assign reviewer</Button>} />
+      <SectionHead
+        title="Claims"
+        subtitle="Ownership requests and contested listings."
+        action={<Button>Assign reviewer</Button>}
+      />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Pending" value="3" delta="" hint="claims" />
         <StatCard label="Approved" value="1,204" delta="" hint="all time" />
@@ -30,7 +34,17 @@ function AdminClaims() {
       </div>
       <div className="mt-6">
         <Panel title="Claim requests" action={<Badge variant="outline">Demo data</Badge>}>
-          <SimpleTable columns={["ID", "Business", "Claimant", "Evidence", "Submitted", "Status"]} rows={claims.map((c) => [c.id, c.business, c.claimant, c.evidence, c.submitted, c.status])} />
+          <SimpleTable
+            columns={["ID", "Business", "Claimant", "Evidence", "Submitted", "Status"]}
+            rows={claims.map((c) => [
+              c.id,
+              c.business,
+              c.claimant,
+              c.evidence,
+              c.submitted,
+              c.status,
+            ])}
+          />
         </Panel>
       </div>
     </div>

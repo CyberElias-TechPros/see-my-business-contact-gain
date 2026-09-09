@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { trendData, sourceData } from "@/data/mock";
 
-
 export const Route = createFileRoute("/admin/flags")({
   component: AdminFlags,
 });
@@ -13,7 +12,11 @@ export const Route = createFileRoute("/admin/flags")({
 function AdminFlags() {
   return (
     <div>
-      <SectionHead title="Feature flags" subtitle="Roll features out by state, plan or cohort." action={<Button>New flag</Button>} />
+      <SectionHead
+        title="Feature flags"
+        subtitle="Roll features out by state, plan or cohort."
+        action={<Button>New flag</Button>}
+      />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Flags" value="28" delta="" hint="defined" />
         <StatCard label="Enabled" value="19" delta="" hint="live" />
@@ -30,7 +33,15 @@ function AdminFlags() {
       </div>
       <div className="mt-6">
         <Panel title="Flags" action={<Badge variant="outline">Demo data</Badge>}>
-          <SimpleTable columns={["Flag", "Rollout", "Audience", "Status"]} rows={[["contact_gain_rooms_v2", "50%", "Lagos businesses", "Canary"], ["ai_review_screening", "100%", "All", "Enabled"], ["sponsored_room_banner", "10%", "Pro plan", "Canary"], ["multi_branch_profiles", "0%", "Internal", "Disabled"]]} />
+          <SimpleTable
+            columns={["Flag", "Rollout", "Audience", "Status"]}
+            rows={[
+              ["contact_gain_rooms_v2", "50%", "Lagos businesses", "Canary"],
+              ["ai_review_screening", "100%", "All", "Enabled"],
+              ["sponsored_room_banner", "10%", "Pro plan", "Canary"],
+              ["multi_branch_profiles", "0%", "Internal", "Disabled"],
+            ]}
+          />
         </Panel>
       </div>
     </div>

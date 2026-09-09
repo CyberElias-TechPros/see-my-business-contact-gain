@@ -13,7 +13,11 @@ export const Route = createFileRoute("/admin/support")({
 function AdminSupport() {
   return (
     <div>
-      <SectionHead title="Support tickets" subtitle="Account, verification, billing and technical cases." action={<Button>New ticket</Button>} />
+      <SectionHead
+        title="Support tickets"
+        subtitle="Account, verification, billing and technical cases."
+        action={<Button>New ticket</Button>}
+      />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Open" value="3" delta="" hint="tickets" />
         <StatCard label="First response" value="18m" delta="-4m" hint="median" />
@@ -30,7 +34,10 @@ function AdminSupport() {
       </div>
       <div className="mt-6">
         <Panel title="Tickets" action={<Badge variant="outline">Demo data</Badge>}>
-          <SimpleTable columns={["ID", "Subject", "User", "Priority", "Status", "Age"]} rows={tickets.map((t) => [t.id, t.subject, t.user, t.priority, t.status, t.age])} />
+          <SimpleTable
+            columns={["ID", "Subject", "User", "Priority", "Status", "Age"]}
+            rows={tickets.map((t) => [t.id, t.subject, t.user, t.priority, t.status, t.age])}
+          />
         </Panel>
       </div>
     </div>

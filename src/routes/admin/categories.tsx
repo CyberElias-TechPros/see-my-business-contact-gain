@@ -13,7 +13,11 @@ export const Route = createFileRoute("/admin/categories")({
 function AdminCategories() {
   return (
     <div>
-      <SectionHead title="Categories & attributes" subtitle="Taxonomy, filters and category-specific profile requirements." action={<Button>New category</Button>} />
+      <SectionHead
+        title="Categories & attributes"
+        subtitle="Taxonomy, filters and category-specific profile requirements."
+        action={<Button>New category</Button>}
+      />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Categories" value="148" delta="+4" hint="this quarter" />
         <StatCard label="Attributes" value="912" delta="" hint="defined" />
@@ -30,7 +34,10 @@ function AdminCategories() {
       </div>
       <div className="mt-6">
         <Panel title="Taxonomy" action={<Badge variant="outline">Demo data</Badge>}>
-          <SimpleTable columns={["Category", "Slug", "Listings", "Attributes"]} rows={categories.map((c) => [c.name, c.slug, c.count.toLocaleString(), "12"])} />
+          <SimpleTable
+            columns={["Category", "Slug", "Listings", "Attributes"]}
+            rows={categories.map((c) => [c.name, c.slug, c.count.toLocaleString(), "12"])}
+          />
         </Panel>
       </div>
     </div>

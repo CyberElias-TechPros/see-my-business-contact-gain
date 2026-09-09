@@ -1,3 +1,30 @@
+# Public directory: everything a consumer might search for should be crawlable.
+#
+# The signed-in surfaces (/app, /admin, /account) are deliberately NOT disallowed here.
+# A disallowed URL cannot be re-crawled to see its `noindex` tag, so blocking it in robots
+# while the page asks not to be indexed is the way to get a dashboard URL *indexed* with a
+# generic description. Those routes render `X-Robots-Tag: noindex, nofollow` from the frontend
+# and are unreachable without a session, which is the correct pair of levers.
+
+User-agent: *
+Allow: /
+Disallow: /api/
+
+Sitemap: https://gainhub.ng/sitemap.xml
+
+# Ad engines are not consumers; the directory is free and does not pay to be found.
+User-agent: Amazonbot
+Disallow: /
+
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: DataForSeoBot
+Disallow: /
+
 User-agent: Googlebot
 Allow: /
 
@@ -8,7 +35,4 @@ User-agent: Twitterbot
 Allow: /
 
 User-agent: facebookexternalhit
-Allow: /
-
-User-agent: *
 Allow: /

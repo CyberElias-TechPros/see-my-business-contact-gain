@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { trendData, sourceData } from "@/data/mock";
 
-
 export const Route = createFileRoute("/app/calendar")({
   component: WorkspaceCalendar,
 });
@@ -13,7 +12,11 @@ export const Route = createFileRoute("/app/calendar")({
 function WorkspaceCalendar() {
   return (
     <div>
-      <SectionHead title="Calendar" subtitle="Appointments, callbacks and site visits." action={<Button>New appointment</Button>} />
+      <SectionHead
+        title="Calendar"
+        subtitle="Appointments, callbacks and site visits."
+        action={<Button>New appointment</Button>}
+      />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Today" value="4" delta="" hint="appointments" />
         <StatCard label="This week" value="19" delta="+3" hint="booked" />
@@ -30,7 +33,14 @@ function WorkspaceCalendar() {
       </div>
       <div className="mt-6">
         <Panel title="Upcoming" action={<Badge variant="outline">Demo data</Badge>}>
-          <SimpleTable columns={["Time", "Customer", "Type", "Agent", "Status"]} rows={[["9:00 AM", "Blessing Eze", "Screen repair", "Amina B.", "Confirmed"], ["11:30 AM", "Musa Ibrahim", "Diagnostics", "Chidi O.", "Confirmed"], ["2:00 PM", "Ngozi Umeh", "Site visit", "Amina B.", "Pending"]]} />
+          <SimpleTable
+            columns={["Time", "Customer", "Type", "Agent", "Status"]}
+            rows={[
+              ["9:00 AM", "Blessing Eze", "Screen repair", "Amina B.", "Confirmed"],
+              ["11:30 AM", "Musa Ibrahim", "Diagnostics", "Chidi O.", "Confirmed"],
+              ["2:00 PM", "Ngozi Umeh", "Site visit", "Amina B.", "Pending"],
+            ]}
+          />
         </Panel>
       </div>
     </div>

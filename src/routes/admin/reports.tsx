@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { trendData, sourceData } from "@/data/mock";
 
-
 export const Route = createFileRoute("/admin/reports")({
   component: AdminReports,
 });
@@ -13,7 +12,11 @@ export const Route = createFileRoute("/admin/reports")({
 function AdminReports() {
   return (
     <div>
-      <SectionHead title="Reports" subtitle="Scam, impersonation and content reports from users." action={<Button>Assign batch</Button>} />
+      <SectionHead
+        title="Reports"
+        subtitle="Scam, impersonation and content reports from users."
+        action={<Button>Assign batch</Button>}
+      />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Open" value="24" delta="-6" hint="this week" />
         <StatCard label="Scam reports" value="11" delta="" hint="open" />
@@ -30,7 +33,14 @@ function AdminReports() {
       </div>
       <div className="mt-6">
         <Panel title="Report queue" action={<Badge variant="outline">Demo data</Badge>}>
-          <SimpleTable columns={["ID", "Target", "Reason", "Reporter", "Risk", "Age"]} rows={[["RP-501", "Quick Loans Naija", "Advance-fee scam", "Consumer", "High", "22m"], ["RP-500", "Profile #4412", "Impersonation", "Business owner", "Medium", "3h"], ["RP-499", "Room banner", "Adult content", "Moderator", "High", "5h"]]} />
+          <SimpleTable
+            columns={["ID", "Target", "Reason", "Reporter", "Risk", "Age"]}
+            rows={[
+              ["RP-501", "Quick Loans Naija", "Advance-fee scam", "Consumer", "High", "22m"],
+              ["RP-500", "Profile #4412", "Impersonation", "Business owner", "Medium", "3h"],
+              ["RP-499", "Room banner", "Adult content", "Moderator", "High", "5h"],
+            ]}
+          />
         </Panel>
       </div>
     </div>

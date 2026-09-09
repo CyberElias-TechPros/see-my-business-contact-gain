@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { trendData, sourceData } from "@/data/mock";
 
-
 export const Route = createFileRoute("/admin/ads")({
   component: AdminAds,
 });
@@ -13,7 +12,11 @@ export const Route = createFileRoute("/admin/ads")({
 function AdminAds() {
   return (
     <div>
-      <SectionHead title="Ads & promotions" subtitle="Sponsored inventory, pacing and advertiser billing." action={<Button>New placement</Button>} />
+      <SectionHead
+        title="Ads & promotions"
+        subtitle="Sponsored inventory, pacing and advertiser billing."
+        action={<Button>New placement</Button>}
+      />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Live placements" value="64" delta="" hint="running" />
         <StatCard label="Revenue" value="₦18.4M" delta="+12%" hint="this month" />
@@ -30,7 +33,14 @@ function AdminAds() {
       </div>
       <div className="mt-6">
         <Panel title="Placements" action={<Badge variant="outline">Demo data</Badge>}>
-          <SimpleTable columns={["ID", "Advertiser", "Inventory", "Spend", "Chats", "Status"]} rows={[["AD-221", "SwiftFix Gadgets", "Category spotlight", "₦120,000", "1,840", "Live"], ["AD-220", "KeyHomes Realty", "Location feature", "₦240,000", "980", "Live"], ["AD-219", "Crown Events", "Room banner", "₦60,000", "410", "Paused"]]} />
+          <SimpleTable
+            columns={["ID", "Advertiser", "Inventory", "Spend", "Chats", "Status"]}
+            rows={[
+              ["AD-221", "SwiftFix Gadgets", "Category spotlight", "₦120,000", "1,840", "Live"],
+              ["AD-220", "KeyHomes Realty", "Location feature", "₦240,000", "980", "Live"],
+              ["AD-219", "Crown Events", "Room banner", "₦60,000", "410", "Paused"],
+            ]}
+          />
         </Panel>
       </div>
     </div>

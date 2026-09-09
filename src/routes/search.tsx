@@ -8,7 +8,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Slider } from "@/components/ui/slider";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -24,7 +30,10 @@ export const Route = createFileRoute("/search")({
           "Search verified businesses by category, city, rating and opening hours. Filter, compare and start a WhatsApp chat in one tap.",
       },
       { property: "og:title", content: "Search Nigerian businesses — GainHub NG" },
-      { property: "og:description", content: "Filter by category, location, verification and rating, then chat on WhatsApp." },
+      {
+        property: "og:description",
+        content: "Filter by category, location, verification and rating, then chat on WhatsApp.",
+      },
     ],
   }),
   component: SearchPage,
@@ -66,7 +75,14 @@ function Filters() {
       <Separator />
       <div className="space-y-2">
         <p className="text-xs uppercase tracking-wide text-muted-foreground">Quick filters</p>
-        {["Open now", "Verified only", "Offers delivery", "Accepts card", "Home service", "Near me"].map((f) => (
+        {[
+          "Open now",
+          "Verified only",
+          "Offers delivery",
+          "Accepts card",
+          "Home service",
+          "Near me",
+        ].map((f) => (
           <label key={f} className="flex items-center gap-2 text-sm">
             <Checkbox /> {f}
           </label>

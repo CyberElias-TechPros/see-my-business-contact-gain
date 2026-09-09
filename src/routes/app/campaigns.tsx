@@ -13,7 +13,11 @@ export const Route = createFileRoute("/app/campaigns")({
 function WorkspaceCampaigns() {
   return (
     <div>
-      <SectionHead title="Campaigns" subtitle="Every acquisition initiative with cost per lead." action={<Button>New campaign</Button>} />
+      <SectionHead
+        title="Campaigns"
+        subtitle="Every acquisition initiative with cost per lead."
+        action={<Button>New campaign</Button>}
+      />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Live campaigns" value="3" delta="" hint="running" />
         <StatCard label="Leads" value="1,636" delta="+18%" hint="30 days" />
@@ -30,7 +34,28 @@ function WorkspaceCampaigns() {
       </div>
       <div className="mt-6">
         <Panel title="Campaign performance" action={<Badge variant="outline">Demo data</Badge>}>
-          <SimpleTable columns={["ID", "Campaign", "Channel", "Scans/clicks", "Leads", "Spend", "CPL", "Status"]} rows={campaigns.map((c) => [c.id, c.name, c.channel, String(c.scans), String(c.leads), c.cost, c.cpl, c.status])} />
+          <SimpleTable
+            columns={[
+              "ID",
+              "Campaign",
+              "Channel",
+              "Scans/clicks",
+              "Leads",
+              "Spend",
+              "CPL",
+              "Status",
+            ]}
+            rows={campaigns.map((c) => [
+              c.id,
+              c.name,
+              c.channel,
+              String(c.scans),
+              String(c.leads),
+              c.cost,
+              c.cpl,
+              c.status,
+            ])}
+          />
         </Panel>
       </div>
     </div>

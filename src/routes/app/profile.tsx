@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { trendData, sourceData } from "@/data/mock";
 
-
 export const Route = createFileRoute("/app/profile")({
   component: WorkspaceProfile,
 });
@@ -13,7 +12,11 @@ export const Route = createFileRoute("/app/profile")({
 function WorkspaceProfile() {
   return (
     <div>
-      <SectionHead title="Business profile" subtitle="What customers see publicly. Complete every section to rank higher." action={<Button>Preview profile</Button>} />
+      <SectionHead
+        title="Business profile"
+        subtitle="What customers see publicly. Complete every section to rank higher."
+        action={<Button>Preview profile</Button>}
+      />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Completion" value="82%" delta="+10" hint="this month" />
         <StatCard label="Profile views" value="12,480" delta="+14%" hint="30 days" />
@@ -30,7 +33,16 @@ function WorkspaceProfile() {
       </div>
       <div className="mt-6">
         <Panel title="Profile sections" action={<Badge variant="outline">Demo data</Badge>}>
-          <SimpleTable columns={["Section", "Status", "Public", "Last updated"]} rows={[["Basics & tagline", "Complete", "Yes", "2 days ago"], ["Category attributes", "Complete", "Yes", "1 week ago"], ["Hours", "Complete", "Yes", "Yesterday"], ["Gallery", "Missing 2 images", "Yes", "3 days ago"], ["Verification documents", "Approved", "Badge only", "1 month ago"]]} />
+          <SimpleTable
+            columns={["Section", "Status", "Public", "Last updated"]}
+            rows={[
+              ["Basics & tagline", "Complete", "Yes", "2 days ago"],
+              ["Category attributes", "Complete", "Yes", "1 week ago"],
+              ["Hours", "Complete", "Yes", "Yesterday"],
+              ["Gallery", "Missing 2 images", "Yes", "3 days ago"],
+              ["Verification documents", "Approved", "Badge only", "1 month ago"],
+            ]}
+          />
         </Panel>
       </div>
     </div>

@@ -1,0 +1,39 @@
+{
+  // Vitest-only Worker config, kept at the repository root on purpose: wrangler loads the
+  // `.dev.vars` next to the config file, and worker/.dev.vars pins APP_ENV to
+  // "development" — which would switch the KV response cache back on inside tests and make
+  // assertions race with bodies an earlier test cached. Deliberately NOT a copy of production:
+  //   * APP_ENV=test switches off the KV response cache and enables the dev-only
+  //     X-Forwarded-For fallback, so each assertion sees the database, not a cached body.
+  //   * No `triggers` (crons/queues consumers) and no `routes`: a test must not depend on
+  //     a deployed hostname. The queue handler is exercised by calling it directly.
+  //   * SECRET_KEY here is a fixed test value. It is a secret only in the sense that it
+  //     signs session cookies inside a throwaway miniflare instance; production keeps its
+  //     secret out of the repository (`wrangler secret put`), and `npm run check:deploy`
+  //     fails the build if a secret ever appears in the real config.
+  // Keep the binding *names* in sync with worker/wrangler.jsonc; the local resource ids are
+  // fake-but-well-formed so miniflare creates fresh D1/KV/R2 stores for the test run.
+  "name": "gainhub-api-test",
+  "main": "worker/src/index.ts",
+  "compatibility_date": "2026-09-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "vars": {
+    "APP_ENV": "test",
+    "PUBLIC_URL": "http://localhost:5173",
+    "API_URL": "http://localhost:8787",
+    "ALLOWED_ORIGINS": "http://localhost:5173",
+    "COOKIE_DOMAIN": "",
+    "MEDIA_MAX_BYTES": "5242880",
+    "SECRET_KEY": "vitest-only-signing-key-never-reused",
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "gainhub-test",
+      "database_id": "00000000-0000-4000-8000-0000000000d1",
+      "migrations_dir": "worker/migrations",
+    },
+  ],
+  "kv_namespaces": [{ "binding": "KV", "id": "00000000-0000-4000-8000-00000000006b" }],
+  "r2_buckets": [{ "binding": "MEDIA", "bucket_name": "gainhub-test-media" }],
+}

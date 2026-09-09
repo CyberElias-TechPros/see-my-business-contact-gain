@@ -13,7 +13,11 @@ export const Route = createFileRoute("/admin/users")({
 function AdminUsers() {
   return (
     <div>
-      <SectionHead title="Users" subtitle="Consumers, owners, managers, agents and staff." action={<Button>Invite admin</Button>} />
+      <SectionHead
+        title="Users"
+        subtitle="Consumers, owners, managers, agents and staff."
+        action={<Button>Invite admin</Button>}
+      />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Total users" value="412,900" delta="+3%" hint="this month" />
         <StatCard label="Business users" value="58,412" delta="" hint="accounts" />
@@ -30,7 +34,10 @@ function AdminUsers() {
       </div>
       <div className="mt-6">
         <Panel title="User records" action={<Badge variant="outline">Demo data</Badge>}>
-          <SimpleTable columns={["ID", "Name", "Email", "Role", "State", "Status"]} rows={adminUsers.map((u) => [u.id, u.name, u.email, u.role, u.state, u.status])} />
+          <SimpleTable
+            columns={["ID", "Name", "Email", "Role", "State", "Status"]}
+            rows={adminUsers.map((u) => [u.id, u.name, u.email, u.role, u.state, u.status])}
+          />
         </Panel>
       </div>
     </div>

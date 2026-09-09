@@ -13,7 +13,11 @@ export const Route = createFileRoute("/app/tasks")({
 function WorkspaceTasks() {
   return (
     <div>
-      <SectionHead title="Tasks" subtitle="Follow-ups created by you and by automation rules." action={<Button>New task</Button>} />
+      <SectionHead
+        title="Tasks"
+        subtitle="Follow-ups created by you and by automation rules."
+        action={<Button>New task</Button>}
+      />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Due today" value="2" delta="" hint="tasks" />
         <StatCard label="Overdue" value="0" delta="" hint="great" />
@@ -30,7 +34,17 @@ function WorkspaceTasks() {
       </div>
       <div className="mt-6">
         <Panel title="Task list" action={<Badge variant="outline">Demo data</Badge>}>
-          <SimpleTable columns={["ID", "Task", "Due", "Owner", "Priority", "Status"]} rows={tasks.map((t) => [t.id, t.title, t.due, t.owner, t.priority, t.done ? "Done" : "Open"])} />
+          <SimpleTable
+            columns={["ID", "Task", "Due", "Owner", "Priority", "Status"]}
+            rows={tasks.map((t) => [
+              t.id,
+              t.title,
+              t.due,
+              t.owner,
+              t.priority,
+              t.done ? "Done" : "Open",
+            ])}
+          />
         </Panel>
       </div>
     </div>

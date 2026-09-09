@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { trendData, sourceData } from "@/data/mock";
 
-
 export const Route = createFileRoute("/admin/reviews")({
   component: AdminReviews,
 });
@@ -13,7 +12,11 @@ export const Route = createFileRoute("/admin/reviews")({
 function AdminReviews() {
   return (
     <div>
-      <SectionHead title="Reviews" subtitle="Published reviews, disputes and fake-review detection." action={<Button>Run detection</Button>} />
+      <SectionHead
+        title="Reviews"
+        subtitle="Published reviews, disputes and fake-review detection."
+        action={<Button>Run detection</Button>}
+      />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Reviews" value="221,400" delta="+4%" hint="this month" />
         <StatCard label="Disputed" value="94" delta="" hint="under review" />
@@ -30,7 +33,14 @@ function AdminReviews() {
       </div>
       <div className="mt-6">
         <Panel title="Flagged reviews" action={<Badge variant="outline">Demo data</Badge>}>
-          <SimpleTable columns={["Review", "Business", "Rating", "Flag", "Age"]} rows={[["R-8812", "SwiftFix Gadgets", "5", "Suspected fake", "1 hour"], ["R-8811", "Glow by Tola", "1", "Disputed by owner", "6 hours"], ["R-8810", "Crown Events", "2", "Abusive language", "1 day"]]} />
+          <SimpleTable
+            columns={["Review", "Business", "Rating", "Flag", "Age"]}
+            rows={[
+              ["R-8812", "SwiftFix Gadgets", "5", "Suspected fake", "1 hour"],
+              ["R-8811", "Glow by Tola", "1", "Disputed by owner", "6 hours"],
+              ["R-8810", "Crown Events", "2", "Abusive language", "1 day"],
+            ]}
+          />
         </Panel>
       </div>
     </div>

@@ -13,7 +13,11 @@ export const Route = createFileRoute("/admin/businesses")({
 function AdminBusinesses() {
   return (
     <div>
-      <SectionHead title="Businesses" subtitle="Every listing, its plan and its quality signals." action={<Button>Add listing</Button>} />
+      <SectionHead
+        title="Businesses"
+        subtitle="Every listing, its plan and its quality signals."
+        action={<Button>Add listing</Button>}
+      />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Listings" value="58,412" delta="+2.1%" hint="this month" />
         <StatCard label="Verified" value="31,204" delta="53%" hint="of listings" />
@@ -30,7 +34,17 @@ function AdminBusinesses() {
       </div>
       <div className="mt-6">
         <Panel title="Listings" action={<Badge variant="outline">Demo data</Badge>}>
-          <SimpleTable columns={["Business", "Category", "City", "Plan", "Rating", "Verification"]} rows={businesses.map((b) => [b.name, b.category, b.city, b.plan, b.rating.toFixed(1), b.verified])} />
+          <SimpleTable
+            columns={["Business", "Category", "City", "Plan", "Rating", "Verification"]}
+            rows={businesses.map((b) => [
+              b.name,
+              b.category,
+              b.city,
+              b.plan,
+              b.rating.toFixed(1),
+              b.verified,
+            ])}
+          />
         </Panel>
       </div>
     </div>

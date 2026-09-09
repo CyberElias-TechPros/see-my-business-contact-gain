@@ -1,0 +1,19 @@
+# Copy to worker/.dev.vars (gitignored) and adjust. These are *local development* values:
+# `wrangler dev` reads them for APP_ENV, so the API's cache, abuse limits and cookie scope
+# behave like a dev box instead of like production.
+#
+# SECRET_KEY signs session cookies, the derived CSRF token and media upload tickets. Any
+# long random string is fine locally; never reuse a production value and never commit this file.
+SECRET_KEY=dev-only-hmac-key-change-me-in-production
+APP_ENV=development
+
+# No cookie Domain attribute: localhost cannot store a Domain=gainhub.ng cookie, and
+# silently dropping the session there is miserable to debug.
+PUBLIC_URL=http://localhost:5173
+API_URL=http://localhost:8787
+ALLOWED_ORIGINS=http://localhost:5173
+
+# Leave empty to log outgoing mail as `mail_skipped` events instead of sending it.
+# Fill in to test the verification and password-reset emails for real.
+RESEND_API_KEY=
+MAIL_FROM=

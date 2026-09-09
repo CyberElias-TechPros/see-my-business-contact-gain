@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { trendData, sourceData } from "@/data/mock";
 
-
 export const Route = createFileRoute("/app/settings")({
   component: WorkspaceSettings,
 });
@@ -13,7 +12,11 @@ export const Route = createFileRoute("/app/settings")({
 function WorkspaceSettings() {
   return (
     <div>
-      <SectionHead title="Settings" subtitle="Channels, pipelines, custom fields and data controls." action={<Button>Save changes</Button>} />
+      <SectionHead
+        title="Settings"
+        subtitle="Channels, pipelines, custom fields and data controls."
+        action={<Button>Save changes</Button>}
+      />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Pipelines" value="2" delta="" hint="configured" />
         <StatCard label="Custom fields" value="7" delta="" hint="in use" />
@@ -30,7 +33,16 @@ function WorkspaceSettings() {
       </div>
       <div className="mt-6">
         <Panel title="Configuration" action={<Badge variant="outline">Demo data</Badge>}>
-          <SimpleTable columns={["Setting", "Value", "Scope"]} rows={[["Default pipeline", "Sales — repair jobs", "Business"], ["Lead assignment", "Round robin", "Team"], ["Auto acknowledgement", "On — 30 second delay", "WhatsApp"], ["Stale lead threshold", "24 hours", "Automation"], ["Data retention", "24 months", "NDPR"]]} />
+          <SimpleTable
+            columns={["Setting", "Value", "Scope"]}
+            rows={[
+              ["Default pipeline", "Sales — repair jobs", "Business"],
+              ["Lead assignment", "Round robin", "Team"],
+              ["Auto acknowledgement", "On — 30 second delay", "WhatsApp"],
+              ["Stale lead threshold", "24 hours", "Automation"],
+              ["Data retention", "24 months", "NDPR"],
+            ]}
+          />
         </Panel>
       </div>
     </div>

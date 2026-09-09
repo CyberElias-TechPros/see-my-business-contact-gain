@@ -13,7 +13,11 @@ export const Route = createFileRoute("/app/links")({
 function WorkspaceLinks() {
   return (
     <div>
-      <SectionHead title="QR codes & contact links" subtitle="Every tracked destination that starts a WhatsApp chat." action={<Button>Generate link</Button>} />
+      <SectionHead
+        title="QR codes & contact links"
+        subtitle="Every tracked destination that starts a WhatsApp chat."
+        action={<Button>Generate link</Button>}
+      />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Active links" value="12" delta="" hint="tracked" />
         <StatCard label="Scans" value="8,879" delta="+16%" hint="30 days" />
@@ -30,7 +34,10 @@ function WorkspaceLinks() {
       </div>
       <div className="mt-6">
         <Panel title="Links & QR codes" action={<Badge variant="outline">Demo data</Badge>}>
-          <SimpleTable columns={["ID", "Label", "Destination", "Source", "Scans"]} rows={contactLinks.map((l) => [l.id, l.label, l.url, l.source, String(l.scans)])} />
+          <SimpleTable
+            columns={["ID", "Label", "Destination", "Source", "Scans"]}
+            rows={contactLinks.map((l) => [l.id, l.label, l.url, l.source, String(l.scans)])}
+          />
         </Panel>
       </div>
     </div>

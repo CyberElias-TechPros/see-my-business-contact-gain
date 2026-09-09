@@ -1,0 +1,92 @@
+{
+  // GainHub API Worker — Cloudflare-side backend for the Vercel frontend.
+  //
+  // Local dev:  npm run worker:dev      (wrangler dev, persisted .wrangler state)
+  // Migrate:    npm run db:migrate:local
+  // Deploy:     npm run worker:deploy   (reads secrets from .dev.vars / `wrangler secret put`)
+  //
+  // RESOURCE IDS ARE DELIBERATELY PLACEHOLDER-SHAPED.
+  // The ids below are format-valid fakes this repository invented for local work
+  // (`wrangler dev --local` and `wrangler d1 execute --local` never contact Cloudflare,
+  // but wrangler still demands a UUID). Nobody has created the real resources yet, so a
+  // remote deploy must fail: run the commands in docs/DEPLOYMENT.md to create the D1
+  // databases, KV namespace and R2 bucket for this account, paste the ids here, and
+  // `npm run check:deploy` will stop complaining. Do not "fix" this by copying someone
+  // else's id in.
+  "name": "gainhub-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-09-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": { "enabled": true, "head_sampling_rate": 1 },
+  // Password hashing is the slowest thing this Worker does (PBKDF2, 210k iterations).
+  // The Workers default budget would abort every sign-in on a CPU exception that only
+  // reproduces in production, so the limit is explicit here and explained in
+  // docs/DEPLOYMENT.md.
+  "limits": { "cpu_ms": 200 },
+  "placement": { "mode": "smart" },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "gainhub",
+      "database_id": "00000000-0000-4000-8000-0000000000d1",
+      "migrations_dir": "migrations",
+    },
+  ],
+  "kv_namespaces": [
+    {
+      "binding": "KV",
+      "id": "00000000-0000-4000-8000-00000000006b",
+    },
+  ],
+  "r2_buckets": [{ "binding": "MEDIA", "bucket_name": "gainhub-media" }],
+  "queues": {
+    "producers": [{ "binding": "EMAIL_QUEUE", "queue": "gainhub-notifications" }],
+    "consumers": [
+      {
+        "queue": "gainhub-notifications",
+        "max_batch_size": 25,
+        "max_batch_timeout": 15,
+        "max_retries": 3,
+        "retry_delay": 30,
+      },
+    ],
+  },
+  // Served on its own hostname; the frontend proxies /api/v1/* here so the session
+  // cookie stays same-site in the browser. `include` keeps the custom-domain path
+  // (favicon.txt etc. still works if ever needed) out of the Worker's way.
+  "routes": [{ "pattern": "api.gainhub.ng", "zone_name": "gainhub.ng", "custom_domain": true }],
+  "triggers": { "crons": ["*/15 * * * *", "17 3 * * *"] },
+  "vars": {
+    "APP_ENV": "production",
+    "PUBLIC_URL": "https://gainhub.ng",
+    "API_URL": "https://api.gainhub.ng",
+    "ALLOWED_ORIGINS": "https://gainhub.ng,https://www.gainhub.ng",
+    "COOKIE_DOMAIN": "gainhub.ng",
+    "MEDIA_MAX_BYTES": "5242880",
+  },
+  "env": {
+    "staging": {
+      "name": "gainhub-api-staging",
+      "routes": [
+        { "pattern": "api-staging.gainhub.ng", "zone_name": "gainhub.ng", "custom_domain": true },
+      ],
+      "vars": {
+        "APP_ENV": "staging",
+        "PUBLIC_URL": "https://staging.gainhub.ng",
+        "API_URL": "https://api-staging.gainhub.ng",
+        "ALLOWED_ORIGINS": "https://staging.gainhub.ng",
+        "COOKIE_DOMAIN": "staging.gainhub.ng",
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "gainhub-staging",
+          "database_id": "REPLACE_WITH_STAGING_D1_ID",
+          "migrations_dir": "migrations",
+        },
+      ],
+      "kv_namespaces": [{ "binding": "KV", "id": "REPLACE_WITH_STAGING_KV_ID" }],
+      "r2_buckets": [{ "binding": "MEDIA", "bucket_name": "gainhub-staging-media" }],
+    },
+  },
+}

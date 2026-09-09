@@ -29,7 +29,10 @@ export const Route = createFileRoute("/business/$id")({
     return {
       meta: [
         { title: `${b.name} — ${b.category} in ${b.city} | GainHub NG` },
-        { name: "description", content: `${b.tagline}. ${b.name} in ${b.city}, ${b.state}. Photos, prices, opening hours, reviews and WhatsApp contact.` },
+        {
+          name: "description",
+          content: `${b.tagline}. ${b.name} in ${b.city}, ${b.state}. Photos, prices, opening hours, reviews and WhatsApp contact.`,
+        },
         { property: "og:title", content: `${b.name} — ${b.category} in ${b.city}` },
         { property: "og:description", content: b.tagline },
       ],
@@ -88,7 +91,16 @@ function BusinessProfile() {
           <div>
             <Tabs defaultValue="overview">
               <TabsList className="flex-wrap">
-                {["overview", "services", "products", "gallery", "reviews", "hours", "team", "enquire"].map((t) => (
+                {[
+                  "overview",
+                  "services",
+                  "products",
+                  "gallery",
+                  "reviews",
+                  "hours",
+                  "team",
+                  "enquire",
+                ].map((t) => (
                   <TabsTrigger key={t} value={t} className="capitalize">
                     {t}
                   </TabsTrigger>
@@ -103,7 +115,9 @@ function BusinessProfile() {
                     <Separator />
                     <div className="grid gap-4 sm:grid-cols-2">
                       <div>
-                        <p className="text-xs uppercase tracking-wide text-muted-foreground">Amenities</p>
+                        <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                          Amenities
+                        </p>
                         <div className="mt-2 flex flex-wrap gap-2">
                           {b.amenities.map((a) => (
                             <Badge key={a} variant="outline">
@@ -113,7 +127,9 @@ function BusinessProfile() {
                         </div>
                       </div>
                       <div>
-                        <p className="text-xs uppercase tracking-wide text-muted-foreground">Service areas</p>
+                        <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                          Service areas
+                        </p>
                         <div className="mt-2 flex flex-wrap gap-2">
                           {b.serviceAreas.map((a) => (
                             <Badge key={a} variant="outline">
@@ -256,7 +272,8 @@ function BusinessProfile() {
                     <div className="sm:col-span-2">
                       <p className="font-semibold">Request a quote</p>
                       <p className="text-sm text-muted-foreground">
-                        This form creates a lead in the business workspace with source “Directory profile”.
+                        This form creates a lead in the business workspace with source “Directory
+                        profile”.
                       </p>
                     </div>
                     <div>
@@ -269,7 +286,10 @@ function BusinessProfile() {
                     </div>
                     <div className="sm:col-span-2">
                       <Label>What do you need?</Label>
-                      <Textarea className="mt-2" placeholder="Describe the job, budget and preferred date" />
+                      <Textarea
+                        className="mt-2"
+                        placeholder="Describe the job, budget and preferred date"
+                      />
                     </div>
                     <Button className="sm:col-span-2">Send enquiry</Button>
                   </CardContent>
@@ -303,7 +323,9 @@ function BusinessProfile() {
             <Card className="card-surface">
               <CardContent className="space-y-2 p-5 text-sm">
                 <p className="font-semibold">Trust signals</p>
-                <p className="text-muted-foreground">Contacts gained: {b.contactsGained.toLocaleString()}</p>
+                <p className="text-muted-foreground">
+                  Contacts gained: {b.contactsGained.toLocaleString()}
+                </p>
                 <p className="text-muted-foreground">Saved by {b.savedBy} people</p>
                 <p className="text-muted-foreground">Typically replies in 5 minutes</p>
                 <p className="text-muted-foreground">Plan: {b.plan}</p>

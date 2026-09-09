@@ -13,7 +13,11 @@ export const Route = createFileRoute("/app/audit")({
 function WorkspaceAudit() {
   return (
     <div>
-      <SectionHead title="Audit log" subtitle="Who changed what, and when." action={<Button>Export log</Button>} />
+      <SectionHead
+        title="Audit log"
+        subtitle="Who changed what, and when."
+        action={<Button>Export log</Button>}
+      />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Events today" value="41" delta="" hint="logged" />
         <StatCard label="By automation" value="18" delta="" hint="system" />
@@ -30,7 +34,10 @@ function WorkspaceAudit() {
       </div>
       <div className="mt-6">
         <Panel title="Recent events" action={<Badge variant="outline">Demo data</Badge>}>
-          <SimpleTable columns={["ID", "Actor", "Event", "Time"]} rows={auditLog.map((a) => [a.id, a.who, a.what, a.when])} />
+          <SimpleTable
+            columns={["ID", "Actor", "Event", "Time"]}
+            rows={auditLog.map((a) => [a.id, a.who, a.what, a.when])}
+          />
         </Panel>
       </div>
     </div>

@@ -13,7 +13,11 @@ export const Route = createFileRoute("/app/leads")({
 function WorkspaceLeads() {
   return (
     <div>
-      <SectionHead title="Leads" subtitle="Scored, deduplicated and routed to the right agent." action={<Button>Add lead</Button>} />
+      <SectionHead
+        title="Leads"
+        subtitle="Scored, deduplicated and routed to the right agent."
+        action={<Button>Add lead</Button>}
+      />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="New today" value="23" delta="+4" hint="vs yesterday" />
         <StatCard label="Qualified" value="61" delta="" hint="this week" />
@@ -30,7 +34,18 @@ function WorkspaceLeads() {
       </div>
       <div className="mt-6">
         <Panel title="All leads" action={<Badge variant="outline">Demo data</Badge>}>
-          <SimpleTable columns={["Lead", "Name", "Source", "Stage", "Score", "Value", "Agent"]} rows={leads.map((l) => [l.id, l.name, l.source, l.stage, String(l.score), l.value, l.agent])} />
+          <SimpleTable
+            columns={["Lead", "Name", "Source", "Stage", "Score", "Value", "Agent"]}
+            rows={leads.map((l) => [
+              l.id,
+              l.name,
+              l.source,
+              l.stage,
+              String(l.score),
+              l.value,
+              l.agent,
+            ])}
+          />
         </Panel>
       </div>
     </div>

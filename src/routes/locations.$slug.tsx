@@ -17,7 +17,10 @@ export const Route = createFileRoute("/locations/$slug")({
           content: `Find trusted businesses in ${name}. Browse by area and category, check reviews and photos, then chat on WhatsApp.`,
         },
         { property: "og:title", content: `Businesses in ${name} — GainHub NG` },
-        { property: "og:description", content: `Local verified businesses in ${name} with instant WhatsApp contact.` },
+        {
+          property: "og:description",
+          content: `Local verified businesses in ${name} with instant WhatsApp contact.`,
+        },
       ],
     };
   },
@@ -37,7 +40,9 @@ function LocationPage() {
       <div className="mx-auto max-w-7xl space-y-10 px-4 py-12">
         <Card className="card-surface">
           <CardContent className="p-6">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Popular areas</h2>
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+              Popular areas
+            </h2>
             <div className="mt-3 flex flex-wrap gap-2">
               {loc.areas.map((a) => (
                 <Badge key={a} variant="secondary">
@@ -45,7 +50,9 @@ function LocationPage() {
                 </Badge>
               ))}
             </div>
-            <h2 className="mt-6 text-sm font-semibold uppercase tracking-wide text-muted-foreground">Top categories here</h2>
+            <h2 className="mt-6 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+              Top categories here
+            </h2>
             <div className="mt-3 flex flex-wrap gap-2">
               {categories.slice(0, 8).map((c) => (
                 <Link key={c.slug} to="/category/$slug" params={{ slug: c.slug }}>

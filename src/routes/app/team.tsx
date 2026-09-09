@@ -13,7 +13,11 @@ export const Route = createFileRoute("/app/team")({
 function WorkspaceTeam() {
   return (
     <div>
-      <SectionHead title="Team & permissions" subtitle="Owners, managers, agents, marketing and limited staff." action={<Button>Invite member</Button>} />
+      <SectionHead
+        title="Team & permissions"
+        subtitle="Owners, managers, agents, marketing and limited staff."
+        action={<Button>Invite member</Button>}
+      />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Seats used" value="4 / 5" delta="" hint="Growth plan" />
         <StatCard label="Active now" value="2" delta="" hint="online" />
@@ -30,7 +34,10 @@ function WorkspaceTeam() {
       </div>
       <div className="mt-6">
         <Panel title="Members" action={<Badge variant="outline">Demo data</Badge>}>
-          <SimpleTable columns={["Name", "Email", "Role", "Status", "Last seen"]} rows={teamMembers.map((m) => [m.name, m.email, m.role, m.status, m.lastSeen])} />
+          <SimpleTable
+            columns={["Name", "Email", "Role", "Status", "Last seen"]}
+            rows={teamMembers.map((m) => [m.name, m.email, m.role, m.status, m.lastSeen])}
+          />
         </Panel>
       </div>
     </div>

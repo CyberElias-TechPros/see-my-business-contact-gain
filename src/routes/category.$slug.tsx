@@ -18,7 +18,10 @@ export const Route = createFileRoute("/category/$slug")({
           content: `Compare ${name.toLowerCase()} businesses in Nigeria. See photos, prices, opening hours and reviews, then chat on WhatsApp.`,
         },
         { property: "og:title", content: `${name} in Nigeria — GainHub NG` },
-        { property: "og:description", content: `Verified ${name.toLowerCase()} providers with WhatsApp contact and real reviews.` },
+        {
+          property: "og:description",
+          content: `Verified ${name.toLowerCase()} providers with WhatsApp contact and real reviews.`,
+        },
       ],
     };
   },
@@ -45,7 +48,14 @@ function CategoryPage() {
       />
       <div className="mx-auto max-w-7xl space-y-10 px-4 py-12">
         <div className="flex flex-wrap gap-2">
-          {["Open now", "Verified", "Home service", "Warranty offered", "Same-day", "Card accepted"].map((f) => (
+          {[
+            "Open now",
+            "Verified",
+            "Home service",
+            "Warranty offered",
+            "Same-day",
+            "Card accepted",
+          ].map((f) => (
             <Badge key={f} variant="outline" className="bg-card">
               {f}
             </Badge>

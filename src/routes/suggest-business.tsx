@@ -4,7 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { categories } from "@/data/mock";
 
@@ -12,9 +18,16 @@ export const Route = createFileRoute("/suggest-business")({
   head: () => ({
     meta: [
       { title: "Suggest a business or send a correction — GainHub NG" },
-      { name: "description", content: "Know a business that should be listed, or spotted wrong details? Send a suggestion and our category team will review it." },
+      {
+        name: "description",
+        content:
+          "Know a business that should be listed, or spotted wrong details? Send a suggestion and our category team will review it.",
+      },
       { property: "og:title", content: "Suggest a business — GainHub NG" },
-      { property: "og:description", content: "Help keep Nigeria's business directory accurate and complete." },
+      {
+        property: "og:description",
+        content: "Help keep Nigeria's business directory accurate and complete.",
+      },
     ],
   }),
   component: SuggestPage,

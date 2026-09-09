@@ -16,9 +16,15 @@ export const Route = createFileRoute("/contact-gain/$id")({
     return {
       meta: [
         { title: `${name} — WhatsApp contact-gain room | GainHub NG` },
-        { name: "description", content: `Join ${name}: published save-back rules, slot limits, member list and moderation history.` },
+        {
+          name: "description",
+          content: `Join ${name}: published save-back rules, slot limits, member list and moderation history.`,
+        },
         { property: "og:title", content: `${name} — contact-gain room` },
-        { property: "og:description", content: `Moderated WhatsApp save-back room with tracked participation.` },
+        {
+          property: "og:description",
+          content: `Moderated WhatsApp save-back room with tracked participation.`,
+        },
       ],
     };
   },
@@ -74,7 +80,9 @@ function RoomPage() {
                     <p className="text-xs text-muted-foreground">{m.niche}</p>
                   </div>
                   <div className="ml-auto w-32">
-                    <p className="text-right text-xs text-muted-foreground">Save-back {m.saveBack}%</p>
+                    <p className="text-right text-xs text-muted-foreground">
+                      Save-back {m.saveBack}%
+                    </p>
                     <Progress value={m.saveBack} className="mt-1 h-1.5" />
                   </div>
                   <Button size="sm" variant="outline">
@@ -105,7 +113,9 @@ function RoomPage() {
                   <div className="grid h-40 place-items-center bg-hero-mesh text-xs text-muted-foreground">
                     Status post {i + 1}
                   </div>
-                  <CardContent className="p-3 text-xs text-muted-foreground">Posted by member {i + 1} • 2h</CardContent>
+                  <CardContent className="p-3 text-xs text-muted-foreground">
+                    Posted by member {i + 1} • 2h
+                  </CardContent>
                 </Card>
               ))}
             </div>

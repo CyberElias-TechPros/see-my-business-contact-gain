@@ -6,7 +6,19 @@ import reactRefresh from "eslint-plugin-react-refresh";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
-  { ignores: ["dist", ".output", ".vinxi"] },
+  {
+    ignores: [
+      "dist",
+      ".output",
+      ".vinxi",
+      // Wrangler's local build cache and dev bundles are generated; linting them produced
+      // 2,000+ prettier errors that had nothing to do with this repository's source.
+      "worker/.wrangler",
+      ".wrangler",
+      // TanStack Router generates this on every dev/build run.
+      "src/routeTree.gen.ts",
+    ],
+  },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ["**/*.{ts,tsx}"],

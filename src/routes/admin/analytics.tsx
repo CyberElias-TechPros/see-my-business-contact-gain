@@ -13,7 +13,11 @@ export const Route = createFileRoute("/admin/analytics")({
 function AdminAnalytics() {
   return (
     <div>
-      <SectionHead title="Platform analytics" subtitle="Supply, demand, conversion and quality metrics." action={<Button>Export</Button>} />
+      <SectionHead
+        title="Platform analytics"
+        subtitle="Supply, demand, conversion and quality metrics."
+        action={<Button>Export</Button>}
+      />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Searches" value="8.4M" delta="+11%" hint="this month" />
         <StatCard label="Chats started" value="1.24M" delta="+9%" hint="this month" />
@@ -30,7 +34,10 @@ function AdminAnalytics() {
       </div>
       <div className="mt-6">
         <Panel title="Demand by category" action={<Badge variant="outline">Demo data</Badge>}>
-          <SimpleTable columns={["Category", "Searches", "Chats", "Conversion"]} rows={categories.slice(0, 8).map((c) => [c.name, "412,000", "88,400", "21%"])} />
+          <SimpleTable
+            columns={["Category", "Searches", "Chats", "Conversion"]}
+            rows={categories.slice(0, 8).map((c) => [c.name, "412,000", "88,400", "21%"])}
+          />
         </Panel>
       </div>
     </div>

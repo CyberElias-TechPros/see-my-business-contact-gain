@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { trendData, sourceData } from "@/data/mock";
 
-
 export const Route = createFileRoute("/admin/config")({
   component: AdminConfig,
 });
@@ -13,7 +12,11 @@ export const Route = createFileRoute("/admin/config")({
 function AdminConfig() {
   return (
     <div>
-      <SectionHead title="Configuration" subtitle="Platform-wide settings, limits and policy thresholds." action={<Button>Save</Button>} />
+      <SectionHead
+        title="Configuration"
+        subtitle="Platform-wide settings, limits and policy thresholds."
+        action={<Button>Save</Button>}
+      />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Environments" value="3" delta="" hint="dev, preview, prod" />
         <StatCard label="Rate limits" value="12" delta="" hint="policies" />
@@ -30,7 +33,16 @@ function AdminConfig() {
       </div>
       <div className="mt-6">
         <Panel title="Settings" action={<Badge variant="outline">Demo data</Badge>}>
-          <SimpleTable columns={["Setting", "Value", "Notes"]} rows={[["Max gallery images", "30", "Per listing"], ["Room slot ceiling", "5,000", "Per contact-gain room"], ["Report auto-hide threshold", "5 reports", "Pending review"], ["NDPR retention", "24 months", "Then anonymised"], ["Moderation SLA", "30 minutes", "High-risk items"]]} />
+          <SimpleTable
+            columns={["Setting", "Value", "Notes"]}
+            rows={[
+              ["Max gallery images", "30", "Per listing"],
+              ["Room slot ceiling", "5,000", "Per contact-gain room"],
+              ["Report auto-hide threshold", "5 reports", "Pending review"],
+              ["NDPR retention", "24 months", "Then anonymised"],
+              ["Moderation SLA", "30 minutes", "High-risk items"],
+            ]}
+          />
         </Panel>
       </div>
     </div>

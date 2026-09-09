@@ -15,7 +15,9 @@ function NavList({ items }: { items: NavItem[] }) {
   return (
     <nav className="flex flex-col gap-0.5">
       {items.map((item) => {
-        const active = path === item.to || (item.to !== "/app" && item.to !== "/admin" && path.startsWith(item.to));
+        const active =
+          path === item.to ||
+          (item.to !== "/app" && item.to !== "/admin" && path.startsWith(item.to));
         return (
           <Link
             key={item.to}
@@ -55,7 +57,9 @@ export function ConsoleShell({
     <div className="flex h-full flex-col gap-6 bg-sidebar p-4">
       <div className="px-1">
         <Brand tone="invert" />
-        <p className="mt-3 text-xs font-semibold uppercase tracking-[0.16em] text-sidebar-primary">{title}</p>
+        <p className="mt-3 text-xs font-semibold uppercase tracking-[0.16em] text-sidebar-primary">
+          {title}
+        </p>
         <p className="text-xs text-sidebar-foreground/60">{subtitle}</p>
       </div>
       <div className="flex-1 overflow-y-auto pr-1">
@@ -72,7 +76,9 @@ export function ConsoleShell({
             </AvatarFallback>
           </Avatar>
           <div className="min-w-0">
-            <p className="truncate text-sm font-medium text-sidebar-accent-foreground">{user.name}</p>
+            <p className="truncate text-sm font-medium text-sidebar-accent-foreground">
+              {user.name}
+            </p>
             <p className="truncate text-xs text-sidebar-foreground/60">{user.role}</p>
           </div>
         </div>
@@ -93,7 +99,12 @@ export function ConsoleShell({
         <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b bg-background/90 px-4 backdrop-blur">
           <Sheet>
             <SheetTrigger asChild>
-              <Button variant="outline" size="icon" className="lg:hidden" aria-label="Open navigation">
+              <Button
+                variant="outline"
+                size="icon"
+                className="lg:hidden"
+                aria-label="Open navigation"
+              >
                 <Menu className="size-4" />
               </Button>
             </SheetTrigger>

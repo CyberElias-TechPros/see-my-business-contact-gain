@@ -13,7 +13,11 @@ export const Route = createFileRoute("/app/contacts")({
 function WorkspaceContacts() {
   return (
     <div>
-      <SectionHead title="Contacts" subtitle="Every person who has ever contacted your business, deduplicated." action={<Button>Import CSV</Button>} />
+      <SectionHead
+        title="Contacts"
+        subtitle="Every person who has ever contacted your business, deduplicated."
+        action={<Button>Import CSV</Button>}
+      />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Total contacts" value="5,210" delta="+120" hint="this week" />
         <StatCard label="Saved back" value="4,109" delta="79%" hint="of contacts" />
@@ -30,7 +34,10 @@ function WorkspaceContacts() {
       </div>
       <div className="mt-6">
         <Panel title="Contacts" action={<Badge variant="outline">Demo data</Badge>}>
-          <SimpleTable columns={["Lead", "Name", "Channel", "Source", "Stage", "Agent"]} rows={leads.map((l) => [l.id, l.name, l.channel, l.source, l.stage, l.agent])} />
+          <SimpleTable
+            columns={["Lead", "Name", "Channel", "Source", "Stage", "Agent"]}
+            rows={leads.map((l) => [l.id, l.name, l.channel, l.source, l.stage, l.agent])}
+          />
         </Panel>
       </div>
     </div>

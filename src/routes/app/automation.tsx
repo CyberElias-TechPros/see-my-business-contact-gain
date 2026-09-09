@@ -13,7 +13,11 @@ export const Route = createFileRoute("/app/automation")({
 function WorkspaceAutomation() {
   return (
     <div>
-      <SectionHead title="Automation" subtitle="Tenant-scoped, permission-aware and fully auditable rules." action={<Button>New rule</Button>} />
+      <SectionHead
+        title="Automation"
+        subtitle="Tenant-scoped, permission-aware and fully auditable rules."
+        action={<Button>New rule</Button>}
+      />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Active rules" value="5" delta="" hint="running" />
         <StatCard label="Runs" value="6,886" delta="+9%" hint="30 days" />
@@ -30,7 +34,10 @@ function WorkspaceAutomation() {
       </div>
       <div className="mt-6">
         <Panel title="Rules" action={<Badge variant="outline">Demo data</Badge>}>
-          <SimpleTable columns={["ID", "Trigger", "Action", "Runs", "Status"]} rows={automations.map((a) => [a.id, a.trigger, a.action, String(a.runs), a.status])} />
+          <SimpleTable
+            columns={["ID", "Trigger", "Action", "Runs", "Status"]}
+            rows={automations.map((a) => [a.id, a.trigger, a.action, String(a.runs), a.status])}
+          />
         </Panel>
       </div>
     </div>

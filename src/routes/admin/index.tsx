@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { trendData, sourceData } from "@/data/mock";
 
-
 export const Route = createFileRoute("/admin/")({
   component: AdminDashboard,
 });
@@ -13,7 +12,11 @@ export const Route = createFileRoute("/admin/")({
 function AdminDashboard() {
   return (
     <div>
-      <SectionHead title="Platform dashboard" subtitle="Growth, quality and risk across the whole platform." action={<Button>Export snapshot</Button>} />
+      <SectionHead
+        title="Platform dashboard"
+        subtitle="Growth, quality and risk across the whole platform."
+        action={<Button>Export snapshot</Button>}
+      />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Businesses" value="58,412" delta="+2.1%" hint="this month" />
         <StatCard label="Chats started" value="1.24M" delta="+9%" hint="this month" />
@@ -30,7 +33,15 @@ function AdminDashboard() {
       </div>
       <div className="mt-6">
         <Panel title="Operations queue" action={<Badge variant="outline">Demo data</Badge>}>
-          <SimpleTable columns={["Queue", "Items", "Oldest", "Owner"]} rows={[["Claims", "3", "3 days", "Support"], ["Verification", "112", "2 days", "Trust & safety"], ["Media moderation", "48", "5 minutes", "Moderators"], ["Support tickets", "3", "1 day", "Support"]]} />
+          <SimpleTable
+            columns={["Queue", "Items", "Oldest", "Owner"]}
+            rows={[
+              ["Claims", "3", "3 days", "Support"],
+              ["Verification", "112", "2 days", "Trust & safety"],
+              ["Media moderation", "48", "5 minutes", "Moderators"],
+              ["Support tickets", "3", "1 day", "Support"],
+            ]}
+          />
         </Panel>
       </div>
     </div>

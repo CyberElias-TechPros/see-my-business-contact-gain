@@ -13,7 +13,11 @@ export const Route = createFileRoute("/admin/audit")({
 function AdminAudit() {
   return (
     <div>
-      <SectionHead title="Audit logs" subtitle="Every privileged action on the platform." action={<Button>Export</Button>} />
+      <SectionHead
+        title="Audit logs"
+        subtitle="Every privileged action on the platform."
+        action={<Button>Export</Button>}
+      />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Events today" value="18,400" delta="" hint="logged" />
         <StatCard label="Admin actions" value="412" delta="" hint="today" />
@@ -30,7 +34,10 @@ function AdminAudit() {
       </div>
       <div className="mt-6">
         <Panel title="Events" action={<Badge variant="outline">Demo data</Badge>}>
-          <SimpleTable columns={["ID", "Actor", "Event", "Time"]} rows={auditLog.map((a) => [a.id, a.who, a.what, a.when])} />
+          <SimpleTable
+            columns={["ID", "Actor", "Event", "Time"]}
+            rows={auditLog.map((a) => [a.id, a.who, a.what, a.when])}
+          />
         </Panel>
       </div>
     </div>
