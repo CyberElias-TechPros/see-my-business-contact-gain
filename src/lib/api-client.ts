@@ -57,6 +57,12 @@ export type ApiFetchOptions = {
   /** Sent as `X-Idempotency-Key`; the enquiry/lead endpoints dedupe on it. */
   idempotencyKey?: string;
   headers?: HeadersInit;
+  /**
+   * `false` for the endpoints that *create* a session (login, register, password reset). There is
+   * no token to send yet, so the lazy session fetch below would be a wasted round trip in front
+   * of every sign-in. Requests that do need a token never pass this.
+   */
+  csrf?: boolean;
 };
 
 export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}): Promise<T> {
@@ -66,7 +72,7 @@ export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}): 
   headers.set("accept", "application/json");
   if (options.body !== undefined) headers.set("content-type", "application/json");
   if (options.idempotencyKey) headers.set("x-idempotency-key", options.idempotencyKey);
-  if (unsafe) {
+  if (unsafe && options.csrf !== false) {
     if (csrfToken === null) {
       // A cold tab that jumped straight to a form: ask for a session before submitting, or the
       // request is rejected for a reason the user cannot act on.

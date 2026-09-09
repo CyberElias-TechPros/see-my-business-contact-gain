@@ -64,7 +64,7 @@ on mock data) are in [docs/FRONTEND.md](docs/FRONTEND.md).
 | `npm run check:sql`    | every SQL literal in the Worker prepared against the real schema, plus parameter arity                          |
 | `npm run check:deploy` | wrangler config: real resource ids, https URLs, no committed secrets                                            |
 | `npm run check:lock`   | the committed `bun.lock` matches package.json, which is what Vercel installs from                               |
-| `npm test`             | 47 tests in workerd — domain rules, auth, authorisation, triggers, limits                                       |
+| `npm test`             | 52 tests in workerd — domain rules, auth, authorisation, triggers, limits, the `?next=` guard                   |
 | `npm run smoke`        | 136–139 checks against a _running_ API (`worker/dev/smoke.mjs`; the count moves with the seeded pending review) |
 | `npm run build`        | production frontend build                                                                                       |
 | `npm run verify`       | all of the above except deploy/smoke                                                                            |

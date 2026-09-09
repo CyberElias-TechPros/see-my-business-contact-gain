@@ -1,8 +1,12 @@
+import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { Menu, Search, MessageCircle } from "lucide-react";
 import type { ReactNode } from "react";
+import { AccountMenu } from "@/components/site/AccountMenu.tsx";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { sessionQuery } from "@/lib/queries.ts";
+import { useSignOut } from "@/lib/session-actions.ts";
 
 const nav = [
   { to: "/search", label: "Directory" },
@@ -29,6 +33,13 @@ export function Brand({ tone = "default" }: { tone?: "default" | "invert" }) {
 }
 
 export function SiteHeader() {
+  // The root loader already resolved the session during SSR, so this is a cache read, not a
+  // request: the header ships the right state in the HTML instead of correcting itself after
+  // hydration. `AccountMenu` reads the same key.
+  const { data: session } = useQuery(sessionQuery());
+  const signOut = useSignOut();
+  const user = session?.user ?? null;
+
   return (
     <header className="sticky top-0 z-40 border-b bg-background/85 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-7xl items-center gap-4 px-4">
@@ -50,9 +61,7 @@ export function SiteHeader() {
               <Search className="size-4" />
             </Link>
           </Button>
-          <Button asChild variant="ghost" className="hidden sm:inline-flex">
-            <Link to="/auth">Sign in</Link>
-          </Button>
+          <AccountMenu />
           <Button asChild className="hidden sm:inline-flex">
             <Link to="/join">List your business</Link>
           </Button>
@@ -88,9 +97,22 @@ export function SiteHeader() {
                 >
                   Admin console
                 </Link>
+                {user ? null : (
+                  <Link
+                    to="/auth"
+                    className="rounded-lg px-3 py-2 text-sm font-medium text-primary hover:bg-muted"
+                  >
+                    Sign in
+                  </Link>
+                )}
                 <Button asChild className="mt-3">
                   <Link to="/join">List your business</Link>
                 </Button>
+                {user ? (
+                  <Button variant="outline" className="mt-1" onClick={() => void signOut()}>
+                    Sign out
+                  </Button>
+                ) : null}
               </div>
             </SheetContent>
           </Sheet>

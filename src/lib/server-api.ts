@@ -99,30 +99,68 @@ export function isNotFoundError(error: unknown): boolean {
 /** TanStack serialises a server function's return value, so the payload type must be concrete. */
 type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
 
+/**
+ * One same-host GET to the Worker, with the visitor's cookie and nothing else attached.
+ *
+ * Only the cookie crosses over. Forwarding `authorization` or a client's `x-forwarded-for` would
+ * let a caller impersonate another visitor to our own API; `user-agent` is kept because the
+ * Worker records it on sessions and sign-ins for the security log.
+ */
+async function readApi(path: string, cache: boolean): Promise<Response> {
+  const env = process.env;
+  const base = env["API_INTERNAL_URL"] || env["API_URL"] || "http://localhost:8787";
+  const incoming = getRequestHeaders();
+  const headers = new Headers();
+  const cookie = incoming.get("cookie");
+  if (cookie) headers.set("cookie", cookie);
+  const userAgent = incoming.get("user-agent");
+  if (userAgent) headers.set("user-agent", userAgent.slice(0, 256));
+  headers.set("accept", "application/json");
+  // SSR revalidation is driven by the API's own `s-maxage`; this keeps a bot crawl from
+  // hammering D1 through us.
+  if (cache) headers.set("cache-control", "max-age=30, stale-while-revalidate=120");
+  return fetch(new URL(path, base).toString(), { headers, cache: "no-store" });
+}
+
+/**
+ * "Who is signed in?" as a value instead of an exception.
+ *
+ * This is its own server function rather than another `serverApiFetch` path for two reasons. It
+ * returns `null` instead of throwing: a page that cannot reach the API should render the logged-out
+ * shell, and a 500 on `/` because a session probe timed out is the worst possible trade. And it is
+ * skipped entirely when the request carries no session cookie, so the bot crawl that dominates a
+ * directory's traffic costs nothing at all.
+ *
+ * `GET /auth/session` answers **200** with `{ user: null }` for an anonymous visitor, so "logged
+ * out" never depends on a status code — but an unreachable or erroring API takes the same shape,
+ * which is deliberate: the UI has one branch for "we do not know you".
+ */
+export const sessionProbe = createServerFn({ method: "GET" }).handler(
+  async (): Promise<JsonValue | null> => {
+    const cookie = getRequestHeaders().get("cookie");
+    if (!cookie || !cookie.split(";").some((part) => part.trim().startsWith("gh_session="))) {
+      return null;
+    }
+    try {
+      const response = await readApi("/api/v1/auth/session", false);
+      if (!response.ok) return null;
+      const text = await response.text();
+      return text ? (parseJson(text) as JsonValue) : null;
+    } catch {
+      return null;
+    }
+  },
+);
+
 export const serverApiFetch = createServerFn({ method: "GET" })
   .validator((input: { path: string; cache?: boolean }) => {
     if (typeof input?.path !== "string") throw new Error("path is required");
     return { path: assertAllowedPath(input.path), cache: input.cache !== false };
   })
   .handler(async ({ data }): Promise<JsonValue> => {
-    const env = process.env;
-    const base = env["API_INTERNAL_URL"] || env["API_URL"] || "http://localhost:8787";
-    const incoming = getRequestHeaders();
-    const headers = new Headers();
-    const cookie = incoming.get("cookie");
-    // Only the cookie crosses over. Forwarding authorization or a client's x-forwarded-for
-    // would let a caller impersonate another visitor to our own API.
-    if (cookie) headers.set("cookie", cookie);
-    const userAgent = incoming.get("user-agent");
-    if (userAgent) headers.set("user-agent", userAgent.slice(0, 256));
-    headers.set("accept", "application/json");
-    // SSR revalidation is driven by the API's own `s-maxage`; this keeps a bot crawl from
-    // hammering D1 through us.
-    if (data.cache) headers.set("cache-control", "max-age=30, stale-while-revalidate=120");
-
     let response: Response;
     try {
-      response = await fetch(new URL(data.path, base).toString(), { headers, cache: "no-store" });
+      response = await readApi(data.path, data.cache);
     } catch (error) {
       // The frontend must still render (with a retry affordance) when the API is briefly down.
       throw new ServerApiFailure(

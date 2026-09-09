@@ -6,7 +6,7 @@
  * is renamed there, both sides fail to compile instead of one of them rendering `undefined`.
  */
 import { queryOptions } from "@tanstack/react-query";
-import type { DirectoryResponse, PageMeta } from "../../shared/api.ts";
+import type { DirectoryResponse, PageMeta, SessionResponse } from "../../shared/api.ts";
 
 type PageMetaDto = PageMeta;
 import {
@@ -17,7 +17,7 @@ import {
 } from "../../shared/domain.ts";
 import type { Business } from "@/data/mock";
 import { coverClass, mediaSrc } from "./api-client.ts";
-import { serverApiFetch } from "./server-api.ts";
+import { serverApiFetch, sessionProbe } from "./server-api.ts";
 
 /**
  * `| undefined` is spelled out because the project compiles with `exactOptionalPropertyTypes`,
@@ -100,6 +100,41 @@ export function directoryQuery(filters: DirectoryFilters) {
     // every navigation, but a listing published a minute ago should appear.
     staleTime: 30_000,
   });
+}
+
+// ---------------------------------------------------------------- session ----
+
+/** The signed-in visitor, the workspaces they can open, and the token every mutation needs. */
+export type Session = SessionResponse;
+
+/**
+ * The one query every authenticated surface depends on, and the reason `/app` can decide to
+ * redirect before it paints: `memberships` is what tells us whether this account owns a listing
+ * at all.
+ *
+ * It is a server function rather than a browser fetch so SSR and the client read it the same way
+ * (see `sessionProbe`): SSR gets the visitor's cookie from the incoming request, the browser gets
+ * it from its own jar, and both hit the same cache key — which is how the hydrated page avoids a
+ * second round trip. `null` means "not signed in or not reachable", and both render the logged-out
+ * shell; `GET /auth/session` answers 200 with `user: null` rather than 401, so nothing here
+ * treats an unknown visitor as a failure.
+ *
+ * A minute of staleness is safe because the CSRF token is derived from the session id, not from
+ * time: a stale copy still validates. Only sign-in and sign-out need to feel instant, and both
+ * write the new payload into this key directly instead of waiting for a refetch.
+ */
+export function sessionQuery() {
+  return queryOptions({
+    queryKey: ["session"] as const,
+    queryFn: () => sessionProbe() as unknown as Promise<Session | null>,
+    staleTime: 60_000,
+  });
+}
+
+/** Everything a route needs to answer "is this person signed in, and into which workspace?". */
+export function currentWorkspace(session: Session | null | undefined) {
+  const first = session?.memberships?.[0];
+  return { signedIn: Boolean(session?.user), workspace: first ?? null };
 }
 
 export type CategoryTile = {

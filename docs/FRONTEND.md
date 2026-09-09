@@ -35,6 +35,34 @@ without the check the handler is an authenticated proxy onto an attacker-chosen 
 "allow anything under `/api/v1`" rule, which would let a caller walk into `/api/v1/admin/*` with
 an admin's cookie.
 
+### The session, read once per document
+
+`sessionQuery()` (`src/lib/queries.ts`) is the single source of "who is looking". It calls
+`sessionProbe`, a server function in `src/lib/server-api.ts` that returns `null` instead of
+throwing, and skips the API call entirely when the incoming request carries no `gh_session` cookie —
+which is the majority of a directory's traffic (crawlers), so the cost is a function call, not a
+query. The root route's loader `ensureQueryData`es it, so:
+
+- SSR and hydration agree, and the header never corrects itself a frame after paint;
+- one read serves every consumer (`AccountMenu`, `PublicShell`, `/app` guards) through one cache key;
+- `GET /auth/session` answers **200** with `{ user: null }` for an anonymous visitor, so "logged
+  out" is a value, not an error path — and an unreachable API returns the same shape on purpose.
+
+`src/components/site/SessionPrimer.tsx` copies the token from that payload into `api-client`, which
+is what stops the browser from re-fetching `/auth/session` in front of the first mutation.
+Sign-in and sign-up therefore pass `csrf: false` to `apiFetch`: those endpoints _create_ the
+session, so there is no token to look up yet.
+
+After a successful sign-in, `/auth` navigates with `window.location.assign` rather than the
+router — see the note at the top of `src/routes/auth.tsx`. Summarised: the cookie and every
+per-visitor cache key change at once, and a fresh document is the only way to guarantee nothing
+anonymous is left in the cache (`staleTime` would happily serve a saved-listing toggle from before
+the login). Sign-out is the mirror image and _can_ stay soft, because `queryClient.clear()` in
+`useSignOut()` drops everything.
+
+`?next=` is validated only by `safeNext` in `src/lib/safe-next.ts`. Never read
+`Route.useSearch().next` directly, and never add another redirect target that trusts it.
+
 ## Queries, view models, adapters
 
 `src/lib/queries.ts` holds every read as `queryOptions` (key + `staleTime` matched to the API's own
@@ -73,6 +101,12 @@ Never render fabricated photography, fabricated counts, or a "demo" feed on a pu
    rendered the index and dropped the detail component. A segment that has children needs
    `locations.index.tsx` for its index route. `npm run build` (or the dev server) regenerates
    `src/routeTree.gen.ts`; `tsc` alone will not.
+5. **A `/` inside a regex group ends the literal.** `/^(a|b)/` is a complete regex followed by
+   `)/`, which is a syntax error — and Vite 8's transform reports it as `PARSE_ERROR: Invalid
+Unicode escape sequence` while esbuild says `Expected ";" but found ")"`, so the message points
+   at the escape syntax, not at the missing `\/`. Write `/^(a|b)$/` with the alternation outside the
+   delimiters, or (better for path checks) `path.split("/")` and compare segments: no escaping to
+   get wrong, and the intent is readable.
 
 ## Rendering rules (SEO and honesty)
 
@@ -122,12 +156,16 @@ curl -sI localhost:3000/app/leads | grep -i x-robots-tag
 ## Conversion status
 
 Done (real data, no mock): `/`, `/search`, `/categories`, `/category/$slug`, `/locations`,
-`/locations/$slug`, `/business/$id`.
+`/locations/$slug`, `/business/$id`, `/report`, `/auth` (sign in, create account, password reset —
+including the `?next=` handover and the header's `AccountMenu`).
 
-Still on `src/data/mock.ts`: `/contact-gain*`, `/compare`, `/claim`, `/report`,
-`/suggest-business`, `/pricing`, `/advertise`, `/auth`, `/account`, `/help`, `/about`,
-`/trust-safety`, `/legal.*`, everything under `/app` and `/admin`. Each conversion follows the
-same recipe:
+Still on `src/data/mock.ts`: `/contact-gain*`, `/compare`, `/claim`, `/suggest-business`,
+`/pricing`, `/advertise`, `/account`, `/help`, `/about`, `/trust-safety`, `/legal.*`, and everything
+under `/app` and `/admin`. The console pages are deliberately last: they need the session plumbing
+above (done) plus `worker` writes that already exist, and converting `/app` half-way — real leads
+next to a hardcoded "SwiftFix Gadgets • Growth plan" header — would be worse than either state.
+
+Each conversion follows the same recipe:
 
 1. Add the read to `src/lib/queries.ts` (`queryOptions` + DTO type) and its path to
    `ALLOWED_PATHS`.

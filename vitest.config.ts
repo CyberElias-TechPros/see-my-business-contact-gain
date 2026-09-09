@@ -19,7 +19,11 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
   plugins: [cloudflareTest({ wrangler: { configPath: "./wrangler.test.jsonc" } })],
   test: {
-    include: ["worker/test/**/*.test.ts"],
+    // `src/lib/*.test.ts` is included because a couple of frontend helpers are pure domain logic
+    // with no DOM or bindings in them — the open-redirect guard on `?next=` above is the one worth
+    // pinning. They run in the same workerd pool, which is fine for a string function and keeps
+    // `npm test` as the single gate; nothing in src/ that touches React is testable this way.
+    include: ["worker/test/**/*.test.ts", "src/lib/*.test.ts"],
     // Storage is isolated per test *file*, and miniflare's D1 is rebuilt from migrations in
     // `beforeAll`; a shared global setup would only hide ordering bugs.
     fileParallelism: false,

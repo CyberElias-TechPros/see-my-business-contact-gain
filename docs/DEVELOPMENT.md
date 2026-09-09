@@ -58,7 +58,19 @@ npm run db:seed:local      # optional, but the UI is empty without it
 
 `db:migrate:local` applies `worker/migrations/*.sql` in filename order and records the tags in
 D1's `d1_migrations` table. `dev/seed.sql` is idempotent (it deletes its own rows first), so
-re-running it is always safe. Passwords in the seed are `Gainhub123!`.
+re-running it is always safe. Every seeded account uses the password `Gainhub123!`:
+
+| Sign in as          | Role     | What it opens                                                             |
+| ------------------- | -------- | ------------------------------------------------------------------------- |
+| `hello@lumea.ng`    | owner    | Lumea Beauty supplies — full `/app` console, plan limits, team, billing   |
+| `amina@swiftfix.ng` | staff    | SwiftFix Gadgets as a _member_: leads yes, settings and billing no        |
+| `kunle@autoplug.ng` | owner    | Autoplug — same as Lumea but with an **unverified email**, for that state |
+| `ada@gainhub.dev`   | admin    | `/admin` moderation queue, plus no business workspace of her own          |
+| `ngozi@example.com` | consumer | Saved businesses and enquiries only — the "no workspace" empty states     |
+| `tunde@example.com` | consumer | Same, with a pending review on one listing (edit/delete a review)         |
+
+`/auth` is a real form now, so signing in from the browser is the fastest way to see what a role
+can and cannot do; the smoke suite reaches the same API with a cookie jar it manages itself.
 
 Seeded identities worth knowing:
 
@@ -83,7 +95,7 @@ Seeded identities worth knowing:
 | Static SQL         | `npm run check:sql` | an in-memory SQLite built from the migrations                                           | a typo or arity mistake in any SQL literal                                    |
 
 ```sh
-npm run test            # 47 tests, ~6s
+npm run test            # 52 tests, ~6s
 npm run smoke           # needs worker:dev; 139 checks
 SMOKE_BASE_URL=https://staging-api.example.com npm run smoke
 SMOKE_RATE_LIMIT=1 npm run smoke   # additionally proves the abuse limits fire

@@ -10,6 +10,9 @@ import {
 } from "@tanstack/react-router";
 import { useEffect, useMemo, type ReactNode } from "react";
 
+import { SessionPrimer } from "../components/site/SessionPrimer.tsx";
+import { sessionQuery } from "../lib/queries.ts";
+
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 
@@ -121,6 +124,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
     ],
   }),
+  // One session read per document, on the server, before the first paint: the header can render
+  // the account menu instead of "Sign in" flickering in a frame later, `/app` can redirect an
+  // anonymous visitor before mounting a form they cannot submit, and the hydrated client reuses
+  // the payload from the cache instead of refetching. `sessionProbe` swallows its own errors — an
+  // API that is briefly unreachable must not turn `/` into an error page.
+  loader: ({ context }) => context.queryClient.ensureQueryData(sessionQuery()),
   shellComponent: RootShell,
   component: RootComponent,
   notFoundComponent: NotFoundComponent,
@@ -146,6 +155,7 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <SessionPrimer />
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
     </QueryClientProvider>
