@@ -139,8 +139,13 @@ in `npx wrangler deployments status` before pointing the frontend at it.
 
 ## 5. Vercel
 
-Import the repository, framework preset **Vite**, build command `npm run build`, output
-`.vercel/output` (the nitro preset in `vite.config.ts` emits there).
+Import the repository, framework preset **Vite**, build command `npm run build`. Do not set an
+output directory: the Lovable Vite config runs nitro with `cloudflare-module` as its *default*,
+and nitro's own platform detection overrides that during a Vercel build (`NITRO_PRESET` /
+`.vercel` detection), which is what emits `.vercel/output`. Locally `npm run build` writes
+`.output/` — that difference is expected, not a misconfiguration. Only pin
+`nitro: { preset: "vercel" }` in `vite.config.ts` if you build outside Vercel and want a Vercel
+artifact anyway.
 
 Environment variables — per environment (Production, Preview, Development):
 
