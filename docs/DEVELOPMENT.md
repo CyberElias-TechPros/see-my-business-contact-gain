@@ -8,12 +8,23 @@ no network access are required for any of it.
 
 ```sh
 node --version          # >= 22 (node:sqlite is used by scripts/check-sql.mjs)
-npm i --no-audit --no-fund --legacy-peer-deps
+bun install             # what CI and Vercel use — updates the committed bun.lock
+npm i --no-audit --no-fund --legacy-peer-deps   # fine for local work, see the note below
 cp worker/.dev.vars.example worker/.dev.vars
 ```
 
+Either installer works for development. **`bun.lock` is the only committed lockfile**: Vercel
+installs it with `bun install --frozen-lockfile`, and `bunfig.toml` adds a 24-hour
+supply-chain guard (`minimumReleaseAge`) with explicit exclusions for the `@lovable.dev/*`
+packages. So after changing `package.json`, run `bun install` and commit the lockfile —
+`npm run check:lock` fails the rest of us out of that mistake. Other lockfiles
+(`package-lock.json`, `yarn.lock`, `pnpm-lock.yaml`) are gitignored on purpose: a second lock
+would make the package manager Vercel picks ambiguous, which is how the first Vercel build broke.
+
 `--legacy-peer-deps` is needed because the shadcn/Radix tree and `@lovable.dev/vite-tanstack-config`
-disagree with npm's strict peer resolution; it is what CI uses too, so do not "clean it up".
+disagree with npm's strict peer resolution; it is what npm users need, so do not "clean it up".
+Without it `npm i` fails on peer conflicts and people reach for `--force`, which resolves them
+differently than bun does.
 
 ## The loop
 

@@ -62,14 +62,17 @@ on mock data) are in [docs/FRONTEND.md](docs/FRONTEND.md).
 | `npm run lint`       | eslint + prettier (0 errors is the bar)                              |
 | `npm run check:sql`  | every SQL literal in the Worker prepared against the real schema, plus parameter arity |
 | `npm run check:deploy` | wrangler config: real resource ids, https URLs, no committed secrets |
-| `npm test`           | 44 tests in workerd — domain rules, auth, authorisation, triggers, limits |
-| `npm run smoke`      | 139 checks against a *running* API (`worker/dev/smoke.mjs`)         |
+| `npm run check:lock` | the committed `bun.lock` matches package.json, which is what Vercel installs from |
+| `npm test`           | 47 tests in workerd — domain rules, auth, authorisation, triggers, limits |
+| `npm run smoke`      | 136–139 checks against a *running* API (`worker/dev/smoke.mjs`; the count moves with the seeded pending review) |
 | `npm run build`      | production frontend build                                            |
 | `npm run verify`     | all of the above except deploy/smoke                                 |
 
 `check:sql` exists because a wrong table alias in a template string typechecks cleanly and
 only fails when a customer hits the page; it has caught several of those, and one 500 that no
-other suite reached.
+other suite reached. `check:lock` exists because the first Vercel deploy died with "lockfile had
+changes, but lockfile is frozen": four devDependencies had been added to package.json without
+regenerating `bun.lock`, and the error named none of them.
 
 ## Deploying
 

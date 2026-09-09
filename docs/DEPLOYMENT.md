@@ -139,7 +139,14 @@ in `npx wrangler deployments status` before pointing the frontend at it.
 
 ## 5. Vercel
 
-Import the repository, framework preset **Vite**, build command `npm run build`. Do not set an
+Import the repository, framework preset **Vite**, build command `npm run build`. Vercel picks
+**bun** as the package manager because `bun.lock` is committed, and runs
+`bun install --frozen-lockfile` — meaning a `package.json` change that was never installed with
+bun fails the deploy in seconds ("lockfile had changes, but lockfile is frozen"). `npm run
+check:lock` is the local equivalent, and it names the package; run `bun install` and commit the
+lockfile when it complains. Do not commit `package-lock.json` alongside it (it is gitignored):
+Vercel's package-manager detection would then prefer npm, whose strict peer resolution this tree
+does not satisfy. Do not set an
 output directory: the Lovable Vite config runs nitro with `cloudflare-module` as its *default*,
 and nitro's own platform detection overrides that during a Vercel build (`NITRO_PRESET` /
 `.vercel` detection), which is what emits `.vercel/output`. Locally `npm run build` writes

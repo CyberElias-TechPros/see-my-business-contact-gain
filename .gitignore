@@ -20,6 +20,13 @@ dist-ssr
 .wrangler/
 .dev.vars
 
+# Lockfiles: bun.lock is the single committed one (Vercel installs it with --frozen-lockfile).
+# The others are ignored so a local `npm install` cannot silently change which package manager
+# the build uses — see docs/DEPLOYMENT.md#5-vercel and `npm run check:lock`.
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
