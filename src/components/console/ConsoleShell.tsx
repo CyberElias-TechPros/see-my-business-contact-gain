@@ -47,11 +47,18 @@ export function ConsoleShell({
   title,
   subtitle,
   user,
+  badge,
 }: {
   items: NavItem[];
   title: string;
   subtitle: string;
   user: { name: string; role: string };
+  /**
+   * The listing's directory status, shown where a "Demo data" chip used to sit. It is a prop
+   * rather than something the shell derives because a workspace can be *pending review* on one
+   * page and *suspended* on the next; whoever loaded the summary knows which.
+   */
+  badge?: { label: string; tone?: "default" | "warn" | "bad" };
 }) {
   const sidebar = (
     <div className="flex h-full flex-col gap-6 bg-sidebar p-4">
@@ -114,12 +121,25 @@ export function ConsoleShell({
           </Sheet>
           <p className="text-sm font-semibold">{title}</p>
           <div className="ml-auto flex items-center gap-2">
-            <Button variant="ghost" size="icon" aria-label="Notifications">
-              <Bell className="size-4" />
+            <Button asChild variant="ghost" size="icon" aria-label="Notifications">
+              <Link to="/app/inbox">
+                <Bell className="size-4" />
+              </Link>
             </Button>
-            <Badge variant="outline" className="hidden sm:inline-flex">
-              Demo data
-            </Badge>
+            {badge ? (
+              <Badge
+                variant={badge.tone === "default" || !badge.tone ? "outline" : "secondary"}
+                className={
+                  badge.tone === "warn"
+                    ? "hidden border-amber-400 text-amber-700 sm:inline-flex"
+                    : badge.tone === "bad"
+                      ? "hidden border-destructive/40 text-destructive sm:inline-flex"
+                      : "hidden sm:inline-flex"
+                }
+              >
+                {badge.label}
+              </Badge>
+            ) : null}
           </div>
         </header>
         <main className="mx-auto max-w-7xl px-4 py-6">

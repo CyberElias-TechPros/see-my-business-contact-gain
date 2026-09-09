@@ -101,7 +101,15 @@ Never render fabricated photography, fabricated counts, or a "demo" feed on a pu
    rendered the index and dropped the detail component. A segment that has children needs
    `locations.index.tsx` for its index route. `npm run build` (or the dev server) regenerates
    `src/routeTree.gen.ts`; `tsc` alone will not.
-5. **A `/` inside a regex group ends the literal.** `/^(a|b)/` is a complete regex followed by
+5. **`location.search` is a null-prototype object, and interpolating it throws.** In
+   `beforeLoad`/`loader`, `` `${location.pathname}${location.search}` `` fails with
+   `TypeError: Cannot convert object to primitive value` — no `[object Object]` fallback, because
+   there is no `Object.prototype.toString` to find. Vite surfaces it as a bare 500 with the message
+   nowhere near the template string. Use `location.searchStr` (or `location.href`) when building a
+   `?next=` value, and read parameters through a cast: `location.search` is typed `{}` in a route's
+   own `beforeLoad`, because the router does not thread that route's `validateSearch` output into
+   it.
+6. **A `/` inside a regex group ends the literal.** `/^(a|b)/` is a complete regex followed by
    `)/`, which is a syntax error — and Vite 8's transform reports it as `PARSE_ERROR: Invalid
 Unicode escape sequence` while esbuild says `Expected ";" but found ")"`, so the message points
    at the escape syntax, not at the missing `\/`. Write `/^(a|b)$/` with the alternation outside the
@@ -157,11 +165,20 @@ curl -sI localhost:3000/app/leads | grep -i x-robots-tag
 
 Done (real data, no mock): `/`, `/search`, `/categories`, `/category/$slug`, `/locations`,
 `/locations/$slug`, `/business/$id`, `/report`, `/auth` (sign in, create account, password reset —
-including the `?next=` handover and the header's `AccountMenu`).
+including the `?next=` handover and the header's `AccountMenu`), `/app` (guard + shell +
+dashboard) and `/app/leads` (filters, pagination, stage moves).
+
+The `/app` layout is the template for the rest of the console: `beforeLoad` resolves the session and
+redirects (`/auth?next=…` when signed out, `/claim` when the account owns no listing), `loader`
+prefetches `GET /workspaces/:id/summary` — which feeds the sidebar badges _and_ the dashboard from
+one request — and children fetch their own lists with `useQuery` and no loader (a `noindex` page
+whose data is private does not need SSR; see the header comment in `src/routes/app/leads.tsx`).
+Workspace identity is `?ws=`, resolved by `src/lib/workspace.ts`.
 
 Still on `src/data/mock.ts`: `/contact-gain*`, `/compare`, `/claim`, `/suggest-business`,
-`/pricing`, `/advertise`, `/account`, `/help`, `/about`, `/trust-safety`, `/legal.*`, and everything
-under `/app` and `/admin`. The console pages are deliberately last: they need the session plumbing
+`/pricing`, `/advertise`, `/account`, `/help`, `/about`, `/trust-safety`, `/legal.*`, the other
+`/app/*` pages (profile, products, campaigns, links, automation, team, analytics, billing,
+settings, audit, inbox, contacts, pipeline, tasks, calendar) and all of `/admin/*`. The console pages are deliberately last: they need the session plumbing
 above (done) plus `worker` writes that already exist, and converting `/app` half-way — real leads
 next to a hardcoded "SwiftFix Gadgets • Growth plan" header — would be worse than either state.
 

@@ -137,6 +137,88 @@ export function currentWorkspace(session: Session | null | undefined) {
   return { signedIn: Boolean(session?.user), workspace: first ?? null };
 }
 
+// -------------------------------------------------------------- workspace ----
+
+export type LeadListFilters = {
+  stage?: string | undefined;
+  q?: string | undefined;
+  assignee?: "me" | "unassigned" | "all" | undefined;
+  sort?: "recent" | "score" | "value" | undefined;
+  page?: number | undefined;
+};
+
+export type WorkspaceSummary = import("../../shared/api.ts").WorkspaceSummary;
+export type WorkspaceStats = import("../../shared/api.ts").WorkspaceStats;
+export type LeadDto = import("../../shared/api.ts").LeadDto;
+export type LeadStats = { stages: { stage: string; count: number; valueMinor: number }[] };
+export type LeadPage = { items: LeadDto[]; meta: PageMetaDto };
+
+/**
+ * `businessId` is the workspace the visitor picked, and the API treats it as untrusted: every
+ * handler re-checks membership (`accessFor`), so a hand-typed id answers 403 rather than leaking.
+ * That is also why the frontend may put it in a URL (`/app?ws=`) at all.
+ */
+function workspacePath(businessId: string, suffix: string): string {
+  return `/api/v1/workspaces/${encodeURIComponent(businessId)}${suffix}`;
+}
+
+export function workspaceSummaryQuery(businessId: string) {
+  return queryOptions({
+    queryKey: ["workspace-summary", businessId] as const,
+    queryFn: () =>
+      serverApiFetch({
+        data: { path: workspacePath(businessId, "/summary"), cache: false },
+      }) as unknown as Promise<WorkspaceSummary>,
+    // The metrics are derived from writes the owner makes in this very tab, so a long staleTime
+    // would show a dashboard that disagrees with the table underneath it. Mutations invalidate
+    // this key; the 15s is only for someone who leaves the tab open.
+    staleTime: 15_000,
+  });
+}
+
+export function workspaceLeadsQuery(businessId: string, filters: LeadListFilters = {}) {
+  const params = new URLSearchParams();
+  if (filters.stage) params.set("stage", filters.stage);
+  if (filters.q) params.set("q", filters.q);
+  if (filters.assignee && filters.assignee !== "all") params.set("assignee", filters.assignee);
+  if (filters.sort && filters.sort !== "recent") params.set("sort", filters.sort);
+  if (filters.page && filters.page > 1) params.set("page", String(filters.page));
+  const query = params.toString();
+  return queryOptions({
+    queryKey: ["workspace-leads", businessId, filters] as const,
+    queryFn: () =>
+      serverApiFetch({
+        data: {
+          path: workspacePath(businessId, `/leads${query ? `?${query}` : ""}`),
+          cache: false,
+        },
+      }) as unknown as Promise<LeadPage>,
+    staleTime: 10_000,
+  });
+}
+
+export function workspaceLeadStatsQuery(businessId: string) {
+  return queryOptions({
+    queryKey: ["workspace-lead-stats", businessId] as const,
+    queryFn: () =>
+      serverApiFetch({
+        data: { path: workspacePath(businessId, "/leads/stats"), cache: false },
+      }) as unknown as Promise<LeadStats>,
+    staleTime: 10_000,
+  });
+}
+
+export function workspaceAnalyticsQuery(businessId: string, days = 30) {
+  return queryOptions({
+    queryKey: ["workspace-analytics", businessId, days] as const,
+    queryFn: () =>
+      serverApiFetch({
+        data: { path: `${workspacePath(businessId, "/analytics")}?days=${days}`, cache: false },
+      }) as unknown as Promise<WorkspaceStats>,
+    staleTime: 60_000,
+  });
+}
+
 export type CategoryTile = {
   id: string;
   slug: string;

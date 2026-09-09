@@ -36,6 +36,12 @@ const ALLOWED_PATHS: { name: string; match: RegExp }[] = [
   { name: "workspace-summary", match: /^\/api\/v1\/workspaces\/[A-Za-z0-9_-]{1,64}\/summary$/ },
   { name: "workspace-profile", match: /^\/api\/v1\/workspaces\/[A-Za-z0-9_-]{1,64}\/profile$/ },
   { name: "workspace-leads", match: /^\/api\/v1\/workspaces\/[A-Za-z0-9_-]{1,64}\/leads$/ },
+  // Read-only counts per stage; the `?slug` write paths (stage, assign) are deliberately absent —
+  // a loader that can *mutate* is the hole this list exists to prevent.
+  {
+    name: "workspace-lead-stats",
+    match: /^\/api\/v1\/workspaces\/[A-Za-z0-9_-]{1,64}\/leads\/stats$/,
+  },
   { name: "workspace-enquiries", match: /^\/api\/v1\/workspaces\/[A-Za-z0-9_-]{1,64}\/enquiries$/ },
   { name: "workspace-analytics", match: /^\/api\/v1\/workspaces\/[A-Za-z0-9_-]{1,64}\/analytics$/ },
   { name: "workspace-media", match: /^\/api\/v1\/workspaces\/[A-Za-z0-9_-]{1,64}\/media$/ },
