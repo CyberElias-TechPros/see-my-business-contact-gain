@@ -172,7 +172,7 @@ Set all eight variables for the production build:
 | `VITE_GOVERNING_LAW`       | public      | Jurisdiction-specific wording approved for the operator |
 | `VITE_DISPUTE_FORUM`       | public      | Reviewed court or dispute-resolution forum wording      |
 
-`npm run build:production` rejects missing values, HTTP URLs, placeholder `.example` origins, malformed inboxes, and placeholder legal wording. Public values are compiled into pages and metadata, so changing them requires a new frontend build.
+`npm run build:production` rejects missing values, HTTP URLs, reserved placeholder origins, malformed/placeholder inboxes, and placeholder legal wording. `npm run build:vercel` applies that gate when Vercel declares `VERCEL_ENV=production`; preview builds remain inspectable with truthful unconfigured/unavailable states. Public values are compiled into pages and metadata, so changing them requires a new frontend build.
 
 ### Cloudflare Worker configuration
 
@@ -323,13 +323,13 @@ Check the deployed `/health`, a public directory query, one authorised workflow,
 
 ### 4. Deploy the frontend to Vercel
 
-Import this repository into Vercel, set the eight Vercel variables above, and use the checked-in build command:
+Import this repository into Vercel and set the eight production variables above. `vercel.json` runs the environment-aware command:
 
 ```bash
-npm run build:production
+npm run build:vercel
 ```
 
-`vite.config.ts` emits Vercel Build Output API artifacts using the Node.js 22 Nitro preset. After deployment, verify:
+For a local production preflight, run `npm run build:production`; it always applies the fail-closed validator. `vite.config.ts` emits Vercel Build Output API artifacts using the Node.js 22 Nitro preset. After deployment, verify:
 
 - canonical and social URLs use the final domain;
 - `/robots.txt` points to the final `/sitemap.xml`;

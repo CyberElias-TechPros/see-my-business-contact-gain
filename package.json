@@ -22,7 +22,8 @@
     "validate:production-env": "node scripts/validate-production-env.mjs",
     "build:production": "npm run validate:production-env && vite build",
     "test:frontend": "npm run worker:migrate && npm run worker:seed && VITE_SITE_URL=https://smoke.gainhub.test VITE_LEGAL_OPERATOR_NAME=\"Smoke Test Operator Ltd\" VITE_PRIVACY_EMAIL=privacy@smoke.gainhub.test VITE_SUPPORT_EMAIL=support@smoke.gainhub.test VITE_GOVERNING_LAW=\"the laws used for this automated smoke test\" VITE_DISPUTE_FORUM=\"the automated smoke-test forum\" CLOUDFLARE_API_URL=http://127.0.0.1:8810 vite build && node scripts/frontend-smoke.mjs",
-    "audit": "npm audit && npm audit --omit=dev"
+    "audit": "npm audit && npm audit --omit=dev",
+    "build:vercel": "node scripts/vercel-build.mjs"
   },
   "dependencies": {
     "@fontsource-variable/bricolage-grotesque": "^5.3.0",
