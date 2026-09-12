@@ -1,11 +1,19 @@
 import { Link } from "@tanstack/react-router";
-import { BadgeCheck, MapPin, MessageCircle, Star } from "lucide-react";
+import { ArrowUpRight, BadgeCheck, MapPin, Star } from "lucide-react";
 import type { ReactNode } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import type { Business } from "@/data/mock";
+import type { PublicBusiness } from "@/lib/contracts";
 
 export function StatCard({
   label,
@@ -137,7 +145,11 @@ export function SourceBars({ data }: { data: { label: string; value: number }[] 
 export function VerifiedBadge({ level }: { level: Business["verified"] }) {
   if (level === "unverified") return <Badge variant="outline">Unverified</Badge>;
   const label =
-    level === "premium" ? "Premium verified" : level === "documents" ? "Documents verified" : `${level} verified`;
+    level === "premium"
+      ? "Premium verified"
+      : level === "documents"
+        ? "Documents verified"
+        : `${level} verified`;
   return (
     <Badge className="gap-1 capitalize">
       <BadgeCheck className="size-3" /> {label}
@@ -147,41 +159,75 @@ export function VerifiedBadge({ level }: { level: Business["verified"] }) {
 
 export function Stars({ rating }: { rating: number }) {
   return (
-    <span className="flex items-center gap-1 text-sm">
-      <Star className="size-3.5 fill-accent text-accent" />
-      <span className="font-semibold">{rating.toFixed(1)}</span>
+    <span
+      className="flex items-center gap-1 text-sm"
+      aria-label={`${rating.toFixed(1)} out of 5 stars`}
+    >
+      <Star className="size-3.5 fill-accent text-accent" aria-hidden="true" />
+      <span className="font-bold tabular-nums">{rating.toFixed(1)}</span>
     </span>
   );
 }
 
-export function BusinessCard({ business }: { business: Business }) {
+export function BusinessCard({ business }: { business: Business | PublicBusiness }) {
+  const isPreview = "isDemo" in business;
+  const routeId = isPreview ? business.id : business.slug;
+  const category = isPreview ? business.category : business.categoryName;
+  const verification = isPreview ? business.verified : business.verificationLevel;
+  const cover = isPreview ? business.cover : "bg-ink-mesh";
+
   return (
-    <Card className="card-surface group overflow-hidden transition-shadow hover:shadow-lift">
-      <div className={`h-24 ${business.cover}`} />
-      <CardContent className="-mt-8 space-y-3 p-5">
-        <div className="grid size-14 place-items-center rounded-2xl border-4 border-card bg-secondary font-display text-lg font-bold">
-          {business.name.slice(0, 2)}
+    <Card className="card-surface group relative overflow-hidden transition-[transform,box-shadow,border-color] duration-300 hover:-translate-y-1 hover:border-primary/25 hover:shadow-lift">
+      <div className={`paper-grid relative h-28 overflow-hidden ${cover}`}>
+        <div className="absolute -right-8 -top-12 size-32 rounded-full border border-white/15 transition-transform duration-500 group-hover:scale-110" />
+        <div className="absolute -right-2 -top-7 size-20 rounded-full border border-sidebar-primary/30" />
+        {isPreview ? (
+          <Badge className="absolute left-4 top-4 border-white/15 bg-ink/70 text-ink-foreground backdrop-blur">
+            Product preview
+          </Badge>
+        ) : null}
+      </div>
+      <CardContent className="relative -mt-7 space-y-4 p-5 pt-0">
+        <div className="grid size-14 place-items-center rounded-2xl border-4 border-card bg-accent font-display text-lg font-extrabold text-accent-foreground shadow-soft">
+          {business.name
+            .split(" ")
+            .slice(0, 2)
+            .map((word) => word[0])
+            .join("")}
         </div>
         <div>
-          <div className="flex items-start justify-between gap-2">
-            <Link to="/business/$id" params={{ id: business.id }} className="font-semibold hover:text-primary">
-              {business.name}
+          <div className="flex items-start justify-between gap-3">
+            <Link
+              to="/business/$id"
+              params={{ id: routeId }}
+              className="after:absolute after:inset-0 after:content-[''] hover:text-primary focus-visible:outline-none"
+            >
+              <h3 className="text-lg font-bold leading-tight">{business.name}</h3>
             </Link>
-            <Stars rating={business.rating} />
+            {business.rating > 0 ? (
+              <Stars rating={business.rating} />
+            ) : (
+              <span className="text-xs text-muted-foreground">New</span>
+            )}
           </div>
-          <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{business.tagline}</p>
+          <p className="mt-2 line-clamp-2 min-h-10 text-sm leading-5 text-muted-foreground">
+            {business.tagline}
+          </p>
         </div>
         <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-          <Badge variant="secondary">{business.category}</Badge>
+          <Badge variant="secondary" className="max-w-full truncate">
+            {category}
+          </Badge>
           <span className="flex items-center gap-1">
-            <MapPin className="size-3" /> {business.city}, {business.state}
+            <MapPin className="size-3" aria-hidden="true" /> {business.city}, {business.state}
           </span>
-          {business.openNow ? <span className="text-primary">Open now</span> : <span>Closed</span>}
         </div>
-        <div className="flex items-center justify-between gap-2 pt-1">
-          <VerifiedBadge level={business.verified} />
-          <Button size="sm" className="gap-1">
-            <MessageCircle className="size-3.5" /> WhatsApp
+        <div className="relative z-10 flex items-center justify-between gap-2 border-t pt-4">
+          <VerifiedBadge level={verification} />
+          <Button asChild size="sm" variant="ghost" className="gap-1">
+            <Link to="/business/$id" params={{ id: routeId }}>
+              View <ArrowUpRight />
+            </Link>
           </Button>
         </div>
       </CardContent>

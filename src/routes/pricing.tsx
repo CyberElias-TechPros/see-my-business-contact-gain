@@ -1,114 +1,182 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Check, X } from "lucide-react";
-import { PublicShell, PageHead } from "@/components/site/PublicShell";
+import { Check, CircleDashed, ShieldCheck, Sparkles } from "lucide-react";
+import { PageHead, PublicShell } from "@/components/site/PublicShell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 export const Route = createFileRoute("/pricing")({
   head: () => ({
     meta: [
-      { title: "Plans & pricing for Nigerian businesses — GainHub NG" },
-      { name: "description", content: "Start free, upgrade for tracked campaigns, team seats, automation and premium verification. Naira pricing, no hidden fees." },
-      { property: "og:title", content: "Plans & pricing — GainHub NG" },
-      { property: "og:description", content: "Free listing, Growth and Pro plans in Naira for Nigerian businesses." },
+      { title: "List a Nigerian business — current access and future plans | GainHub NG" },
+      {
+        name: "description",
+        content:
+          "GainHub NG currently accepts free business listing applications. See exactly what is available now and what has not launched.",
+      },
+      { property: "og:title", content: "For business owners — GainHub NG" },
+      {
+        property: "og:description",
+        content:
+          "Apply for a free reviewed listing and understand the current owner workspace without hidden paid-plan claims.",
+      },
     ],
   }),
   component: PricingPage,
 });
 
-const plans = [
-  {
-    name: "Free",
-    price: "₦0",
-    note: "For getting listed",
-    features: ["Public profile", "WhatsApp button", "3 photos", "Basic analytics", "1 team seat"],
-    missing: ["Campaigns & QR", "Automation", "Priority ranking"],
-  },
-  {
-    name: "Growth",
-    price: "₦12,500/mo",
-    note: "Most popular",
-    highlight: true,
-    features: [
-      "Everything in Free",
-      "Unlimited photos & products",
-      "QR codes & tracked links",
-      "CRM inbox + pipeline",
-      "5 team seats",
-      "Automation rules",
-    ],
-    missing: ["Sponsored placement"],
-  },
-  {
-    name: "Pro",
-    price: "₦35,000/mo",
-    note: "For teams & multi-branch",
-    features: [
-      "Everything in Growth",
-      "Multi-branch profiles",
-      "Sponsored placement credits",
-      "Round-robin assignment",
-      "20 team seats",
-      "Priority verification & support",
-    ],
-    missing: [],
-  },
+const included = [
+  "Reviewed public profile application",
+  "Business name, description, category and supported city",
+  "Public phone, WhatsApp and website fields when supplied",
+  "Recorded availability signal and verification state on published profiles",
+  "Authenticated view of your own listings and enquiries",
+  "Ownership claim and factual-correction routes",
 ];
 
 function PricingPage() {
   return (
     <PublicShell>
-      <PageHead eyebrow="Pricing" title="Plans that fit Nigerian budgets" subtitle="Pay monthly in Naira. Cancel anytime. Your listing never disappears when you downgrade." />
-      <div className="mx-auto max-w-7xl space-y-12 px-4 py-12">
-        <div className="grid gap-4 lg:grid-cols-3">
-          {plans.map((p) => (
-            <Card key={p.name} className={`card-surface ${p.highlight ? "ring-2 ring-primary" : ""}`}>
-              <CardContent className="space-y-4 p-6">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-semibold">{p.name}</h2>
-                  {p.highlight ? <Badge>Popular</Badge> : null}
-                </div>
-                <p className="font-display text-3xl font-bold">{p.price}</p>
-                <p className="text-sm text-muted-foreground">{p.note}</p>
-                <Button asChild className="w-full" variant={p.highlight ? "default" : "outline"}>
-                  <Link to="/join">Choose {p.name}</Link>
-                </Button>
-                <ul className="space-y-2 pt-2 text-sm">
-                  {p.features.map((f) => (
-                    <li key={f} className="flex gap-2">
-                      <Check className="size-4 text-primary" /> {f}
-                    </li>
-                  ))}
-                  {p.missing.map((f) => (
-                    <li key={f} className="flex gap-2 text-muted-foreground">
-                      <X className="size-4" /> {f}
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-        <Card className="card-surface">
-          <CardContent className="p-6">
-            <h2 className="text-lg font-semibold">Frequently asked</h2>
-            <Accordion type="single" collapsible className="mt-3">
-              {([
-                ["Can I use my personal WhatsApp number?", "Yes. Most Nigerian businesses do. You can switch to a business number later without losing your leads."],
-                ["What happens if I stop paying?", "Your profile stays public, but campaigns, automation and extra seats pause until you renew."],
-                ["Do you take a commission on jobs?", "No. We charge a flat subscription only."],
-                ["How do you handle my customers' data?", "We follow NDPR: data minimisation, consent screens, export and delete requests."],
-              ] as [string, string][]).map(([q, a]) => (
-                <AccordionItem key={q} value={q}>
-                  <AccordionTrigger className="text-left text-sm">{q}</AccordionTrigger>
-                  <AccordionContent className="text-sm text-muted-foreground">{a}</AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
-          </CardContent>
-        </Card>
+      <PageHead
+        eyebrow="For business owners"
+        title="One launch offer: apply for a listing at no charge."
+        subtitle="No card form, trial countdown or fictional subscription. Publication still depends on review and eligibility."
+      />
+      <div className="mx-auto max-w-6xl space-y-14 px-4 py-14">
+        <section className="grid gap-5 lg:grid-cols-[1.1fr_0.9fr]" aria-labelledby="current-plan">
+          <Card className="card-surface overflow-hidden border-primary/30 shadow-lift">
+            <div className="network-stage p-6 text-ink-foreground sm:p-8">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <Badge className="border-sidebar-primary/40 bg-sidebar-primary/15 text-sidebar-primary">
+                  Available now
+                </Badge>
+                <ShieldCheck className="size-6 text-sidebar-primary" aria-hidden="true" />
+              </div>
+              <h2 id="current-plan" className="mt-6 text-3xl font-bold">
+                Reviewed listing
+              </h2>
+              <p className="mt-2 text-sm text-ink-foreground/70">
+                For eligible Nigerian businesses
+              </p>
+              <p className="mt-7 font-display text-5xl font-extrabold tracking-tight">
+                ₦0{" "}
+                <span className="font-sans text-base font-medium text-ink-foreground/60">
+                  at launch
+                </span>
+              </p>
+            </div>
+            <CardContent className="p-6 sm:p-8">
+              <ul className="grid gap-3 sm:grid-cols-2">
+                {included.map((item) => (
+                  <li key={item} className="flex gap-2.5 text-sm leading-6 text-muted-foreground">
+                    <Check className="mt-1 size-4 shrink-0 text-primary" aria-hidden="true" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+              <Button asChild size="lg" className="mt-8 w-full sm:w-auto">
+                <Link to="/join">Apply for a free listing</Link>
+              </Button>
+              <p className="mt-4 text-xs leading-5 text-muted-foreground">
+                Application receipt is not approval. Search position and verification state are not
+                for sale through this offer.
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="card-surface border-dashed">
+            <CardContent className="p-6 sm:p-8">
+              <div className="flex items-center justify-between gap-3">
+                <Badge variant="outline">Not active</Badge>
+                <CircleDashed className="size-6 text-muted-foreground" aria-hidden="true" />
+              </div>
+              <h2 className="mt-6 text-2xl font-bold">Paid growth tools</h2>
+              <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                The current application does not take subscription payments or unlock a paid tier.
+                Campaign management, invoices, recurring billing, paid placement and priority
+                support are not represented as available.
+              </p>
+              <div className="mt-6 rounded-xl border bg-secondary/45 p-4">
+                <p className="text-sm font-semibold">Why show this boundary?</p>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                  A pricing page should describe a product someone can actually buy. Any future paid
+                  service needs published prices, taxes, renewal, cancellation and refund terms
+                  before checkout goes live.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </section>
+
+        <section className="grid gap-8 lg:grid-cols-[0.7fr_1.3fr]" aria-labelledby="pricing-faq">
+          <div>
+            <p className="eyebrow">No small print maze</p>
+            <h2 id="pricing-faq" className="mt-3 text-3xl font-bold">
+              What “free” means here
+            </h2>
+            <Sparkles className="mt-6 size-8 text-primary" aria-hidden="true" />
+          </div>
+          <Accordion type="single" collapsible className="rounded-2xl border bg-card px-5">
+            <AccordionItem value="charge">
+              <AccordionTrigger>Will I be charged when I submit?</AccordionTrigger>
+              <AccordionContent className="text-sm leading-6 text-muted-foreground">
+                No. The listing application has no payment field and submission does not create a
+                subscription. Never send card details or a transfer because someone claims it is
+                required by this form.
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="publish">
+              <AccordionTrigger>Does a free application publish instantly?</AccordionTrigger>
+              <AccordionContent className="text-sm leading-6 text-muted-foreground">
+                No. It enters a moderation state. Only published listings appear in live directory
+                search, and there is no guaranteed review time.
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="rank">
+              <AccordionTrigger>Can I pay for verification or first position?</AccordionTrigger>
+              <AccordionContent className="text-sm leading-6 text-muted-foreground">
+                Not in the current product. Verification records a defined check and is not an
+                endorsement. If sponsored placement ever launches, it must be clearly labelled
+                rather than disguised as an organic result.
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="owner">
+              <AccordionTrigger>What can an owner see?</AccordionTrigger>
+              <AccordionContent className="text-sm leading-6 text-muted-foreground">
+                After signing in, an authorised owner workspace shows only that account&apos;s
+                linked businesses and enquiries. It does not invent campaign reach or expose other
+                owners&apos; data.
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        </section>
+
+        <section
+          className="rounded-[2rem] bg-secondary/55 p-7 sm:p-10"
+          aria-labelledby="already-listed"
+        >
+          <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="eyebrow">Already on the map?</p>
+              <h2 id="already-listed" className="mt-3 text-2xl font-bold">
+                Claim the exact published profile.
+              </h2>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
+                Use an authenticated claim with relevant private evidence instead of submitting a
+                duplicate listing.
+              </p>
+            </div>
+            <Button asChild variant="outline" size="lg">
+              <Link to="/claim">Start a claim</Link>
+            </Button>
+          </div>
+        </section>
       </div>
     </PublicShell>
   );

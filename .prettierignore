@@ -6,3 +6,8 @@ pnpm-lock.yaml
 package-lock.json
 bun.lock
 routeTree.gen.ts
+.env.example
+.dev.vars.example
+worker/**/*.sql
+public/*.png
+AGENTS.md

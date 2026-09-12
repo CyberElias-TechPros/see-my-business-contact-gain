@@ -24,43 +24,14 @@ import { Route as JoinRouteImport } from './routes/join'
 import { Route as LocationsRouteImport } from './routes/locations'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as ReportRouteImport } from './routes/report'
+import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as SearchRouteImport } from './routes/search'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SuggestBusinessRouteImport } from './routes/suggest-business'
 import { Route as TrustSafetyRouteImport } from './routes/trust-safety'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
-import { Route as AdminAdsRouteImport } from './routes/admin/ads'
-import { Route as AdminAnalyticsRouteImport } from './routes/admin/analytics'
-import { Route as AdminAuditRouteImport } from './routes/admin/audit'
-import { Route as AdminBusinessesRouteImport } from './routes/admin/businesses'
-import { Route as AdminCategoriesRouteImport } from './routes/admin/categories'
-import { Route as AdminClaimsRouteImport } from './routes/admin/claims'
-import { Route as AdminConfigRouteImport } from './routes/admin/config'
-import { Route as AdminFlagsRouteImport } from './routes/admin/flags'
-import { Route as AdminJobsRouteImport } from './routes/admin/jobs'
-import { Route as AdminModerationRouteImport } from './routes/admin/moderation'
-import { Route as AdminReportsRouteImport } from './routes/admin/reports'
-import { Route as AdminReviewsRouteImport } from './routes/admin/reviews'
-import { Route as AdminSubscriptionsRouteImport } from './routes/admin/subscriptions'
-import { Route as AdminSupportRouteImport } from './routes/admin/support'
-import { Route as AdminUsersRouteImport } from './routes/admin/users'
-import { Route as AdminVerificationRouteImport } from './routes/admin/verification'
+import { Route as ApiSplatRouteImport } from './routes/api/$'
 import { Route as AppIndexRouteImport } from './routes/app/index'
-import { Route as AppAnalyticsRouteImport } from './routes/app/analytics'
-import { Route as AppAuditRouteImport } from './routes/app/audit'
-import { Route as AppAutomationRouteImport } from './routes/app/automation'
-import { Route as AppBillingRouteImport } from './routes/app/billing'
-import { Route as AppCalendarRouteImport } from './routes/app/calendar'
-import { Route as AppCampaignsRouteImport } from './routes/app/campaigns'
-import { Route as AppContactsRouteImport } from './routes/app/contacts'
-import { Route as AppInboxRouteImport } from './routes/app/inbox'
-import { Route as AppLeadsRouteImport } from './routes/app/leads'
-import { Route as AppLinksRouteImport } from './routes/app/links'
-import { Route as AppPipelineRouteImport } from './routes/app/pipeline'
-import { Route as AppProductsRouteImport } from './routes/app/products'
-import { Route as AppProfileRouteImport } from './routes/app/profile'
-import { Route as AppSettingsRouteImport } from './routes/app/settings'
-import { Route as AppTasksRouteImport } from './routes/app/tasks'
-import { Route as AppTeamRouteImport } from './routes/app/team'
 import { Route as BusinessIdRouteImport } from './routes/business.$id'
 import { Route as CategorySlugRouteImport } from './routes/category.$slug'
 import { Route as ContactGainIndexRouteImport } from './routes/contact-gain.index'
@@ -147,9 +118,19 @@ const ReportRoute = ReportRouteImport.update({
   path: '/report',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RobotsDottxtRoute = RobotsDottxtRouteImport.update({
+  id: '/robots.txt',
+  path: '/robots.txt',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SearchRoute = SearchRouteImport.update({
   id: '/search',
   path: '/search',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SuggestBusinessRoute = SuggestBusinessRouteImport.update({
@@ -167,169 +148,14 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AdminRouteRoute,
 } as any)
-const AdminAdsRoute = AdminAdsRouteImport.update({
-  id: '/ads',
-  path: '/ads',
-  getParentRoute: () => AdminRouteRoute,
-} as any)
-const AdminAnalyticsRoute = AdminAnalyticsRouteImport.update({
-  id: '/analytics',
-  path: '/analytics',
-  getParentRoute: () => AdminRouteRoute,
-} as any)
-const AdminAuditRoute = AdminAuditRouteImport.update({
-  id: '/audit',
-  path: '/audit',
-  getParentRoute: () => AdminRouteRoute,
-} as any)
-const AdminBusinessesRoute = AdminBusinessesRouteImport.update({
-  id: '/businesses',
-  path: '/businesses',
-  getParentRoute: () => AdminRouteRoute,
-} as any)
-const AdminCategoriesRoute = AdminCategoriesRouteImport.update({
-  id: '/categories',
-  path: '/categories',
-  getParentRoute: () => AdminRouteRoute,
-} as any)
-const AdminClaimsRoute = AdminClaimsRouteImport.update({
-  id: '/claims',
-  path: '/claims',
-  getParentRoute: () => AdminRouteRoute,
-} as any)
-const AdminConfigRoute = AdminConfigRouteImport.update({
-  id: '/config',
-  path: '/config',
-  getParentRoute: () => AdminRouteRoute,
-} as any)
-const AdminFlagsRoute = AdminFlagsRouteImport.update({
-  id: '/flags',
-  path: '/flags',
-  getParentRoute: () => AdminRouteRoute,
-} as any)
-const AdminJobsRoute = AdminJobsRouteImport.update({
-  id: '/jobs',
-  path: '/jobs',
-  getParentRoute: () => AdminRouteRoute,
-} as any)
-const AdminModerationRoute = AdminModerationRouteImport.update({
-  id: '/moderation',
-  path: '/moderation',
-  getParentRoute: () => AdminRouteRoute,
-} as any)
-const AdminReportsRoute = AdminReportsRouteImport.update({
-  id: '/reports',
-  path: '/reports',
-  getParentRoute: () => AdminRouteRoute,
-} as any)
-const AdminReviewsRoute = AdminReviewsRouteImport.update({
-  id: '/reviews',
-  path: '/reviews',
-  getParentRoute: () => AdminRouteRoute,
-} as any)
-const AdminSubscriptionsRoute = AdminSubscriptionsRouteImport.update({
-  id: '/subscriptions',
-  path: '/subscriptions',
-  getParentRoute: () => AdminRouteRoute,
-} as any)
-const AdminSupportRoute = AdminSupportRouteImport.update({
-  id: '/support',
-  path: '/support',
-  getParentRoute: () => AdminRouteRoute,
-} as any)
-const AdminUsersRoute = AdminUsersRouteImport.update({
-  id: '/users',
-  path: '/users',
-  getParentRoute: () => AdminRouteRoute,
-} as any)
-const AdminVerificationRoute = AdminVerificationRouteImport.update({
-  id: '/verification',
-  path: '/verification',
-  getParentRoute: () => AdminRouteRoute,
+const ApiSplatRoute = ApiSplatRouteImport.update({
+  id: '/api/$',
+  path: '/api/$',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => AppRouteRoute,
-} as any)
-const AppAnalyticsRoute = AppAnalyticsRouteImport.update({
-  id: '/analytics',
-  path: '/analytics',
-  getParentRoute: () => AppRouteRoute,
-} as any)
-const AppAuditRoute = AppAuditRouteImport.update({
-  id: '/audit',
-  path: '/audit',
-  getParentRoute: () => AppRouteRoute,
-} as any)
-const AppAutomationRoute = AppAutomationRouteImport.update({
-  id: '/automation',
-  path: '/automation',
-  getParentRoute: () => AppRouteRoute,
-} as any)
-const AppBillingRoute = AppBillingRouteImport.update({
-  id: '/billing',
-  path: '/billing',
-  getParentRoute: () => AppRouteRoute,
-} as any)
-const AppCalendarRoute = AppCalendarRouteImport.update({
-  id: '/calendar',
-  path: '/calendar',
-  getParentRoute: () => AppRouteRoute,
-} as any)
-const AppCampaignsRoute = AppCampaignsRouteImport.update({
-  id: '/campaigns',
-  path: '/campaigns',
-  getParentRoute: () => AppRouteRoute,
-} as any)
-const AppContactsRoute = AppContactsRouteImport.update({
-  id: '/contacts',
-  path: '/contacts',
-  getParentRoute: () => AppRouteRoute,
-} as any)
-const AppInboxRoute = AppInboxRouteImport.update({
-  id: '/inbox',
-  path: '/inbox',
-  getParentRoute: () => AppRouteRoute,
-} as any)
-const AppLeadsRoute = AppLeadsRouteImport.update({
-  id: '/leads',
-  path: '/leads',
-  getParentRoute: () => AppRouteRoute,
-} as any)
-const AppLinksRoute = AppLinksRouteImport.update({
-  id: '/links',
-  path: '/links',
-  getParentRoute: () => AppRouteRoute,
-} as any)
-const AppPipelineRoute = AppPipelineRouteImport.update({
-  id: '/pipeline',
-  path: '/pipeline',
-  getParentRoute: () => AppRouteRoute,
-} as any)
-const AppProductsRoute = AppProductsRouteImport.update({
-  id: '/products',
-  path: '/products',
-  getParentRoute: () => AppRouteRoute,
-} as any)
-const AppProfileRoute = AppProfileRouteImport.update({
-  id: '/profile',
-  path: '/profile',
-  getParentRoute: () => AppRouteRoute,
-} as any)
-const AppSettingsRoute = AppSettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => AppRouteRoute,
-} as any)
-const AppTasksRoute = AppTasksRouteImport.update({
-  id: '/tasks',
-  path: '/tasks',
-  getParentRoute: () => AppRouteRoute,
-} as any)
-const AppTeamRoute = AppTeamRouteImport.update({
-  id: '/team',
-  path: '/team',
   getParentRoute: () => AppRouteRoute,
 } as any)
 const BusinessIdRoute = BusinessIdRouteImport.update({
@@ -399,41 +225,12 @@ export interface FileRoutesByFullPath {
   '/locations': typeof LocationsRouteWithChildren
   '/pricing': typeof PricingRoute
   '/report': typeof ReportRoute
+  '/robots.txt': typeof RobotsDottxtRoute
   '/search': typeof SearchRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/suggest-business': typeof SuggestBusinessRoute
   '/trust-safety': typeof TrustSafetyRoute
-  '/admin/ads': typeof AdminAdsRoute
-  '/admin/analytics': typeof AdminAnalyticsRoute
-  '/admin/audit': typeof AdminAuditRoute
-  '/admin/businesses': typeof AdminBusinessesRoute
-  '/admin/categories': typeof AdminCategoriesRoute
-  '/admin/claims': typeof AdminClaimsRoute
-  '/admin/config': typeof AdminConfigRoute
-  '/admin/flags': typeof AdminFlagsRoute
-  '/admin/jobs': typeof AdminJobsRoute
-  '/admin/moderation': typeof AdminModerationRoute
-  '/admin/reports': typeof AdminReportsRoute
-  '/admin/reviews': typeof AdminReviewsRoute
-  '/admin/subscriptions': typeof AdminSubscriptionsRoute
-  '/admin/support': typeof AdminSupportRoute
-  '/admin/users': typeof AdminUsersRoute
-  '/admin/verification': typeof AdminVerificationRoute
-  '/app/analytics': typeof AppAnalyticsRoute
-  '/app/audit': typeof AppAuditRoute
-  '/app/automation': typeof AppAutomationRoute
-  '/app/billing': typeof AppBillingRoute
-  '/app/calendar': typeof AppCalendarRoute
-  '/app/campaigns': typeof AppCampaignsRoute
-  '/app/contacts': typeof AppContactsRoute
-  '/app/inbox': typeof AppInboxRoute
-  '/app/leads': typeof AppLeadsRoute
-  '/app/links': typeof AppLinksRoute
-  '/app/pipeline': typeof AppPipelineRoute
-  '/app/products': typeof AppProductsRoute
-  '/app/profile': typeof AppProfileRoute
-  '/app/settings': typeof AppSettingsRoute
-  '/app/tasks': typeof AppTasksRoute
-  '/app/team': typeof AppTeamRoute
+  '/api/$': typeof ApiSplatRoute
   '/business/$id': typeof BusinessIdRoute
   '/category/$slug': typeof CategorySlugRoute
   '/contact-gain/$id': typeof ContactGainIdRoute
@@ -461,41 +258,12 @@ export interface FileRoutesByTo {
   '/locations': typeof LocationsRouteWithChildren
   '/pricing': typeof PricingRoute
   '/report': typeof ReportRoute
+  '/robots.txt': typeof RobotsDottxtRoute
   '/search': typeof SearchRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/suggest-business': typeof SuggestBusinessRoute
   '/trust-safety': typeof TrustSafetyRoute
-  '/admin/ads': typeof AdminAdsRoute
-  '/admin/analytics': typeof AdminAnalyticsRoute
-  '/admin/audit': typeof AdminAuditRoute
-  '/admin/businesses': typeof AdminBusinessesRoute
-  '/admin/categories': typeof AdminCategoriesRoute
-  '/admin/claims': typeof AdminClaimsRoute
-  '/admin/config': typeof AdminConfigRoute
-  '/admin/flags': typeof AdminFlagsRoute
-  '/admin/jobs': typeof AdminJobsRoute
-  '/admin/moderation': typeof AdminModerationRoute
-  '/admin/reports': typeof AdminReportsRoute
-  '/admin/reviews': typeof AdminReviewsRoute
-  '/admin/subscriptions': typeof AdminSubscriptionsRoute
-  '/admin/support': typeof AdminSupportRoute
-  '/admin/users': typeof AdminUsersRoute
-  '/admin/verification': typeof AdminVerificationRoute
-  '/app/analytics': typeof AppAnalyticsRoute
-  '/app/audit': typeof AppAuditRoute
-  '/app/automation': typeof AppAutomationRoute
-  '/app/billing': typeof AppBillingRoute
-  '/app/calendar': typeof AppCalendarRoute
-  '/app/campaigns': typeof AppCampaignsRoute
-  '/app/contacts': typeof AppContactsRoute
-  '/app/inbox': typeof AppInboxRoute
-  '/app/leads': typeof AppLeadsRoute
-  '/app/links': typeof AppLinksRoute
-  '/app/pipeline': typeof AppPipelineRoute
-  '/app/products': typeof AppProductsRoute
-  '/app/profile': typeof AppProfileRoute
-  '/app/settings': typeof AppSettingsRoute
-  '/app/tasks': typeof AppTasksRoute
-  '/app/team': typeof AppTeamRoute
+  '/api/$': typeof ApiSplatRoute
   '/business/$id': typeof BusinessIdRoute
   '/category/$slug': typeof CategorySlugRoute
   '/contact-gain/$id': typeof ContactGainIdRoute
@@ -526,41 +294,12 @@ export interface FileRoutesById {
   '/locations': typeof LocationsRouteWithChildren
   '/pricing': typeof PricingRoute
   '/report': typeof ReportRoute
+  '/robots.txt': typeof RobotsDottxtRoute
   '/search': typeof SearchRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/suggest-business': typeof SuggestBusinessRoute
   '/trust-safety': typeof TrustSafetyRoute
-  '/admin/ads': typeof AdminAdsRoute
-  '/admin/analytics': typeof AdminAnalyticsRoute
-  '/admin/audit': typeof AdminAuditRoute
-  '/admin/businesses': typeof AdminBusinessesRoute
-  '/admin/categories': typeof AdminCategoriesRoute
-  '/admin/claims': typeof AdminClaimsRoute
-  '/admin/config': typeof AdminConfigRoute
-  '/admin/flags': typeof AdminFlagsRoute
-  '/admin/jobs': typeof AdminJobsRoute
-  '/admin/moderation': typeof AdminModerationRoute
-  '/admin/reports': typeof AdminReportsRoute
-  '/admin/reviews': typeof AdminReviewsRoute
-  '/admin/subscriptions': typeof AdminSubscriptionsRoute
-  '/admin/support': typeof AdminSupportRoute
-  '/admin/users': typeof AdminUsersRoute
-  '/admin/verification': typeof AdminVerificationRoute
-  '/app/analytics': typeof AppAnalyticsRoute
-  '/app/audit': typeof AppAuditRoute
-  '/app/automation': typeof AppAutomationRoute
-  '/app/billing': typeof AppBillingRoute
-  '/app/calendar': typeof AppCalendarRoute
-  '/app/campaigns': typeof AppCampaignsRoute
-  '/app/contacts': typeof AppContactsRoute
-  '/app/inbox': typeof AppInboxRoute
-  '/app/leads': typeof AppLeadsRoute
-  '/app/links': typeof AppLinksRoute
-  '/app/pipeline': typeof AppPipelineRoute
-  '/app/products': typeof AppProductsRoute
-  '/app/profile': typeof AppProfileRoute
-  '/app/settings': typeof AppSettingsRoute
-  '/app/tasks': typeof AppTasksRoute
-  '/app/team': typeof AppTeamRoute
+  '/api/$': typeof ApiSplatRoute
   '/business/$id': typeof BusinessIdRoute
   '/category/$slug': typeof CategorySlugRoute
   '/contact-gain/$id': typeof ContactGainIdRoute
@@ -592,41 +331,12 @@ export interface FileRouteTypes {
     | '/locations'
     | '/pricing'
     | '/report'
+    | '/robots.txt'
     | '/search'
+    | '/sitemap.xml'
     | '/suggest-business'
     | '/trust-safety'
-    | '/admin/ads'
-    | '/admin/analytics'
-    | '/admin/audit'
-    | '/admin/businesses'
-    | '/admin/categories'
-    | '/admin/claims'
-    | '/admin/config'
-    | '/admin/flags'
-    | '/admin/jobs'
-    | '/admin/moderation'
-    | '/admin/reports'
-    | '/admin/reviews'
-    | '/admin/subscriptions'
-    | '/admin/support'
-    | '/admin/users'
-    | '/admin/verification'
-    | '/app/analytics'
-    | '/app/audit'
-    | '/app/automation'
-    | '/app/billing'
-    | '/app/calendar'
-    | '/app/campaigns'
-    | '/app/contacts'
-    | '/app/inbox'
-    | '/app/leads'
-    | '/app/links'
-    | '/app/pipeline'
-    | '/app/products'
-    | '/app/profile'
-    | '/app/settings'
-    | '/app/tasks'
-    | '/app/team'
+    | '/api/$'
     | '/business/$id'
     | '/category/$slug'
     | '/contact-gain/$id'
@@ -654,41 +364,12 @@ export interface FileRouteTypes {
     | '/locations'
     | '/pricing'
     | '/report'
+    | '/robots.txt'
     | '/search'
+    | '/sitemap.xml'
     | '/suggest-business'
     | '/trust-safety'
-    | '/admin/ads'
-    | '/admin/analytics'
-    | '/admin/audit'
-    | '/admin/businesses'
-    | '/admin/categories'
-    | '/admin/claims'
-    | '/admin/config'
-    | '/admin/flags'
-    | '/admin/jobs'
-    | '/admin/moderation'
-    | '/admin/reports'
-    | '/admin/reviews'
-    | '/admin/subscriptions'
-    | '/admin/support'
-    | '/admin/users'
-    | '/admin/verification'
-    | '/app/analytics'
-    | '/app/audit'
-    | '/app/automation'
-    | '/app/billing'
-    | '/app/calendar'
-    | '/app/campaigns'
-    | '/app/contacts'
-    | '/app/inbox'
-    | '/app/leads'
-    | '/app/links'
-    | '/app/pipeline'
-    | '/app/products'
-    | '/app/profile'
-    | '/app/settings'
-    | '/app/tasks'
-    | '/app/team'
+    | '/api/$'
     | '/business/$id'
     | '/category/$slug'
     | '/contact-gain/$id'
@@ -718,41 +399,12 @@ export interface FileRouteTypes {
     | '/locations'
     | '/pricing'
     | '/report'
+    | '/robots.txt'
     | '/search'
+    | '/sitemap.xml'
     | '/suggest-business'
     | '/trust-safety'
-    | '/admin/ads'
-    | '/admin/analytics'
-    | '/admin/audit'
-    | '/admin/businesses'
-    | '/admin/categories'
-    | '/admin/claims'
-    | '/admin/config'
-    | '/admin/flags'
-    | '/admin/jobs'
-    | '/admin/moderation'
-    | '/admin/reports'
-    | '/admin/reviews'
-    | '/admin/subscriptions'
-    | '/admin/support'
-    | '/admin/users'
-    | '/admin/verification'
-    | '/app/analytics'
-    | '/app/audit'
-    | '/app/automation'
-    | '/app/billing'
-    | '/app/calendar'
-    | '/app/campaigns'
-    | '/app/contacts'
-    | '/app/inbox'
-    | '/app/leads'
-    | '/app/links'
-    | '/app/pipeline'
-    | '/app/products'
-    | '/app/profile'
-    | '/app/settings'
-    | '/app/tasks'
-    | '/app/team'
+    | '/api/$'
     | '/business/$id'
     | '/category/$slug'
     | '/contact-gain/$id'
@@ -783,9 +435,12 @@ export interface RootRouteChildren {
   LocationsRoute: typeof LocationsRouteWithChildren
   PricingRoute: typeof PricingRoute
   ReportRoute: typeof ReportRoute
+  RobotsDottxtRoute: typeof RobotsDottxtRoute
   SearchRoute: typeof SearchRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SuggestBusinessRoute: typeof SuggestBusinessRoute
   TrustSafetyRoute: typeof TrustSafetyRoute
+  ApiSplatRoute: typeof ApiSplatRoute
   BusinessIdRoute: typeof BusinessIdRoute
   CategorySlugRoute: typeof CategorySlugRoute
   ContactGainIdRoute: typeof ContactGainIdRoute
@@ -904,11 +559,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ReportRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/robots.txt': {
+      id: '/robots.txt'
+      path: '/robots.txt'
+      fullPath: '/robots.txt'
+      preLoaderRoute: typeof RobotsDottxtRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/search': {
       id: '/search'
       path: '/search'
       fullPath: '/search'
       preLoaderRoute: typeof SearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/suggest-business': {
@@ -932,235 +601,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRouteRoute
     }
-    '/admin/ads': {
-      id: '/admin/ads'
-      path: '/ads'
-      fullPath: '/admin/ads'
-      preLoaderRoute: typeof AdminAdsRouteImport
-      parentRoute: typeof AdminRouteRoute
-    }
-    '/admin/analytics': {
-      id: '/admin/analytics'
-      path: '/analytics'
-      fullPath: '/admin/analytics'
-      preLoaderRoute: typeof AdminAnalyticsRouteImport
-      parentRoute: typeof AdminRouteRoute
-    }
-    '/admin/audit': {
-      id: '/admin/audit'
-      path: '/audit'
-      fullPath: '/admin/audit'
-      preLoaderRoute: typeof AdminAuditRouteImport
-      parentRoute: typeof AdminRouteRoute
-    }
-    '/admin/businesses': {
-      id: '/admin/businesses'
-      path: '/businesses'
-      fullPath: '/admin/businesses'
-      preLoaderRoute: typeof AdminBusinessesRouteImport
-      parentRoute: typeof AdminRouteRoute
-    }
-    '/admin/categories': {
-      id: '/admin/categories'
-      path: '/categories'
-      fullPath: '/admin/categories'
-      preLoaderRoute: typeof AdminCategoriesRouteImport
-      parentRoute: typeof AdminRouteRoute
-    }
-    '/admin/claims': {
-      id: '/admin/claims'
-      path: '/claims'
-      fullPath: '/admin/claims'
-      preLoaderRoute: typeof AdminClaimsRouteImport
-      parentRoute: typeof AdminRouteRoute
-    }
-    '/admin/config': {
-      id: '/admin/config'
-      path: '/config'
-      fullPath: '/admin/config'
-      preLoaderRoute: typeof AdminConfigRouteImport
-      parentRoute: typeof AdminRouteRoute
-    }
-    '/admin/flags': {
-      id: '/admin/flags'
-      path: '/flags'
-      fullPath: '/admin/flags'
-      preLoaderRoute: typeof AdminFlagsRouteImport
-      parentRoute: typeof AdminRouteRoute
-    }
-    '/admin/jobs': {
-      id: '/admin/jobs'
-      path: '/jobs'
-      fullPath: '/admin/jobs'
-      preLoaderRoute: typeof AdminJobsRouteImport
-      parentRoute: typeof AdminRouteRoute
-    }
-    '/admin/moderation': {
-      id: '/admin/moderation'
-      path: '/moderation'
-      fullPath: '/admin/moderation'
-      preLoaderRoute: typeof AdminModerationRouteImport
-      parentRoute: typeof AdminRouteRoute
-    }
-    '/admin/reports': {
-      id: '/admin/reports'
-      path: '/reports'
-      fullPath: '/admin/reports'
-      preLoaderRoute: typeof AdminReportsRouteImport
-      parentRoute: typeof AdminRouteRoute
-    }
-    '/admin/reviews': {
-      id: '/admin/reviews'
-      path: '/reviews'
-      fullPath: '/admin/reviews'
-      preLoaderRoute: typeof AdminReviewsRouteImport
-      parentRoute: typeof AdminRouteRoute
-    }
-    '/admin/subscriptions': {
-      id: '/admin/subscriptions'
-      path: '/subscriptions'
-      fullPath: '/admin/subscriptions'
-      preLoaderRoute: typeof AdminSubscriptionsRouteImport
-      parentRoute: typeof AdminRouteRoute
-    }
-    '/admin/support': {
-      id: '/admin/support'
-      path: '/support'
-      fullPath: '/admin/support'
-      preLoaderRoute: typeof AdminSupportRouteImport
-      parentRoute: typeof AdminRouteRoute
-    }
-    '/admin/users': {
-      id: '/admin/users'
-      path: '/users'
-      fullPath: '/admin/users'
-      preLoaderRoute: typeof AdminUsersRouteImport
-      parentRoute: typeof AdminRouteRoute
-    }
-    '/admin/verification': {
-      id: '/admin/verification'
-      path: '/verification'
-      fullPath: '/admin/verification'
-      preLoaderRoute: typeof AdminVerificationRouteImport
-      parentRoute: typeof AdminRouteRoute
+    '/api/$': {
+      id: '/api/$'
+      path: '/api/$'
+      fullPath: '/api/$'
+      preLoaderRoute: typeof ApiSplatRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/app/': {
       id: '/app/'
       path: '/'
       fullPath: '/app/'
       preLoaderRoute: typeof AppIndexRouteImport
-      parentRoute: typeof AppRouteRoute
-    }
-    '/app/analytics': {
-      id: '/app/analytics'
-      path: '/analytics'
-      fullPath: '/app/analytics'
-      preLoaderRoute: typeof AppAnalyticsRouteImport
-      parentRoute: typeof AppRouteRoute
-    }
-    '/app/audit': {
-      id: '/app/audit'
-      path: '/audit'
-      fullPath: '/app/audit'
-      preLoaderRoute: typeof AppAuditRouteImport
-      parentRoute: typeof AppRouteRoute
-    }
-    '/app/automation': {
-      id: '/app/automation'
-      path: '/automation'
-      fullPath: '/app/automation'
-      preLoaderRoute: typeof AppAutomationRouteImport
-      parentRoute: typeof AppRouteRoute
-    }
-    '/app/billing': {
-      id: '/app/billing'
-      path: '/billing'
-      fullPath: '/app/billing'
-      preLoaderRoute: typeof AppBillingRouteImport
-      parentRoute: typeof AppRouteRoute
-    }
-    '/app/calendar': {
-      id: '/app/calendar'
-      path: '/calendar'
-      fullPath: '/app/calendar'
-      preLoaderRoute: typeof AppCalendarRouteImport
-      parentRoute: typeof AppRouteRoute
-    }
-    '/app/campaigns': {
-      id: '/app/campaigns'
-      path: '/campaigns'
-      fullPath: '/app/campaigns'
-      preLoaderRoute: typeof AppCampaignsRouteImport
-      parentRoute: typeof AppRouteRoute
-    }
-    '/app/contacts': {
-      id: '/app/contacts'
-      path: '/contacts'
-      fullPath: '/app/contacts'
-      preLoaderRoute: typeof AppContactsRouteImport
-      parentRoute: typeof AppRouteRoute
-    }
-    '/app/inbox': {
-      id: '/app/inbox'
-      path: '/inbox'
-      fullPath: '/app/inbox'
-      preLoaderRoute: typeof AppInboxRouteImport
-      parentRoute: typeof AppRouteRoute
-    }
-    '/app/leads': {
-      id: '/app/leads'
-      path: '/leads'
-      fullPath: '/app/leads'
-      preLoaderRoute: typeof AppLeadsRouteImport
-      parentRoute: typeof AppRouteRoute
-    }
-    '/app/links': {
-      id: '/app/links'
-      path: '/links'
-      fullPath: '/app/links'
-      preLoaderRoute: typeof AppLinksRouteImport
-      parentRoute: typeof AppRouteRoute
-    }
-    '/app/pipeline': {
-      id: '/app/pipeline'
-      path: '/pipeline'
-      fullPath: '/app/pipeline'
-      preLoaderRoute: typeof AppPipelineRouteImport
-      parentRoute: typeof AppRouteRoute
-    }
-    '/app/products': {
-      id: '/app/products'
-      path: '/products'
-      fullPath: '/app/products'
-      preLoaderRoute: typeof AppProductsRouteImport
-      parentRoute: typeof AppRouteRoute
-    }
-    '/app/profile': {
-      id: '/app/profile'
-      path: '/profile'
-      fullPath: '/app/profile'
-      preLoaderRoute: typeof AppProfileRouteImport
-      parentRoute: typeof AppRouteRoute
-    }
-    '/app/settings': {
-      id: '/app/settings'
-      path: '/settings'
-      fullPath: '/app/settings'
-      preLoaderRoute: typeof AppSettingsRouteImport
-      parentRoute: typeof AppRouteRoute
-    }
-    '/app/tasks': {
-      id: '/app/tasks'
-      path: '/tasks'
-      fullPath: '/app/tasks'
-      preLoaderRoute: typeof AppTasksRouteImport
-      parentRoute: typeof AppRouteRoute
-    }
-    '/app/team': {
-      id: '/app/team'
-      path: '/team'
-      fullPath: '/app/team'
-      preLoaderRoute: typeof AppTeamRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/business/$id': {
@@ -1237,42 +689,10 @@ declare module '@tanstack/react-router' {
 }
 
 interface AdminRouteRouteChildren {
-  AdminAdsRoute: typeof AdminAdsRoute
-  AdminAnalyticsRoute: typeof AdminAnalyticsRoute
-  AdminAuditRoute: typeof AdminAuditRoute
-  AdminBusinessesRoute: typeof AdminBusinessesRoute
-  AdminCategoriesRoute: typeof AdminCategoriesRoute
-  AdminClaimsRoute: typeof AdminClaimsRoute
-  AdminConfigRoute: typeof AdminConfigRoute
-  AdminFlagsRoute: typeof AdminFlagsRoute
-  AdminJobsRoute: typeof AdminJobsRoute
-  AdminModerationRoute: typeof AdminModerationRoute
-  AdminReportsRoute: typeof AdminReportsRoute
-  AdminReviewsRoute: typeof AdminReviewsRoute
-  AdminSubscriptionsRoute: typeof AdminSubscriptionsRoute
-  AdminSupportRoute: typeof AdminSupportRoute
-  AdminUsersRoute: typeof AdminUsersRoute
-  AdminVerificationRoute: typeof AdminVerificationRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
 const AdminRouteRouteChildren: AdminRouteRouteChildren = {
-  AdminAdsRoute: AdminAdsRoute,
-  AdminAnalyticsRoute: AdminAnalyticsRoute,
-  AdminAuditRoute: AdminAuditRoute,
-  AdminBusinessesRoute: AdminBusinessesRoute,
-  AdminCategoriesRoute: AdminCategoriesRoute,
-  AdminClaimsRoute: AdminClaimsRoute,
-  AdminConfigRoute: AdminConfigRoute,
-  AdminFlagsRoute: AdminFlagsRoute,
-  AdminJobsRoute: AdminJobsRoute,
-  AdminModerationRoute: AdminModerationRoute,
-  AdminReportsRoute: AdminReportsRoute,
-  AdminReviewsRoute: AdminReviewsRoute,
-  AdminSubscriptionsRoute: AdminSubscriptionsRoute,
-  AdminSupportRoute: AdminSupportRoute,
-  AdminUsersRoute: AdminUsersRoute,
-  AdminVerificationRoute: AdminVerificationRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
 
@@ -1281,42 +701,10 @@ const AdminRouteRouteWithChildren = AdminRouteRoute._addFileChildren(
 )
 
 interface AppRouteRouteChildren {
-  AppAnalyticsRoute: typeof AppAnalyticsRoute
-  AppAuditRoute: typeof AppAuditRoute
-  AppAutomationRoute: typeof AppAutomationRoute
-  AppBillingRoute: typeof AppBillingRoute
-  AppCalendarRoute: typeof AppCalendarRoute
-  AppCampaignsRoute: typeof AppCampaignsRoute
-  AppContactsRoute: typeof AppContactsRoute
-  AppInboxRoute: typeof AppInboxRoute
-  AppLeadsRoute: typeof AppLeadsRoute
-  AppLinksRoute: typeof AppLinksRoute
-  AppPipelineRoute: typeof AppPipelineRoute
-  AppProductsRoute: typeof AppProductsRoute
-  AppProfileRoute: typeof AppProfileRoute
-  AppSettingsRoute: typeof AppSettingsRoute
-  AppTasksRoute: typeof AppTasksRoute
-  AppTeamRoute: typeof AppTeamRoute
   AppIndexRoute: typeof AppIndexRoute
 }
 
 const AppRouteRouteChildren: AppRouteRouteChildren = {
-  AppAnalyticsRoute: AppAnalyticsRoute,
-  AppAuditRoute: AppAuditRoute,
-  AppAutomationRoute: AppAutomationRoute,
-  AppBillingRoute: AppBillingRoute,
-  AppCalendarRoute: AppCalendarRoute,
-  AppCampaignsRoute: AppCampaignsRoute,
-  AppContactsRoute: AppContactsRoute,
-  AppInboxRoute: AppInboxRoute,
-  AppLeadsRoute: AppLeadsRoute,
-  AppLinksRoute: AppLinksRoute,
-  AppPipelineRoute: AppPipelineRoute,
-  AppProductsRoute: AppProductsRoute,
-  AppProfileRoute: AppProfileRoute,
-  AppSettingsRoute: AppSettingsRoute,
-  AppTasksRoute: AppTasksRoute,
-  AppTeamRoute: AppTeamRoute,
   AppIndexRoute: AppIndexRoute,
 }
 
@@ -1352,9 +740,12 @@ const rootRouteChildren: RootRouteChildren = {
   LocationsRoute: LocationsRouteWithChildren,
   PricingRoute: PricingRoute,
   ReportRoute: ReportRoute,
+  RobotsDottxtRoute: RobotsDottxtRoute,
   SearchRoute: SearchRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   SuggestBusinessRoute: SuggestBusinessRoute,
   TrustSafetyRoute: TrustSafetyRoute,
+  ApiSplatRoute: ApiSplatRoute,
   BusinessIdRoute: BusinessIdRoute,
   CategorySlugRoute: CategorySlugRoute,
   ContactGainIdRoute: ContactGainIdRoute,
@@ -1368,3 +759,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
