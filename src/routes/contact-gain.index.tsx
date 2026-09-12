@@ -1,114 +1,187 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ShieldCheck, Users } from "lucide-react";
-import { PublicShell, PageHead } from "@/components/site/PublicShell";
+import { ArrowRight, CircleUserRound, Search, ShieldCheck, UsersRound } from "lucide-react";
+import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { PageHead, PublicShell } from "@/components/site/PublicShell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { contactGainRooms } from "@/data/mock";
+import { apiRequest } from "@/lib/api";
+
+type Room = {
+  id: string;
+  name: string;
+  purpose: string;
+  state: string;
+  slotLimit: number;
+  slotsLeft: number;
+  rules: string;
+  verifiedOnly: boolean;
+  memberCount: number;
+};
 
 export const Route = createFileRoute("/contact-gain/")({
   head: () => ({
     meta: [
-      { title: "WhatsApp contact-gain rooms in Nigeria — GainHub NG" },
+      { title: "Opt-in business contact circles — GainHub NG" },
       {
         name: "description",
         content:
-          "Join moderated WhatsApp contact-gain rooms with published save-back rules, slot limits and verified-only options. Grow your status reach safely.",
+          "Browse moderated, opt-in business contact circles with published rules, membership limits and explicit participation requirements.",
       },
-      { property: "og:title", content: "WhatsApp contact-gain rooms — GainHub NG" },
-      { property: "og:description", content: "Moderated save-back circles for Nigerian vendors and hustlers." },
     ],
   }),
   component: ContactGainPage,
 });
 
 function ContactGainPage() {
+  const [query, setQuery] = useState("");
+  const rooms = useQuery({
+    queryKey: ["contact-rooms"],
+    queryFn: () => apiRequest<{ items: Room[] }>("/v1/rooms"),
+    retry: false,
+  });
+  const filtered = useMemo(() => {
+    const term = query.trim().toLowerCase();
+    if (!term) return rooms.data?.items ?? [];
+    return (rooms.data?.items ?? []).filter((room) =>
+      [room.name, room.purpose, room.state].some((value) => value.toLowerCase().includes(term)),
+    );
+  }, [query, rooms.data?.items]);
+
   return (
     <PublicShell>
       <PageHead
-        eyebrow="Contact gain"
-        title="Grow your WhatsApp contacts, safely"
-        subtitle="Contact gain is how many Nigerians advertise: get saved, then your status reaches thousands. Our rooms add moderation, slot limits, save-back tracking and reporting."
+        eyebrow="Opt-in contact circles"
+        title="Reach grows better with consent"
+        subtitle="Business circles are moderated spaces for people who explicitly choose to exchange professional contacts. No scraped numbers, invisible member lists or forced save-backs."
         action={
           <Button asChild>
-            <Link to="/contact-gain/create">Create a room</Link>
+            <Link to="/contact-gain/create">Propose a circle</Link>
           </Button>
         }
       />
-      <div className="mx-auto max-w-7xl space-y-10 px-4 py-12">
-        <div className="grid gap-4 md:grid-cols-3">
+      <div className="mx-auto max-w-7xl space-y-12 px-5 py-12 lg:py-16">
+        <div className="grid gap-5 md:grid-cols-3">
           {[
-            { icon: Users, t: "Save-back score", d: "Members who never save back lose access. Your score is visible before you join." },
-            { icon: ShieldCheck, t: "Moderated content", d: "AI pre-screening plus human review for nudity, scams and impersonation." },
-            { icon: Users, t: "Slot limits", d: "Rooms cap membership so status reach stays useful and phones stay usable." },
-          ].map((x) => (
-            <Card key={x.t} className="card-surface">
+            {
+              icon: CircleUserRound,
+              title: "Explicit opt-in",
+              body: "Every member applies with an authenticated account and accepts the published rules.",
+            },
+            {
+              icon: ShieldCheck,
+              title: "Private by default",
+              body: "Public pages show capacity and policy—not member phone numbers or a downloadable contact list.",
+            },
+            {
+              icon: UsersRound,
+              title: "Capacity with purpose",
+              body: "Limits keep each circle relevant and give moderation a manageable scope.",
+            },
+          ].map((item) => (
+            <Card key={item.title} className="card-surface">
               <CardContent className="p-6">
-                <span className="grid size-10 place-items-center rounded-xl bg-primary/10 text-primary">
-                  <x.icon className="size-5" />
+                <span className="grid size-11 place-items-center rounded-2xl bg-secondary text-primary">
+                  <item.icon className="size-5" />
                 </span>
-                <h2 className="mt-4 font-semibold">{x.t}</h2>
-                <p className="mt-2 text-sm text-muted-foreground">{x.d}</p>
+                <h2 className="mt-5 text-xl font-bold">{item.title}</h2>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">{item.body}</p>
               </CardContent>
             </Card>
           ))}
         </div>
 
-        <Card className="card-surface">
-          <CardContent className="flex flex-col gap-3 p-5 sm:flex-row">
-            <Input placeholder="Search rooms by name or niche" className="sm:flex-1" />
-            <Select defaultValue="all">
-              <SelectTrigger className="sm:w-48">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All states</SelectItem>
-                <SelectItem value="lagos">Lagos</SelectItem>
-                <SelectItem value="abuja">Abuja</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button>Find rooms</Button>
-          </CardContent>
-        </Card>
+        <section aria-labelledby="room-list-heading">
+          <div className="flex flex-col gap-4 border-b pb-6 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="eyebrow text-primary">Published circles</p>
+              <h2 id="room-list-heading" className="mt-2 text-3xl font-bold">
+                Find a relevant room
+              </h2>
+            </div>
+            <label className="flex min-h-11 w-full items-center gap-2 rounded-xl border bg-card px-3 sm:max-w-sm">
+              <Search className="size-4 text-primary" />
+              <span className="sr-only">Filter contact circles</span>
+              <Input
+                type="search"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Name, purpose or state"
+                className="border-0 bg-transparent p-0 shadow-none focus-visible:ring-0"
+              />
+            </label>
+          </div>
 
-        <div className="grid gap-4 md:grid-cols-2">
-          {contactGainRooms.map((r) => (
-            <Card key={r.id} className="card-surface">
-              <CardContent className="space-y-3 p-6">
-                <div className="flex items-center justify-between gap-2">
-                  <h3 className="text-lg font-semibold">{r.name}</h3>
-                  {r.verifiedOnly ? <Badge>Verified only</Badge> : <Badge variant="outline">Open</Badge>}
-                </div>
-                <p className="text-sm text-muted-foreground">{r.purpose}</p>
-                <div className="grid grid-cols-3 gap-2 rounded-xl bg-muted p-3 text-center text-xs">
-                  <div>
-                    <p className="font-display text-lg font-bold">{r.members.toLocaleString()}</p>
-                    <p className="text-muted-foreground">Members</p>
-                  </div>
-                  <div>
-                    <p className="font-display text-lg font-bold">{r.slotsLeft}</p>
-                    <p className="text-muted-foreground">Slots left</p>
-                  </div>
-                  <div>
-                    <p className="font-display text-lg font-bold">{r.state}</p>
-                    <p className="text-muted-foreground">Coverage</p>
-                  </div>
-                </div>
-                <p className="text-xs text-muted-foreground">House rule: {r.rule}</p>
-                <div className="flex gap-2">
-                  <Button asChild className="flex-1">
-                    <Link to="/contact-gain/$id" params={{ id: r.id }}>
-                      Open room
-                    </Link>
-                  </Button>
-                  <Button variant="outline">Join queue</Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+          {rooms.isLoading ? (
+            <div className="mt-6 grid gap-5 md:grid-cols-2">
+              <div className="card-surface h-64 animate-pulse bg-muted" />
+              <div className="card-surface h-64 animate-pulse bg-muted" />
+            </div>
+          ) : rooms.isError ? (
+            <div className="mt-6 rounded-2xl border border-destructive/25 bg-destructive/5 p-6 text-sm">
+              <p className="font-bold">Live circles are unavailable right now.</p>
+              <p className="mt-1 text-muted-foreground">
+                No fictional room data has been substituted.
+              </p>
+            </div>
+          ) : filtered.length ? (
+            <div className="mt-6 grid gap-5 md:grid-cols-2">
+              {filtered.map((room) => (
+                <Card
+                  key={room.id}
+                  className="card-surface group transition-transform duration-300 hover:-translate-y-1"
+                >
+                  <CardContent className="p-6">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <h3 className="text-2xl font-bold">{room.name}</h3>
+                        <p className="mt-2 text-sm text-muted-foreground">
+                          {room.purpose} · {room.state}
+                        </p>
+                      </div>
+                      <Badge variant={room.verifiedOnly ? "default" : "secondary"}>
+                        {room.verifiedOnly ? "Verified only" : "Open criteria"}
+                      </Badge>
+                    </div>
+                    <div className="mt-6 grid grid-cols-3 gap-2 rounded-2xl bg-muted/70 p-4 text-center">
+                      <div>
+                        <p className="font-display text-xl font-bold">{room.memberCount}</p>
+                        <p className="mt-1 text-[10px] text-muted-foreground">Members</p>
+                      </div>
+                      <div>
+                        <p className="font-display text-xl font-bold">{room.slotsLeft}</p>
+                        <p className="mt-1 text-[10px] text-muted-foreground">Open slots</p>
+                      </div>
+                      <div>
+                        <p className="font-display text-xl font-bold">{room.slotLimit}</p>
+                        <p className="mt-1 text-[10px] text-muted-foreground">Capacity</p>
+                      </div>
+                    </div>
+                    <Button asChild className="mt-5 w-full" variant="outline">
+                      <Link to="/contact-gain/$id" params={{ id: room.id }}>
+                        Read rules <ArrowRight />
+                      </Link>
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="mt-6 rounded-2xl border border-dashed p-10 text-center">
+              <h3 className="text-2xl font-bold">No published circle matches</h3>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Clear the filter or propose a carefully scoped room for review.
+              </p>
+              {query ? (
+                <Button variant="outline" className="mt-5" onClick={() => setQuery("")}>
+                  Clear filter
+                </Button>
+              ) : null}
+            </div>
+          )}
+        </section>
       </div>
     </PublicShell>
   );
