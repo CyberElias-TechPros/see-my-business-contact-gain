@@ -1,5 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AlertTriangle, CheckCircle2, Eye, FileLock2, Flag, ShieldCheck } from "lucide-react";
+import { Reveal } from "@/components/motion";
+import { Callout, CtaBand, EditorialSection, FeatureGrid } from "@/components/site/editorial";
 import { PageHead, PublicShell } from "@/components/site/PublicShell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -48,6 +50,29 @@ const labels = [
   },
 ];
 
+const controls = [
+  {
+    icon: Eye,
+    title: "Reviewed publication",
+    text: "Listing applications begin in a review state. Submission alone does not put a profile into live search.",
+  },
+  {
+    icon: FileLock2,
+    title: "Private claim evidence",
+    text: "Ownership evidence accepts bounded PDF or image files, requires an account and is stored away from public profile delivery.",
+  },
+  {
+    icon: Flag,
+    title: "Structured reports",
+    text: "Scam, impersonation, abuse, closure and accuracy concerns enter a moderation queue with a request reference.",
+  },
+  {
+    icon: ShieldCheck,
+    title: "Restricted decisions",
+    text: "Private workspaces check real sessions; aggregate moderation data is limited to the platform-admin role.",
+  },
+];
+
 function TrustSafetyPage() {
   return (
     <PublicShell>
@@ -63,19 +88,19 @@ function TrustSafetyPage() {
           </Button>
         }
       />
-      <div className="mx-auto max-w-6xl space-y-14 px-4 py-14">
-        <section aria-labelledby="labels-heading">
-          <p className="eyebrow">Read the badge</p>
-          <h2 id="labels-heading" className="mt-3 text-3xl font-bold">
-            Four states, each with a boundary
-          </h2>
-          <div className="mt-7 overflow-hidden rounded-2xl border bg-card">
+      <div className="mx-auto max-w-6xl px-5 py-16">
+        <EditorialSection
+          id="labels"
+          eyebrow="Read the badge"
+          title="Four states, each with a boundary"
+        >
+          <div className="overflow-hidden rounded-3xl border border-border/70 bg-card">
             {labels.map((item, index) => (
               <div
                 key={item.label}
-                className={`grid gap-3 p-5 md:grid-cols-[0.45fr_1fr_1fr] md:gap-6 ${index ? "border-t" : ""}`}
+                className={`grid gap-3 p-5 transition-colors hover:bg-muted/30 md:grid-cols-[0.45fr_1fr_1fr] md:gap-6 ${index ? "border-t border-border/60" : ""}`}
               >
-                <p className="font-semibold text-foreground">{item.label}</p>
+                <p className="font-bold text-foreground">{item.label}</p>
                 <p className="text-sm leading-6 text-muted-foreground">
                   <span className="font-semibold text-primary">What it says: </span>
                   {item.meaning}
@@ -87,99 +112,43 @@ function TrustSafetyPage() {
               </div>
             ))}
           </div>
-        </section>
+        </EditorialSection>
 
-        <section aria-labelledby="controls-heading">
-          <p className="eyebrow">Controls in the product</p>
-          <h2 id="controls-heading" className="mt-3 text-3xl font-bold">
-            Safety is a set of routes, not a shield icon.
-          </h2>
-          <div className="mt-7 grid gap-4 md:grid-cols-2">
-            {[
-              {
-                icon: Eye,
-                title: "Reviewed publication",
-                text: "Listing applications begin in a review state. Submission alone does not put a profile into live search.",
-              },
-              {
-                icon: FileLock2,
-                title: "Private claim evidence",
-                text: "Ownership evidence accepts bounded PDF or image files, requires an account and is stored away from public profile delivery.",
-              },
-              {
-                icon: Flag,
-                title: "Structured reports",
-                text: "Scam, impersonation, abuse, closure and accuracy concerns enter a moderation queue with a request reference.",
-              },
-              {
-                icon: ShieldCheck,
-                title: "Restricted decisions",
-                text: "Private workspaces check real sessions; aggregate moderation data is limited to the platform-admin role.",
-              },
-            ].map((control) => (
-              <Card key={control.title} className="card-surface h-full">
-                <CardContent className="p-6">
-                  <span className="grid size-11 place-items-center rounded-xl bg-primary/10 text-primary">
-                    <control.icon className="size-5" aria-hidden="true" />
-                  </span>
-                  <h3 className="mt-5 text-lg font-semibold">{control.title}</h3>
-                  <p className="mt-2 text-sm leading-6 text-muted-foreground">{control.text}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </section>
+        <EditorialSection
+          id="controls"
+          eyebrow="Controls in the product"
+          title="Safety is a set of routes, not a shield icon."
+        >
+          <FeatureGrid items={controls} />
+        </EditorialSection>
 
-        <section className="grid gap-5 lg:grid-cols-2" aria-labelledby="check-heading">
-          <Card className="card-surface border-primary/20 bg-primary/[0.025]">
-            <CardContent className="p-6 sm:p-7">
-              <CheckCircle2 className="size-6 text-primary" aria-hidden="true" />
-              <h2 id="check-heading" className="mt-4 text-xl font-semibold">
-                Before you agree or pay
-              </h2>
-              <ul className="mt-4 list-disc space-y-2 pl-5 text-sm leading-6 text-muted-foreground">
+        <EditorialSection>
+          <div className="grid gap-5 lg:grid-cols-2">
+            <Callout icon={CheckCircle2} title="Before you agree or pay">
+              <ul className="list-disc space-y-2 pl-5">
                 <li>Confirm you are speaking to the contact shown on the profile.</li>
                 <li>Ask for scope, price, timing and refund terms in writing.</li>
                 <li>Check relevant professional licences with the issuing body.</li>
                 <li>Use a traceable payment method and retain receipts.</li>
                 <li>Protect passwords, one-time codes and unnecessary identity documents.</li>
               </ul>
-            </CardContent>
-          </Card>
-          <Card className="border-amber-300/60 bg-amber-50/70">
-            <CardContent className="p-6 text-amber-950 sm:p-7">
-              <AlertTriangle className="size-6" aria-hidden="true" />
-              <h2 className="mt-4 text-xl font-semibold">Where our role stops</h2>
-              <p className="mt-3 text-sm leading-6 text-amber-900/80">
-                GainHub does not hold payment, inspect every workplace, guarantee provider conduct
-                or replace regulators and emergency services. A report helps us assess the platform
-                record; it is not a police report or emergency response.
-              </p>
-            </CardContent>
-          </Card>
-        </section>
-
-        <section
-          className="rounded-[2rem] bg-ink p-7 text-ink-foreground sm:p-10"
-          aria-labelledby="report-heading"
-        >
-          <div className="grid gap-7 md:grid-cols-[1fr_auto] md:items-center">
-            <div>
-              <p className="eyebrow text-sidebar-primary">Private reporting</p>
-              <h2 id="report-heading" className="mt-3 text-3xl font-bold">
-                Give the queue facts it can act on.
-              </h2>
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-ink-foreground/70">
-                Identify the profile, review, room or member; choose the closest reason; and explain
-                what happened without publishing sensitive evidence. A successful submission returns
-                a reference, not an invented resolution deadline.
-              </p>
-            </div>
-            <Button asChild variant="secondary" size="lg">
-              <Link to="/report">Open report form</Link>
-            </Button>
+            </Callout>
+            <Callout icon={AlertTriangle} title="Where our role stops" tone="warning">
+              GainHub does not hold payment, inspect every workplace, guarantee provider conduct or
+              replace regulators and emergency services. A report helps us assess the platform
+              record; it is not a police report or emergency response.
+            </Callout>
           </div>
-        </section>
+        </EditorialSection>
+
+        <div className="mt-14">
+          <CtaBand
+            eyebrow="Private reporting"
+            title="Give the queue facts it can act on."
+            body="Identify the profile, review, room or member; choose the closest reason; and explain what happened without publishing sensitive evidence. A successful submission returns a reference, not an invented resolution deadline."
+            primary={{ to: "/report", label: "Open report form" }}
+          />
+        </div>
       </div>
     </PublicShell>
   );

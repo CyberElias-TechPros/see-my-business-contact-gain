@@ -167,9 +167,47 @@ try {
   );
   assert(Array.isArray(result.payload.data.rooms), "Sitemap room data was malformed");
 
+  result = await request(`/v1/businesses/${fixtureBusinessId}/reviews`);
+  assert(result.payload.data.items.length === 3, "Published fixture reviews were not readable");
+  assert(result.payload.data.summary.total === 3, "Review summary did not count published reviews");
+  assert(
+    Math.abs(result.payload.data.summary.average - 4.67) < 0.01,
+    `Review average was not derived from the reviews: ${result.payload.data.summary.average}`,
+  );
+  assert(
+    result.payload.data.items.every((review) => review.authorName.length > 0),
+    "Published reviews were missing their author",
+  );
+
+  result = await request(`/v1/businesses/${fixtureBusinessId}/related`);
+  assert(result.payload.data.length > 0, "Related businesses were not returned");
+  assert(
+    !result.payload.data.some((business) => business.id === fixtureBusinessId),
+    "Related businesses included the business itself",
+  );
+
+  result = await request("/v1/suggest?q=repair");
+  assert(result.payload.data.items.length > 0, "Search suggestions were empty");
+  assert(
+    result.payload.data.items.some((item) => item.type === "category"),
+    "Search suggestions did not include taxonomy matches",
+  );
+
+  result = await request("/v1/suggest?q=%20");
+  assert(result.payload.data.items.length === 0, "Short suggestion queries must not fan out");
+
   result = await request(`/v1/businesses/${fixtureBusinessId}`);
   assert(result.payload.data.name === "SwiftFix Lab — demo", "Business lookup by ID failed");
-  assert(result.payload.data.services.length === 2, "Business services were not included");
+  assert(result.payload.data.services.length === 3, "Business services were not included");
+  assert(result.payload.data.hours.length === 7, "Business opening hours were not included");
+  assert(
+    result.payload.data.hours.every((entry) => entry.label.length > 0),
+    "Opening hours were missing their day labels",
+  );
+  assert(
+    Array.isArray(result.payload.data.amenities) && result.payload.data.amenities.length > 0,
+    "Published profile amenities were not returned",
+  );
 
   result = await request("/v1/auth/register", { method: "POST", body: {}, expected: 403 });
   assert(
@@ -582,6 +620,131 @@ try {
   });
   assert(result.payload.data.status === "contacted", "Owner could not update an enquiry status");
 
+  result = await request(`/v1/workspace/businesses/${fixtureBusinessId}`, {
+    authenticated: true,
+  });
+  assert(result.payload.data.slug === "demo-swiftfix", "Owner could not read a managed listing");
+
+  result = await request(`/v1/workspace/businesses/${fixtureBusinessId}`, {
+    method: "PATCH",
+    body: {
+      businessId: fixtureBusinessId,
+      tagline: "Same-day phone and laptop repairs in Ikeja",
+      about:
+        "An owner-managed description used by the local integration test to prove the workspace edit path persists end to end.",
+      whatsapp: "+2348000000001",
+      phone: "+2348000000001",
+      website: "https://example.com",
+      address: "14 Obafemi Awolowo Way, Ikeja, Lagos",
+      priceRange: "\u20a6\u20a6",
+      amenities: ["Walk-in welcome", "Card payment"],
+      serviceAreas: ["Ikeja", "Ogba"],
+      socials: [{ label: "Instagram", handle: "@swiftfix.demo" }],
+      hours: [
+        { dayOfWeek: 1, isClosed: false, opensAt: "09:00", closesAt: "19:00" },
+        { dayOfWeek: 3, isClosed: false, opensAt: "09:00", closesAt: "19:00" },
+      ],
+      services: [{ name: "Diagnostic check", price: "Free", note: "Quote first" }],
+    },
+    authenticated: true,
+    intent: true,
+  });
+  assert(result.payload.data.id === fixtureBusinessId, "Owner edit did not persist");
+
+  result = await request(`/v1/businesses/${fixtureBusinessId}`);
+  assert(
+    result.payload.data.services.length === 1 &&
+      result.payload.data.services[0].name === "Diagnostic check",
+    "Owner service edits were not reflected publicly",
+  );
+  assert(result.payload.data.hours.length === 2, "Owner opening-hours edits did not persist");
+
+  result = await request(`/v1/workspace/businesses/${fixtureBusinessId}`, {
+    method: "PATCH",
+    body: {
+      businessId: fixtureBusinessId,
+      tagline: "Same-day phone and laptop repairs in Ikeja",
+      about:
+        "An owner-managed description used by the local integration test to prove the workspace edit path persists end to end.",
+      whatsapp: "+2348000000001",
+      address: "14 Obafemi Awolowo Way, Ikeja, Lagos",
+      hours: [
+        { dayOfWeek: 1, isClosed: false, opensAt: "09:00", closesAt: "19:00" },
+        { dayOfWeek: 1, isClosed: false, opensAt: "11:00", closesAt: "15:00" },
+      ],
+    },
+    authenticated: true,
+    intent: true,
+    expected: 422,
+  });
+  assert(
+    result.payload.error.fields?.hours === "Each day may only appear once",
+    "Duplicate opening-hours days were accepted",
+  );
+
+  result = await request("/v1/workspace/insights?days=30", { authenticated: true });
+  assert(result.payload.data.totals.contacts >= 1, "Contact analytics did not count the event");
+  assert(
+    result.payload.data.byBusiness.some((business) => business.id === fixtureBusinessId),
+    "Contact analytics omitted the managed business",
+  );
+
+  result = await request("/v1/workspace/rooms", { authenticated: true });
+  assert(
+    result.payload.data.owned.some((room) => room.id === roomId),
+    "Owned contact circles were not returned",
+  );
+
+  result = await request("/v1/notifications", { authenticated: true });
+  assert(result.payload.data.unreadCount > 0, "Workflow notifications were not created");
+  assert(
+    result.payload.data.items.some((item) => item.kind === "listing.approved"),
+    "Listing approval did not notify the applicant",
+  );
+
+  result = await request("/v1/notifications/read", {
+    method: "POST",
+    body: { all: true },
+    authenticated: true,
+    intent: true,
+  });
+  result = await request("/v1/notifications", { authenticated: true });
+  assert(result.payload.data.unreadCount === 0, "Marking notifications read did not persist");
+
+  result = await request("/v1/me", {
+    method: "PATCH",
+    body: { fullName: "Smoke Test Renamed", email, phone },
+    authenticated: true,
+    intent: true,
+  });
+  assert(result.payload.data.user.fullName === "Smoke Test Renamed", "Profile update failed");
+
+  result = await request("/v1/auth/change-password", {
+    method: "POST",
+    body: {
+      currentPassword: "A-long-safe-passphrase-2026",
+      newPassword: "A-renewed-safe-passphrase-2026",
+    },
+    authenticated: true,
+    intent: true,
+  });
+  assert(result.payload.data.changed === true, "Password change failed");
+
+  result = await request("/v1/auth/change-password", {
+    method: "POST",
+    body: {
+      currentPassword: "A-long-safe-passphrase-2026",
+      newPassword: "Another-safe-passphrase-2026",
+    },
+    authenticated: true,
+    intent: true,
+    expected: 400,
+  });
+  assert(
+    result.payload.error.code === "INVALID_CREDENTIALS",
+    "Password change accepted a stale current password",
+  );
+
   result = await request("/v1/admin/queue", { authenticated: true });
   assert(
     !result.payload.data.items.reviews.some((item) => item.id === reviewId) &&
@@ -602,6 +765,81 @@ try {
 
   result = await request("/v1/auth/session", { authenticated: true });
   assert(result.payload.data.user === null, "Revoked session remained active");
+
+  result = await request("/v1/auth/forgot-password", {
+    method: "POST",
+    body: { identity: email },
+    intent: true,
+  });
+  assert(result.payload.data.accepted === true, "Password reset request was rejected");
+  assert(
+    typeof result.payload.data.devResetLink === "string" &&
+      result.payload.data.devResetLink.includes("reset="),
+    "Development reset link was not returned when no mail provider exists",
+  );
+  const resetToken = result.payload.data.devResetLink.split("reset=")[1];
+
+  const unknownIdentity = await request("/v1/auth/forgot-password", {
+    method: "POST",
+    body: { identity: `nobody-${runId}@example.com` },
+    intent: true,
+  });
+  assert(
+    unknownIdentity.payload.data.accepted === true &&
+      unknownIdentity.payload.data.devResetLink === undefined,
+    "Password reset leaked account existence",
+  );
+
+  result = await request(`/v1/auth/reset-password/${resetToken}`);
+  assert(result.payload.data.valid === true, "Issued reset token did not validate");
+  assert(
+    result.payload.data.identity.includes("***"),
+    "Reset validation returned an unmasked identity",
+  );
+
+  result = await request("/v1/auth/reset-password", {
+    method: "POST",
+    body: { token: "a".repeat(43), password: "Another-safe-passphrase-2026" },
+    intent: true,
+    expected: 400,
+  });
+  assert(
+    result.payload.error.code === "INVALID_RESET_TOKEN",
+    "An unknown reset token was accepted",
+  );
+
+  result = await request("/v1/auth/reset-password", {
+    method: "POST",
+    body: { token: resetToken, password: "A-third-safe-passphrase-2026" },
+    intent: true,
+  });
+  assert(result.payload.data.reset === true, "Password reset did not complete");
+
+  result = await request("/v1/auth/reset-password", {
+    method: "POST",
+    body: { token: resetToken, password: "A-fourth-safe-passphrase-2026" },
+    intent: true,
+    expected: 400,
+  });
+  assert(result.payload.error.code === "INVALID_RESET_TOKEN", "A consumed reset token was reused");
+
+  result = await request("/v1/auth/login", {
+    method: "POST",
+    body: { identity: email, password: "A-renewed-safe-passphrase-2026" },
+    intent: true,
+    expected: 401,
+  });
+  assert(
+    result.payload.error.code === "INVALID_CREDENTIALS",
+    "Reset did not invalidate the previous password",
+  );
+
+  result = await request("/v1/auth/login", {
+    method: "POST",
+    body: { identity: email, password: "A-third-safe-passphrase-2026" },
+    intent: true,
+  });
+  assert(result.payload.data.user.email === email, "Sign-in with the new password failed");
 
   console.log(`Worker integration smoke test passed (${checks} HTTP checks).`);
 } catch (error) {

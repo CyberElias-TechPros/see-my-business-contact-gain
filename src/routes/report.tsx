@@ -68,7 +68,7 @@ function ReportPage() {
         subtitle="Reports are private and never publish automatically. Give the moderation team specific, factual detail so it can assess the concern."
       />
       <div className="mx-auto grid max-w-5xl gap-8 px-5 py-12 lg:grid-cols-[1fr_19rem]">
-        <Card className="card-surface">
+        <Card className="rounded-3xl border-border/70">
           <CardContent className="p-6 sm:p-8">
             <form
               className="grid gap-5 sm:grid-cols-2"

@@ -60,9 +60,9 @@ function ClaimPage() {
       />
       <div className="mx-auto grid max-w-5xl gap-8 px-5 py-12 lg:grid-cols-[1fr_20rem]">
         {session.isLoading ? (
-          <div className="card-surface h-96 animate-pulse bg-muted" />
+          <div className="rounded-3xl border-border/70 h-96 animate-pulse bg-muted" />
         ) : !session.data?.user ? (
-          <Card className="card-surface border-dashed">
+          <Card className="rounded-3xl border-border/70 border-dashed">
             <CardContent className="grid min-h-96 place-items-center p-8 text-center">
               <div>
                 <span className="mx-auto grid size-14 place-items-center rounded-2xl bg-secondary text-primary">
@@ -82,7 +82,7 @@ function ClaimPage() {
             </CardContent>
           </Card>
         ) : !business ? (
-          <Card className="card-surface border-dashed">
+          <Card className="rounded-3xl border-border/70 border-dashed">
             <CardContent className="grid min-h-96 place-items-center p-8 text-center">
               <div>
                 <span className="mx-auto grid size-14 place-items-center rounded-2xl bg-secondary text-primary">
@@ -102,7 +102,7 @@ function ClaimPage() {
             </CardContent>
           </Card>
         ) : (
-          <Card className="card-surface">
+          <Card className="rounded-3xl border-border/70">
             <CardContent className="p-6 sm:p-8">
               <form
                 encType="multipart/form-data"

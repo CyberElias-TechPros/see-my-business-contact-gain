@@ -36,6 +36,29 @@ function assert(condition, message) {
   if (!condition) throw new Error(message);
 }
 
+/**
+ * Visible text of a document: strips tags, unwraps scripts/styles, collapses
+ * whitespace and decodes the entities the renderer emits.
+ *
+ * Assertions use this instead of raw markup so a change in how copy is split
+ * for animation (per-word reveal spans, for example) does not masquerade as
+ * missing content — only genuinely absent copy fails.
+ */
+function toText(html) {
+  return html
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#x27;|&apos;/g, "'")
+    .replace(/&nbsp;/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 async function waitFor(url, child, label) {
   const deadline = Date.now() + 30_000;
   while (Date.now() < deadline) {
@@ -115,7 +138,9 @@ try {
   await waitFor(webBase, web, "Vercel-target preview");
 
   let result = await page("/");
-  assert(result.text.includes("Find better."), "Home page hero was not server-rendered");
+  const homeText = toText(result.text);
+  assert(homeText.includes("Find better."), "Home page hero was not server-rendered");
+  assert(homeText.includes("Talk sooner."), "Home page hero second line was not server-rendered");
   assert(
     result.text.includes(`rel=\"canonical\" href=\"${canonicalOrigin}/\"`),
     "Canonical home URL is missing",
@@ -153,6 +178,7 @@ try {
     "/trust-safety",
     "/account",
     "/app",
+    "/app/businesses",
     "/admin",
   ]) {
     const rendered = await page(route);
@@ -161,7 +187,7 @@ try {
       !rendered.text.includes("INTERNAL_ERROR"),
       `${route}: internal error leaked into the page`,
     );
-    if (["/account", "/app", "/admin"].includes(route)) {
+    if (route.startsWith("/account") || route.startsWith("/app") || route.startsWith("/admin")) {
       assert(
         rendered.text.includes('content="noindex, nofollow"'),
         `${route}: private route is indexable`,
@@ -180,7 +206,10 @@ try {
   );
 
   result = await page("/business/demo-swiftfix");
-  assert(result.text.includes("Screen replacement"), "Live business services were not rendered");
+  assert(
+    toText(result.text).includes("Screen replacement"),
+    "Live business services were not rendered",
+  );
   assert(
     result.text.includes('"@type":"LocalBusiness"'),
     "LocalBusiness structured data is missing",

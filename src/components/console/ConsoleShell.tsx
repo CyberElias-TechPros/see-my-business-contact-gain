@@ -31,12 +31,18 @@ function NavList({ items }: { items: NavItem[] }) {
           <Link
             key={item.to}
             to={item.to}
-            className={`flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-semibold transition-colors ${
+            className={`relative flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-semibold transition-colors ${
               active
                 ? "bg-sidebar-primary/15 text-sidebar-primary"
                 : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
             }`}
           >
+            {active ? (
+              <span
+                className="absolute inset-y-1.5 left-0 w-0.5 rounded-full bg-sidebar-primary"
+                aria-hidden="true"
+              />
+            ) : null}
             <item.icon className="size-4 shrink-0" />
             <span className="truncate">{item.label}</span>
             {item.badge ? (
@@ -139,16 +145,17 @@ export function ConsoleShell({
     .join("");
 
   const sidebar = (
-    <div className="flex h-full flex-col gap-6 bg-sidebar p-4">
-      <div className="px-1 pt-1">
+    <div className="grain vignette relative flex h-full flex-col gap-6 overflow-hidden bg-sidebar p-4">
+      <div aria-hidden="true" className="aurora pointer-events-none opacity-25" />
+      <div className="relative px-1 pt-1">
         <Brand tone="invert" />
         <p className="eyebrow mt-5 text-sidebar-primary">{title}</p>
         <p className="mt-1 text-xs text-sidebar-foreground/55">{subtitle}</p>
       </div>
-      <div className="flex-1 overflow-y-auto pr-1">
+      <div className="relative flex-1 overflow-y-auto pr-1">
         <NavList items={items} />
       </div>
-      <div className="rounded-2xl border border-white/8 bg-sidebar-accent p-3">
+      <div className="relative rounded-2xl border border-white/8 bg-sidebar-accent p-3">
         <div className="flex items-center gap-3">
           <Avatar className="size-9">
             <AvatarFallback className="bg-sidebar-primary text-xs font-bold text-sidebar-primary-foreground">

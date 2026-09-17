@@ -71,7 +71,7 @@ function RoomPage() {
     return (
       <PublicShell>
         <div className="mx-auto max-w-5xl px-5 py-16">
-          <div className="card-surface h-96 animate-pulse bg-muted" />
+          <div className="rounded-3xl border-border/70 h-96 animate-pulse bg-muted" />
         </div>
       </PublicShell>
     );
@@ -111,10 +111,10 @@ function RoomPage() {
       />
       <div className="mx-auto grid max-w-5xl gap-8 px-5 py-12 lg:grid-cols-[1fr_20rem]">
         <div className="space-y-6">
-          <Card className="card-surface">
+          <Card className="rounded-3xl border-border/70">
             <CardContent className="p-6 sm:p-8">
               <p className="eyebrow text-primary">Published participation rules</p>
-              <h2 className="mt-3 text-2xl font-bold">Know what you are agreeing to</h2>
+              <h2 className="display-md mt-3">Know what you are agreeing to</h2>
               <p className="mt-5 whitespace-pre-wrap leading-7 text-muted-foreground">
                 {current.rules}
               </p>
@@ -125,9 +125,9 @@ function RoomPage() {
             </CardContent>
           </Card>
 
-          <Card className="card-surface">
+          <Card className="rounded-3xl border-border/70">
             <CardContent className="p-6 sm:p-8">
-              <h2 className="text-2xl font-bold">Apply with a published business</h2>
+              <h2 className="display-md">Apply with a published business</h2>
               {!session.data?.user ? (
                 <div className="mt-5 rounded-2xl border border-dashed p-6 text-center">
                   <LockKeyhole className="mx-auto size-6 text-primary" />
@@ -189,7 +189,7 @@ function RoomPage() {
         </div>
 
         <aside className="space-y-5">
-          <Card className="card-surface">
+          <Card className="rounded-3xl border-border/70">
             <CardContent className="p-6">
               <UsersRound className="size-6 text-primary" />
               <dl className="mt-5 space-y-4 text-sm">

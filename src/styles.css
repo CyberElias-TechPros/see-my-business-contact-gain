@@ -404,3 +404,458 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ========================================================================== */
+/* MOTION SYSTEM                                                              */
+/*                                                                            */
+/* One choreography language for the whole product:                           */
+/*   ENTER (reveal) → RESPOND (hover/tilt/spotlight) → SETTLE (ease)          */
+/*                                                                            */
+/* Rules that keep it alive rather than noisy:                                */
+/*   · only `opacity` and `transform` are animated (compositor-only);          */
+/*   · every entrance has one job — directing attention;                       */
+/*   · `prefers-reduced-motion` and script-less browsing land on the end state;*/
+/*   · the hidden state lives in CSS so SSR and hydration agree (no flash).    */
+/* ========================================================================== */
+
+@layer components {
+  /* --- Reveal ------------------------------------------------------------- */
+  .motion-reveal {
+    transition:
+      opacity 900ms var(--ease-out-expo),
+      transform 900ms var(--ease-out-expo),
+      filter 900ms var(--ease-out-expo),
+      clip-path 900ms var(--ease-out-expo);
+    will-change: opacity, transform;
+  }
+
+  .motion-reveal-up {
+    opacity: 0;
+    transform: translate3d(0, 34px, 0);
+  }
+  .motion-reveal-down {
+    opacity: 0;
+    transform: translate3d(0, -34px, 0);
+  }
+  .motion-reveal-left {
+    opacity: 0;
+    transform: translate3d(38px, 0, 0);
+  }
+  .motion-reveal-right {
+    opacity: 0;
+    transform: translate3d(-38px, 0, 0);
+  }
+  .motion-reveal-scale {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  .motion-reveal-blur {
+    opacity: 0;
+    filter: blur(14px);
+    transform: translate3d(0, 18px, 0);
+  }
+  .motion-reveal-mask {
+    clip-path: inset(0 0 100% 0);
+  }
+
+  .motion-reveal.is-revealed {
+    opacity: 1;
+    transform: none;
+    filter: none;
+    clip-path: inset(0 0 0 0);
+  }
+
+  /* --- Text reveal -------------------------------------------------------- */
+  .text-reveal {
+    display: inline;
+  }
+
+  .text-reveal__word {
+    display: inline-block;
+    overflow: hidden;
+    vertical-align: bottom;
+  }
+
+  .text-reveal__inner {
+    display: inline-block;
+    transform: translate3d(0, 110%, 0);
+    transition: transform 1s var(--ease-out-expo);
+  }
+
+  .text-reveal.is-revealed .text-reveal__inner {
+    transform: translate3d(0, 0, 0);
+  }
+
+  /* --- Tilt --------------------------------------------------------------- */
+  .tilt-surface {
+    --tilt-x: 0deg;
+    --tilt-y: 0deg;
+    --glare-x: 50%;
+    --glare-y: 50%;
+    position: relative;
+    transition: transform 420ms var(--ease-out-expo);
+    transform: perspective(900px) rotateX(var(--tilt-x)) rotateY(var(--tilt-y));
+    transform-style: preserve-3d;
+  }
+
+  .tilt-surface.is-enabled:hover {
+    transition-duration: 120ms;
+  }
+
+  .tilt-glare {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    border-radius: inherit;
+    background: radial-gradient(
+      220px circle at var(--glare-x) var(--glare-y),
+      oklch(1 0 0 / 0.16),
+      transparent 65%
+    );
+    opacity: 0;
+    transition: opacity 320ms ease;
+    pointer-events: none;
+  }
+
+  .tilt-surface.is-enabled:hover .tilt-glare {
+    opacity: 1;
+  }
+
+  /* --- Spotlight ---------------------------------------------------------- */
+  .spotlight {
+    --spot-x: 50%;
+    --spot-y: 50%;
+    position: relative;
+  }
+
+  .spotlight.is-enabled::after {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: radial-gradient(
+      300px circle at var(--spot-x) var(--spot-y),
+      color-mix(in oklab, var(--spot-color, var(--color-primary)), transparent 82%),
+      transparent 70%
+    );
+    content: "";
+    opacity: 0;
+    transition: opacity 400ms ease;
+    pointer-events: none;
+  }
+
+  .spotlight.is-enabled:hover::after {
+    opacity: 1;
+  }
+
+  /* --- Magnetic ----------------------------------------------------------- */
+  .magnetic {
+    --mag-x: 0px;
+    --mag-y: 0px;
+    display: inline-flex;
+    transform: translate3d(var(--mag-x), var(--mag-y), 0);
+    transition: transform 520ms var(--ease-out-expo);
+  }
+
+  .magnetic.is-enabled:hover {
+    transition-duration: 140ms;
+  }
+
+  /* --- Marquee ------------------------------------------------------------ */
+  .marquee {
+    position: relative;
+    display: flex;
+    overflow: hidden;
+    mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+  }
+
+  .marquee__track {
+    display: flex;
+    width: max-content;
+    animation: marquee-scroll linear infinite;
+  }
+
+  .marquee__track.is-reverse {
+    animation-direction: reverse;
+  }
+
+  .marquee__group {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+  }
+
+  /* --- Scroll progress ---------------------------------------------------- */
+  .scroll-progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 60;
+    height: 2px;
+    width: 100%;
+    background: transparent;
+    pointer-events: none;
+  }
+
+  .scroll-progress__bar {
+    display: block;
+    height: 100%;
+    width: 100%;
+    transform-origin: 0 50%;
+    background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
+  }
+
+  /* --- Route transition --------------------------------------------------- */
+  .route-transition {
+    animation: route-enter 620ms var(--ease-out-expo) both;
+  }
+
+  /* --- Custom cursor ------------------------------------------------------ */
+  .cursor-ring,
+  .cursor-dot {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 90;
+    border-radius: 999px;
+    pointer-events: none;
+  }
+
+  .cursor-ring {
+    width: 34px;
+    height: 34px;
+    margin: -17px 0 0 -17px;
+    border: 1.5px solid color-mix(in oklab, var(--color-primary), transparent 25%);
+    transition:
+      width 260ms var(--ease-out-expo),
+      height 260ms var(--ease-out-expo),
+      margin 260ms var(--ease-out-expo),
+      background-color 260ms ease,
+      border-color 260ms ease,
+      opacity 260ms ease;
+  }
+
+  .cursor-ring.is-active {
+    width: 56px;
+    height: 56px;
+    margin: -28px 0 0 -28px;
+    background: color-mix(in oklab, var(--color-primary), transparent 88%);
+    border-color: color-mix(in oklab, var(--color-primary), transparent 45%);
+  }
+
+  .cursor-dot {
+    width: 5px;
+    height: 5px;
+    margin: -2.5px 0 0 -2.5px;
+    background: var(--color-primary);
+  }
+
+  @media (hover: none), (pointer: coarse) {
+    .cursor-ring,
+    .cursor-dot {
+      display: none;
+    }
+  }
+
+  /* --- Atmosphere --------------------------------------------------------- */
+  .grain::before {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.42'/%3E%3C/svg%3E");
+    opacity: 0.16;
+    content: "";
+    pointer-events: none;
+    mix-blend-mode: soft-light;
+  }
+
+  .aurora {
+    position: absolute;
+    inset: -30% -10%;
+    z-index: 0;
+    background:
+      radial-gradient(38% 46% at 18% 32%, oklch(0.72 0.17 148 / 0.34), transparent 62%),
+      radial-gradient(32% 44% at 78% 22%, oklch(0.84 0.16 88 / 0.3), transparent 64%),
+      radial-gradient(40% 50% at 62% 78%, oklch(0.6 0.14 208 / 0.2), transparent 66%);
+    filter: blur(38px);
+    animation: aurora-drift 26s ease-in-out infinite alternate;
+    pointer-events: none;
+  }
+
+  .vignette::after {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(120% 90% at 50% 30%, transparent 42%, oklch(0.12 0.03 158 / 0.5));
+    content: "";
+    pointer-events: none;
+  }
+
+  /* Generative listing cover. No photography pipeline, so identity is derived
+     deterministically from the business id instead of a stock placeholder. */
+  .cover-generative {
+    --cover-hue: 150;
+    --cover-hue-2: 92;
+    position: relative;
+    overflow: hidden;
+    background:
+      radial-gradient(120% 120% at 12% 8%, oklch(0.72 0.16 var(--cover-hue)) 0%, transparent 58%),
+      radial-gradient(
+        100% 110% at 88% 92%,
+        oklch(0.78 0.15 var(--cover-hue-2)) 0%,
+        transparent 60%
+      ),
+      linear-gradient(140deg, oklch(0.26 0.05 var(--cover-hue)), oklch(0.14 0.03 var(--cover-hue)));
+  }
+
+  .cover-generative::after {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(oklch(1 0 0 / 0.09) 1px, transparent 1px),
+      linear-gradient(90deg, oklch(1 0 0 / 0.09) 1px, transparent 1px);
+    background-size: 26px 26px;
+    content: "";
+    mask-image: radial-gradient(circle at 30% 20%, black, transparent 72%);
+  }
+
+  /* --- Editorial helpers -------------------------------------------------- */
+  .display-xl {
+    font-size: clamp(3rem, 8.4vw, 7.5rem);
+    font-weight: 800;
+    line-height: 0.86;
+    letter-spacing: -0.055em;
+  }
+
+  .display-lg {
+    font-size: clamp(2.4rem, 5.4vw, 4.4rem);
+    font-weight: 800;
+    line-height: 0.94;
+    letter-spacing: -0.045em;
+  }
+
+  .display-md {
+    font-size: clamp(1.9rem, 3.4vw, 2.9rem);
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.04em;
+  }
+
+  .hairline {
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in oklab, var(--color-border), var(--color-primary) 30%),
+      transparent
+    );
+  }
+
+  .link-underline {
+    background-image: linear-gradient(currentColor, currentColor);
+    background-repeat: no-repeat;
+    background-position: 0 100%;
+    background-size: 0% 1px;
+    transition: background-size 420ms var(--ease-out-expo);
+  }
+
+  .link-underline:hover,
+  .link-underline:focus-visible {
+    background-size: 100% 1px;
+  }
+}
+
+@keyframes marquee-scroll {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+@keyframes route-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes aurora-drift {
+  from {
+    transform: translate3d(-3%, -2%, 0) scale(1);
+  }
+  to {
+    transform: translate3d(3%, 3%, 0) scale(1.12);
+  }
+}
+
+/* Script-less visitors must never meet an invisible page. */
+@media (scripting: none) {
+  .motion-reveal,
+  .motion-reveal-up,
+  .motion-reveal-down,
+  .motion-reveal-left,
+  .motion-reveal-right,
+  .motion-reveal-scale,
+  .motion-reveal-blur {
+    opacity: 1;
+    filter: none;
+    transform: none;
+  }
+
+  .motion-reveal-mask {
+    clip-path: none;
+  }
+
+  .text-reveal__inner {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .motion-reveal,
+  .motion-reveal-up,
+  .motion-reveal-down,
+  .motion-reveal-left,
+  .motion-reveal-right,
+  .motion-reveal-scale,
+  .motion-reveal-blur {
+    opacity: 1;
+    filter: none;
+    transform: none;
+    transition: none;
+  }
+
+  .motion-reveal-mask {
+    clip-path: none;
+  }
+
+  .text-reveal__inner {
+    transform: none;
+    transition: none;
+  }
+
+  .marquee__track,
+  .aurora,
+  .route-transition {
+    animation: none;
+  }
+
+  .tilt-surface {
+    transform: none;
+    transition: none;
+  }
+
+  .magnetic {
+    transform: none;
+    transition: none;
+  }
+
+  .cursor-ring,
+  .cursor-dot {
+    display: none;
+  }
+}

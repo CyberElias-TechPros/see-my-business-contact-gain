@@ -1,7 +1,8 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, Eye, MessageCircle, ShieldCheck, Store } from "lucide-react";
+import { createFileRoute } from "@tanstack/react-router";
+import { Eye, MessageCircle, ShieldCheck, Store } from "lucide-react";
+import { Reveal } from "@/components/motion";
+import { CtaBand, EditorialSection, StepList } from "@/components/site/editorial";
 import { PageHead, PublicShell } from "@/components/site/PublicShell";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
 export const Route = createFileRoute("/about")({
@@ -47,6 +48,36 @@ const principles = [
   },
 ];
 
+const surface = [
+  ["Directory", "Current published profiles"],
+  ["Workspace", "Owned listings and enquiries"],
+  ["Circles", "Explicit opt-in membership"],
+  ["Moderation", "Evidence and accountable queues"],
+] as const;
+
+const flow = [
+  {
+    title: "Apply with consent",
+    text: "Businesses apply with public profile details and consent to the listing terms.",
+  },
+  {
+    title: "Review before publishing",
+    text: "The directory publishes reviewed records; preview records remain visibly separate.",
+  },
+  {
+    title: "Search with intent",
+    text: "Customers filter by need and city, then enquire or choose an available contact route.",
+  },
+  {
+    title: "Owners see their own",
+    text: "Owners see only their own listings and enquiries in an authenticated workspace.",
+  },
+  {
+    title: "Moderation stays bounded",
+    text: "Reports, corrections, claims and circle applications enter bounded moderation workflows.",
+  },
+];
+
 function AboutPage() {
   return (
     <PublicShell>
@@ -55,130 +86,94 @@ function AboutPage() {
         title="A clearer path from “who can help?” to “let’s talk.”"
         subtitle="GainHub NG is a Nigerian local-business directory built around practical information, honest trust signals and direct conversation."
       />
-      <div className="mx-auto max-w-6xl space-y-16 px-4 py-14">
-        <section
-          className="grid gap-8 lg:grid-cols-[1.15fr_0.85fr] lg:items-start"
-          aria-labelledby="why-heading"
-        >
-          <div>
-            <p className="eyebrow">Why this exists</p>
-            <h2
-              id="why-heading"
-              className="mt-3 max-w-2xl text-3xl font-bold leading-tight sm:text-4xl"
-            >
-              Local recommendations already travel through conversation. Discovery should make that
-              conversation better.
-            </h2>
-            <div className="mt-6 max-w-2xl space-y-4 text-base leading-8 text-muted-foreground">
-              <p>
-                People often know the service they need but not which nearby business is suitable.
-                Businesses, meanwhile, struggle to tell which calls and chats came from a directory.
-                GainHub connects those two moments without pretending the directory completes the
-                transaction itself.
-              </p>
-              <p>
-                Search narrows the field. A profile provides context. An enquiry or deliberate
-                contact action creates the hand-off. The business and customer still decide whether,
-                and how, to work together.
-              </p>
-            </div>
-          </div>
-          <Card className="network-stage overflow-hidden text-ink-foreground shadow-lift">
-            <CardContent className="p-7 sm:p-8">
-              <p className="eyebrow text-sidebar-primary">The product boundary</p>
-              <p className="mt-5 font-display text-3xl font-bold leading-tight">
-                Enough signal to choose. No invented certainty.
-              </p>
-              <div className="mt-8 grid grid-cols-2 gap-px overflow-hidden rounded-2xl bg-white/10">
-                {[
-                  ["Directory", "Current published profiles"],
-                  ["Workspace", "Owned listings and enquiries"],
-                  ["Circles", "Explicit opt-in membership"],
-                  ["Moderation", "Evidence and accountable queues"],
-                ].map(([label, value]) => (
-                  <div key={label} className="bg-ink/80 p-4">
-                    <p className="text-xs font-bold uppercase tracking-widest text-sidebar-primary">
-                      {label}
-                    </p>
-                    <p className="mt-2 text-sm leading-5 text-ink-foreground/75">{value}</p>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </section>
 
-        <section aria-labelledby="principles-heading">
-          <p className="eyebrow">Product principles</p>
-          <h2 id="principles-heading" className="mt-3 text-3xl font-bold">
-            The rules behind the routes
-          </h2>
-          <div className="mt-7 grid gap-4 md:grid-cols-2">
-            {principles.map((principle, index) => (
-              <Card key={principle.title} className="card-surface h-full">
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between gap-4">
-                    <span className="grid size-11 place-items-center rounded-xl bg-primary/10 text-primary">
-                      <principle.icon className="size-5" aria-hidden="true" />
-                    </span>
-                    <span className="font-display text-3xl font-bold text-border">
-                      0{index + 1}
-                    </span>
+      <div className="mx-auto max-w-6xl px-5 py-16">
+        <EditorialSection
+          eyebrow="Why this exists"
+          title="Local recommendations already travel through conversation. Discovery should make that conversation better."
+          aside={
+            <Reveal delay={1}>
+              <Card className="grain relative overflow-hidden rounded-3xl bg-ink text-ink-foreground shadow-lift">
+                <CardContent className="relative p-7">
+                  <p className="eyebrow text-sidebar-primary">The product boundary</p>
+                  <p className="mt-4 font-display text-2xl font-extrabold leading-tight">
+                    Enough signal to choose. No invented certainty.
+                  </p>
+                  <div className="mt-7 grid grid-cols-2 gap-px overflow-hidden rounded-2xl bg-white/10">
+                    {surface.map(([label, value]) => (
+                      <div key={label} className="bg-ink/80 p-4">
+                        <p className="text-xs font-bold uppercase tracking-widest text-sidebar-primary">
+                          {label}
+                        </p>
+                        <p className="mt-2 text-sm leading-5 text-ink-foreground/72">{value}</p>
+                      </div>
+                    ))}
                   </div>
-                  <h3 className="mt-5 text-lg font-semibold">{principle.title}</h3>
-                  <p className="mt-2 text-sm leading-6 text-muted-foreground">{principle.text}</p>
                 </CardContent>
               </Card>
-            ))}
-          </div>
-        </section>
-
-        <section
-          className="rounded-[2rem] border bg-secondary/45 p-7 sm:p-10"
-          aria-labelledby="how-heading"
+            </Reveal>
+          }
         >
-          <div className="grid gap-8 lg:grid-cols-[0.8fr_1.2fr]">
-            <div>
-              <p className="eyebrow">How it works today</p>
-              <h2 id="how-heading" className="mt-3 text-3xl font-bold">
-                Small surface. Real workflows.
-              </h2>
-            </div>
-            <ol className="space-y-5">
-              {[
-                "Businesses apply with public profile details and consent to the listing terms.",
-                "The directory publishes reviewed records; preview records remain visibly separate.",
-                "Customers filter by need and city, then enquire or choose an available contact route.",
-                "Owners see only their own listings and enquiries in an authenticated workspace.",
-                "Reports, corrections, claims and circle applications enter bounded moderation workflows.",
-              ].map((step, index) => (
-                <li key={step} className="flex gap-4 text-sm leading-6">
-                  <span className="grid size-8 shrink-0 place-items-center rounded-full bg-ink font-bold text-ink-foreground">
-                    {index + 1}
-                  </span>
-                  <p className="pt-1 text-muted-foreground">{step}</p>
-                </li>
-              ))}
-            </ol>
+          <div className="max-w-2xl space-y-5 text-base leading-8 text-muted-foreground">
+            <p>
+              People often know the service they need but not which nearby business is suitable.
+              Businesses, meanwhile, struggle to tell which calls and chats came from a directory.
+              GainHub connects those two moments without pretending the directory completes the
+              transaction itself.
+            </p>
+            <p>
+              Search narrows the field. A profile provides context. An enquiry or deliberate contact
+              action creates the hand-off. The business and customer still decide whether, and how,
+              to work together.
+            </p>
           </div>
-        </section>
+        </EditorialSection>
 
-        <section className="text-center" aria-labelledby="next-heading">
-          <p className="eyebrow">Choose your route</p>
-          <h2 id="next-heading" className="mt-3 text-3xl font-bold">
-            Find help, or put your work on the map.
-          </h2>
-          <div className="mt-6 flex flex-wrap justify-center gap-3">
-            <Button asChild size="lg">
-              <Link to="/search">
-                Search the directory <ArrowRight aria-hidden="true" />
-              </Link>
-            </Button>
-            <Button asChild size="lg" variant="outline">
-              <Link to="/join">Apply for a free listing</Link>
-            </Button>
-          </div>
-        </section>
+        <EditorialSection
+          id="principles"
+          eyebrow="Product principles"
+          title="The rules behind the routes"
+        >
+          <ul className="grid gap-4 md:grid-cols-2">
+            {principles.map((principle, index) => (
+              <Reveal as="li" key={principle.title} delay={index % 2} className="h-full">
+                <Card className="group h-full rounded-3xl border-border/70 transition-[border-color,box-shadow] duration-500 hover:border-primary/30 hover:shadow-lift">
+                  <CardContent className="p-6">
+                    <div className="flex items-start justify-between gap-4">
+                      <span className="grid size-11 place-items-center rounded-2xl bg-secondary text-primary transition-transform duration-500 group-hover:-rotate-6 group-hover:scale-110">
+                        <principle.icon className="size-5" aria-hidden="true" />
+                      </span>
+                      <span className="font-display text-3xl font-extrabold text-border">
+                        0{index + 1}
+                      </span>
+                    </div>
+                    <h3 className="mt-5 text-lg font-bold">{principle.title}</h3>
+                    <p className="mt-2.5 text-sm leading-6 text-muted-foreground">
+                      {principle.text}
+                    </p>
+                  </CardContent>
+                </Card>
+              </Reveal>
+            ))}
+          </ul>
+        </EditorialSection>
+
+        <EditorialSection
+          id="how"
+          eyebrow="How it works today"
+          title="Small surface. Real workflows."
+        >
+          <StepList steps={flow} />
+        </EditorialSection>
+
+        <div className="mt-14">
+          <CtaBand
+            eyebrow="Choose your route"
+            title="Find help, or put your work on the map."
+            primary={{ to: "/search", label: "Search the directory" }}
+            secondary={{ to: "/join", label: "Apply for a free listing" }}
+          />
+        </div>
       </div>
     </PublicShell>
   );

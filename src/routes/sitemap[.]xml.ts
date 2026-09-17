@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { categories, locations } from "@/data/mock";
-import type { ApiSuccess } from "@/lib/contracts";
+import { DirectoryUnavailableError, querySitemapFeed, queryTaxonomy } from "@/lib/directory.server";
 
 const staticPaths = [
   "/",
@@ -19,11 +18,6 @@ const staticPaths = [
   "/legal/cookies",
 ];
 
-type DynamicSitemap = {
-  businesses: Array<{ slug: string; updated_at: string }>;
-  rooms: Array<{ id: string; updated_at: string }>;
-};
-
 type SitemapEntry = { path: string; lastModified?: string };
 
 function configuredOrigin(request: Request): string | null {
@@ -32,19 +26,6 @@ function configuredOrigin(request: Request): string | null {
     const url = new URL(configured || request.url);
     if (process.env["NODE_ENV"] === "production" && url.protocol !== "https:") return null;
     return url.origin;
-  } catch {
-    return null;
-  }
-}
-
-function apiOrigin(): URL | null {
-  const configured = process.env["CLOUDFLARE_API_URL"]?.trim();
-  try {
-    return configured
-      ? new URL(configured)
-      : process.env["NODE_ENV"] === "production"
-        ? null
-        : new URL("http://127.0.0.1:8787");
   } catch {
     return null;
   }
@@ -68,26 +49,26 @@ function sitemapEntry(path: string, updatedAt: string): SitemapEntry {
   return Number.isNaN(date.valueOf()) ? { path } : { path, lastModified: date.toISOString() };
 }
 
+/**
+ * Published listings and circles come from the Worker. A transient API failure
+ * degrades the sitemap to its static and taxonomy URLs rather than failing the
+ * route, so crawlers never see a 500.
+ */
 async function dynamicEntries(): Promise<SitemapEntry[]> {
-  const origin = apiOrigin();
-  if (!origin) return [];
   try {
-    const response = await fetch(new URL("/v1/sitemap", origin), {
-      headers: { accept: "application/json" },
-      signal: AbortSignal.timeout(5_000),
-    });
-    if (!response.ok) return [];
-    const payload = (await response.json()) as ApiSuccess<DynamicSitemap>;
+    const [feed, taxonomy] = await Promise.all([querySitemapFeed(), queryTaxonomy()]);
     return [
-      ...payload.data.businesses.map((business) =>
+      ...taxonomy.categories.map((category) => ({ path: `/category/${category.slug}` })),
+      ...taxonomy.locations.map((location) => ({ path: `/locations/${location.slug}` })),
+      ...feed.businesses.map((business) =>
         sitemapEntry(`/business/${encodeURIComponent(business.slug)}`, business.updated_at),
       ),
-      ...payload.data.rooms.map((room) =>
+      ...feed.rooms.map((room) =>
         sitemapEntry(`/contact-gain/${encodeURIComponent(room.id)}`, room.updated_at),
       ),
     ];
-  } catch {
-    // Keep the static sitemap available during a transient API incident.
+  } catch (error) {
+    if (!(error instanceof DirectoryUnavailableError)) console.error("[sitemap]", error);
     return [];
   }
 }
@@ -100,8 +81,6 @@ export const Route = createFileRoute("/sitemap.xml")({
         if (!origin) return new Response("Sitemap is not configured.", { status: 503 });
         const entries: SitemapEntry[] = [
           ...staticPaths.map((path) => ({ path })),
-          ...categories.map((category) => ({ path: `/category/${category.slug}` })),
-          ...locations.map((location) => ({ path: `/locations/${location.slug}` })),
           ...(await dynamicEntries()),
         ];
         const body = [

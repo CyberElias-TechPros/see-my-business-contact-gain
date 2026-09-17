@@ -1,21 +1,30 @@
 import { z, type ZodType } from "zod";
 import {
+  businessHoursSchema,
+  changePasswordSchema,
   dataRequestSchema,
   directoryQuerySchema,
   enquirySchema,
   enquiryStatusSchema,
+  forgotPasswordSchema,
   listingApplicationSchema,
   loginSchema,
   moderationActionSchema,
+  notificationsReadSchema,
   registerSchema,
   reportSchema,
+  resetPasswordSchema,
   reviewSchema,
   roomApplicationSchema,
   roomProposalSchema,
   saveBusinessSchema,
   suggestionSchema,
   TERMS_VERSION,
+  updateBusinessSchema,
+  updateProfileSchema,
+  type BusinessHoursEntry,
   type PublicBusiness,
+  type PublicBusinessHours,
   type SessionUser,
 } from "../src/lib/contracts";
 
@@ -70,7 +79,78 @@ type BusinessRow = {
   whatsapp: string;
   phone: string;
   website: string;
+  price_range?: string;
+  amenities_json?: string;
+  service_areas_json?: string;
+  socials_json?: string;
 };
+
+/** Africa/Lagos is UTC+1 all year (no DST), so a fixed offset is exact. */
+const LAGOS_OFFSET_MINUTES = 60;
+const DAY_LABELS = [
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+] as const;
+
+function lagosNow(now = new Date()): { dayOfWeek: number; minutes: number } {
+  const shifted = new Date(now.getTime() + LAGOS_OFFSET_MINUTES * 60_000);
+  return {
+    dayOfWeek: shifted.getUTCDay(),
+    minutes: shifted.getUTCHours() * 60 + shifted.getUTCMinutes(),
+  };
+}
+
+function timeToMinutes(value: string): number {
+  const [hours = "0", minutes = "0"] = value.split(":");
+  return Number(hours) * 60 + Number(minutes);
+}
+
+function isOpenAt(hours: BusinessHoursEntry[], dayOfWeek: number, minutes: number): boolean {
+  return hours.some((entry) => {
+    if (entry.dayOfWeek !== dayOfWeek || entry.isClosed) return false;
+    const opens = timeToMinutes(entry.opensAt);
+    const closes = timeToMinutes(entry.closesAt);
+    // Overnight shift: open from opens through midnight and on to closes.
+    if (closes <= opens) return minutes >= opens || minutes < closes;
+    return minutes >= opens && minutes < closes;
+  });
+}
+
+function parseJsonArray<T>(value: string | undefined, fallback: T[]): T[] {
+  if (!value) return fallback;
+  try {
+    const parsed = JSON.parse(value) as unknown;
+    return Array.isArray(parsed) ? (parsed as T[]) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function publicHours(rows: BusinessHoursEntry[]): PublicBusinessHours[] {
+  return [...rows]
+    .sort((left, right) => left.dayOfWeek - right.dayOfWeek)
+    .map((entry) => ({ ...entry, label: DAY_LABELS[entry.dayOfWeek] ?? "" }));
+}
+
+function hoursFromRows(
+  rows: Array<{ day_of_week: number; is_closed: number; opens_at: string; closes_at: string }>,
+): BusinessHoursEntry[] {
+  return rows.map((row) => ({
+    dayOfWeek: row.day_of_week,
+    isClosed: Boolean(row.is_closed),
+    opensAt: row.opens_at,
+    closesAt: row.closes_at,
+  }));
+}
+
+async function businessNotificationsEnabled(): Promise<boolean> {
+  return true;
+}
 
 class HttpError extends Error {
   readonly status: number;
@@ -422,7 +502,48 @@ async function audit(
     .run();
 }
 
-function mapBusiness(row: BusinessRow): PublicBusiness {
+/**
+ * Deliver an in-app notification. Notifications are the only channel the product
+ * owns end to end, so they are synchronous with the workflow that produced them:
+ * a user is never told "an email was sent" unless one actually was.
+ */
+async function notify(
+  context: AppContext,
+  userId: string,
+  kind: string,
+  title: string,
+  body: string,
+  href = "",
+  entity: { type?: string; id?: string } = {},
+): Promise<void> {
+  await context.env.DB.prepare(
+    `INSERT INTO notifications
+       (id, user_id, kind, title, body, href, entity_type, entity_id, created_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+  )
+    .bind(
+      crypto.randomUUID(),
+      userId,
+      kind,
+      title,
+      body,
+      href,
+      entity.type ?? "",
+      entity.id ?? "",
+      new Date().toISOString(),
+    )
+    .run();
+}
+
+function mapBusiness(
+  row: BusinessRow,
+  extras?: {
+    hours?: BusinessHoursEntry[];
+    openNow?: boolean;
+    yearEstablished?: number | null;
+    teamSize?: string;
+  },
+): PublicBusiness {
   return {
     id: row.id,
     slug: row.slug,
@@ -438,15 +559,60 @@ function mapBusiness(row: BusinessRow): PublicBusiness {
     rating: Number(row.rating_average),
     reviewCount: row.review_count,
     verificationLevel: row.verification_level,
-    openNow: Boolean(row.is_open_now),
+    openNow: extras?.openNow ?? Boolean(row.is_open_now),
     whatsapp: row.whatsapp,
     phone: row.phone,
     website: row.website,
+    priceRange: row.price_range ?? "",
+    amenities: parseJsonArray<string>(row.amenities_json, []),
+    serviceAreas: parseJsonArray<string>(row.service_areas_json, []),
+    socials: parseJsonArray<{ label: string; handle: string }>(row.socials_json, []),
+    hours: publicHours(extras?.hours ?? []),
+    yearEstablished: extras?.yearEstablished ?? null,
+    teamSize: extras?.teamSize ?? "",
   };
 }
 
 function escapeLike(value: string): string {
   return value.replace(/[\\%_]/g, (match) => `\\${match}`);
+}
+
+async function hoursForBusinesses(
+  context: AppContext,
+  ids: string[],
+): Promise<Map<string, BusinessHoursEntry[]>> {
+  const result = new Map<string, BusinessHoursEntry[]>();
+  if (!ids.length) return result;
+  const chunkSize = 100;
+  for (let index = 0; index < ids.length; index += chunkSize) {
+    const chunk = ids.slice(index, index + chunkSize);
+    const placeholders = chunk.map(() => "?").join(", ");
+    const rows = await context.env.DB.prepare(
+      `SELECT business_id, day_of_week, is_closed, opens_at, closes_at
+         FROM business_hours
+        WHERE business_id IN (${placeholders})
+        ORDER BY business_id, day_of_week`,
+    )
+      .bind(...chunk)
+      .all<{
+        business_id: string;
+        day_of_week: number;
+        is_closed: number;
+        opens_at: string;
+        closes_at: string;
+      }>();
+    for (const row of rows.results) {
+      const list = result.get(row.business_id) ?? [];
+      list.push({
+        dayOfWeek: row.day_of_week,
+        isClosed: Boolean(row.is_closed),
+        opensAt: row.opens_at,
+        closesAt: row.closes_at,
+      });
+      result.set(row.business_id, list);
+    }
+  }
+  return result;
 }
 
 async function listBusinesses(context: AppContext): Promise<Response> {
@@ -463,6 +629,16 @@ async function listBusinesses(context: AppContext): Promise<Response> {
   const query = parsed.data;
   const clauses = ["b.status = 'published'"];
   const bindings: unknown[] = [];
+  const now = lagosNow();
+  const nowMinutes = String(now.minutes).padStart(4, "0");
+  // `HH:MM` strings compare chronologically, so the open/close test is a string
+  // comparison. The second branch covers overnight shifts (closes_at <= opens_at).
+  const openNowPredicate =
+    "EXISTS (SELECT 1 FROM business_hours h WHERE h.business_id = b.id" +
+    " AND h.day_of_week = ? AND h.is_closed = 0" +
+    " AND ((h.opens_at <= ? AND h.closes_at > ?)" +
+    " OR (h.closes_at <= h.opens_at AND (h.opens_at <= ? OR h.closes_at > ?))))";
+  const openNowBindings = [now.dayOfWeek, nowMinutes, nowMinutes, nowMinutes, nowMinutes];
 
   if (query.q) {
     const term = `%${escapeLike(query.q)}%`;
@@ -485,7 +661,10 @@ async function listBusinesses(context: AppContext): Promise<Response> {
     bindings.push(query.location);
   }
   if (query.verified) clauses.push("b.verification_level != 'unverified'");
-  if (query.openNow) clauses.push("b.is_open_now = 1");
+  if (query.openNow) {
+    clauses.push(openNowPredicate);
+    bindings.push(...openNowBindings);
+  }
   if (query.minRating > 0) {
     clauses.push("b.rating_average >= ?");
     bindings.push(query.minRating);
@@ -510,21 +689,44 @@ async function listBusinesses(context: AppContext): Promise<Response> {
       `SELECT b.id, b.slug, b.name, b.tagline, b.about, b.category_slug,
               c.name AS category_name, b.location_slug, b.city, b.state, b.address,
               b.rating_average, b.review_count, b.verification_level, b.is_open_now,
-              b.whatsapp, b.phone, b.website
+              b.whatsapp, b.phone, b.website, b.price_range, b.amenities_json,
+              b.service_areas_json, b.socials_json,
+              d.year_established, d.team_size
          FROM businesses b
          JOIN categories c ON c.slug = b.category_slug
+         LEFT JOIN business_profile_details d ON d.business_id = b.id
         WHERE ${where}
         ORDER BY ${sort}
         LIMIT ? OFFSET ?`,
     )
+      // Only the WHERE clause is parameterised in this statement, so `bindings` maps
+      // 1:1 onto the placeholders in SQL-text order. Open/closed state is derived in
+      // JS below, which keeps this list free of SELECT-clause parameters.
       .bind(...bindings, query.pageSize, offset)
-      .all<BusinessRow>(),
+      .all<BusinessRow & { year_established: number | null; team_size: string | null }>(),
   ]);
 
   const total = countRow?.total ?? 0;
+  const hoursById = await hoursForBusinesses(
+    context,
+    result.results.map((row) => row.id),
+  );
+
   return success(
     {
-      items: result.results.map(mapBusiness),
+      items: result.results.map((row) => {
+        const hours = hoursById.get(row.id) ?? [];
+        return mapBusiness(row, {
+          hours,
+          // Trust the hours-derived value whenever hours are published; otherwise fall
+          // back to the stored column so businesses with no hours keep their state.
+          openNow: hours.length
+            ? isOpenAt(hours, now.dayOfWeek, now.minutes)
+            : Boolean(row.is_open_now),
+          yearEstablished: row.year_established ?? null,
+          teamSize: row.team_size ?? "",
+        });
+      }),
       pagination: {
         page: query.page,
         pageSize: query.pageSize,
@@ -546,27 +748,238 @@ async function getBusiness(context: AppContext, identifier: string): Promise<Res
     `SELECT b.id, b.slug, b.name, b.tagline, b.about, b.category_slug,
             c.name AS category_name, b.location_slug, b.city, b.state, b.address,
             b.rating_average, b.review_count, b.verification_level, b.is_open_now,
-            b.whatsapp, b.phone, b.website
+            b.whatsapp, b.phone, b.website, b.price_range, b.amenities_json,
+            b.service_areas_json, b.socials_json,
+            d.year_established, d.team_size
        FROM businesses b
        JOIN categories c ON c.slug = b.category_slug
+       LEFT JOIN business_profile_details d ON d.business_id = b.id
       WHERE (b.slug = ? OR b.id = ?) AND b.status = 'published'`,
   )
     .bind(parsedIdentifier.data, parsedIdentifier.data)
-    .first<BusinessRow>();
+    .first<BusinessRow & { year_established: number | null; team_size: string | null }>();
   if (!row) throw new HttpError(404, "NOT_FOUND", "Business not found.");
 
-  const services = await context.env.DB.prepare(
-    `SELECT id, name, price, note
-       FROM business_services
-      WHERE business_id = ? AND is_active = 1
-      ORDER BY sort_order, id`,
-  )
-    .bind(row.id)
-    .all<{ id: string; name: string; price: string; note: string }>();
-  const business = mapBusiness(row);
+  const [services, hoursRows] = await Promise.all([
+    context.env.DB.prepare(
+      `SELECT id, name, price, note
+         FROM business_services
+        WHERE business_id = ? AND is_active = 1
+        ORDER BY sort_order, id`,
+    )
+      .bind(row.id)
+      .all<{ id: string; name: string; price: string; note: string }>(),
+    context.env.DB.prepare(
+      `SELECT day_of_week, is_closed, opens_at, closes_at
+         FROM business_hours WHERE business_id = ? ORDER BY day_of_week`,
+    )
+      .bind(row.id)
+      .all<{
+        day_of_week: number;
+        is_closed: number;
+        opens_at: string;
+        closes_at: string;
+      }>(),
+  ]);
+
+  const hours = hoursFromRows(hoursRows.results);
+  const current = lagosNow();
+  const business = mapBusiness(row, {
+    hours,
+    openNow: hours.length
+      ? isOpenAt(hours, current.dayOfWeek, current.minutes)
+      : Boolean(row.is_open_now),
+    yearEstablished: row.year_established ?? null,
+    teamSize: row.team_size ?? "",
+  });
   business.services = services.results;
   return success(business, context.requestId, {
     headers: { "cache-control": "public, max-age=30, s-maxage=180, stale-while-revalidate=600" },
+  });
+}
+
+/** Published reviews for one business. Reviews were previously write-only. */
+async function listBusinessReviews(context: AppContext, identifier: string): Promise<Response> {
+  const parsedIdentifier = z.string().trim().min(2).max(80).safeParse(identifier);
+  if (!parsedIdentifier.success) throw new HttpError(404, "NOT_FOUND", "Business not found.");
+  const business = await context.env.DB.prepare(
+    `SELECT id FROM businesses
+      WHERE (slug = ? OR id = ?) AND status = 'published'`,
+  )
+    .bind(parsedIdentifier.data, parsedIdentifier.data)
+    .first<{ id: string }>();
+  if (!business) throw new HttpError(404, "NOT_FOUND", "Business not found.");
+
+  const [rows, summary] = await Promise.all([
+    context.env.DB.prepare(
+      `SELECT r.id, r.rating, r.body, r.created_at, u.full_name AS author_name
+         FROM reviews r JOIN users u ON u.id = r.author_user_id
+        WHERE r.business_id = ? AND r.status = 'published'
+        ORDER BY r.created_at DESC
+        LIMIT 50`,
+    )
+      .bind(business.id)
+      .all<{ id: string; rating: number; body: string; created_at: string; author_name: string }>(),
+    context.env.DB.prepare(
+      `SELECT COUNT(*) AS total, COALESCE(AVG(rating), 0) AS average
+         FROM reviews WHERE business_id = ? AND status = 'published'`,
+    )
+      .bind(business.id)
+      .first<{ total: number; average: number }>(),
+  ]);
+
+  const distribution = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 } as Record<1 | 2 | 3 | 4 | 5, number>;
+  for (const row of rows.results) {
+    const bucket = Math.min(5, Math.max(1, Math.round(row.rating))) as 1 | 2 | 3 | 4 | 5;
+    distribution[bucket] += 1;
+  }
+
+  return success(
+    {
+      items: rows.results.map((row) => ({
+        id: row.id,
+        rating: row.rating,
+        body: row.body,
+        createdAt: row.created_at,
+        authorName: row.author_name,
+      })),
+      summary: {
+        average: Number((summary?.average ?? 0).toFixed(2)),
+        total: summary?.total ?? 0,
+        distribution,
+      },
+    },
+    context.requestId,
+    { headers: { "cache-control": "public, max-age=30, s-maxage=180" } },
+  );
+}
+
+/**
+ * Related published businesses, used for "more like this" internal linking.
+ * Falls back from same-category + same-city to same-category to same-city so a
+ * thin directory still produces useful links instead of an empty rail.
+ */
+async function relatedBusinesses(context: AppContext, identifier: string): Promise<Response> {
+  const parsedIdentifier = z.string().trim().min(2).max(80).safeParse(identifier);
+  if (!parsedIdentifier.success) throw new HttpError(404, "NOT_FOUND", "Business not found.");
+  const origin = await context.env.DB.prepare(
+    `SELECT id, category_slug, location_slug FROM businesses
+      WHERE (slug = ? OR id = ?) AND status = 'published'`,
+  )
+    .bind(parsedIdentifier.data, parsedIdentifier.data)
+    .first<{ id: string; category_slug: string; location_slug: string }>();
+  if (!origin) throw new HttpError(404, "NOT_FOUND", "Business not found.");
+
+  const rows = await context.env.DB.prepare(
+    `SELECT b.id, b.slug, b.name, b.tagline, b.about, b.category_slug,
+            c.name AS category_name, b.location_slug, b.city, b.state, b.address,
+            b.rating_average, b.review_count, b.verification_level, b.is_open_now,
+            b.whatsapp, b.phone, b.website, b.price_range, b.amenities_json,
+            b.service_areas_json, b.socials_json,
+            (CASE WHEN b.category_slug = ? AND b.location_slug = ? THEN 0
+                  WHEN b.category_slug = ? THEN 1
+                  ELSE 2 END) AS related_rank
+       FROM businesses b
+       JOIN categories c ON c.slug = b.category_slug
+      WHERE b.status = 'published' AND b.id != ?
+      ORDER BY related_rank, b.rating_average DESC, b.review_count DESC, b.id ASC
+      LIMIT 6`,
+  )
+    .bind(origin.category_slug, origin.location_slug, origin.category_slug, origin.id)
+    .all<BusinessRow & { related_rank: number }>();
+
+  const ids = rows.results.map((row) => row.id);
+  const hoursById = await hoursForBusinesses(context, ids);
+  const current = lagosNow();
+
+  return success(
+    rows.results.map((row) => {
+      const hours = hoursById.get(row.id) ?? [];
+      return mapBusiness(row, {
+        hours,
+        openNow: hours.length
+          ? isOpenAt(hours, current.dayOfWeek, current.minutes)
+          : Boolean(row.is_open_now),
+      });
+    }),
+    context.requestId,
+    { headers: { "cache-control": "public, max-age=60, s-maxage=600" } },
+  );
+}
+
+/**
+ * Type-ahead suggestions across businesses, categories, locations and services.
+ * Bounded and rate limited; it is a convenience surface, not a search index.
+ */
+async function searchSuggestions(context: AppContext): Promise<Response> {
+  await enforceRateLimit(context, "suggest", 120, 3_600);
+  const term = (context.url.searchParams.get("q") ?? "").trim().slice(0, 60);
+  if (term.length < 2) return success({ items: [] }, context.requestId);
+  const like = `%${escapeLike(term)}%`;
+
+  const [businesses, categories, locations, services] = await Promise.all([
+    context.env.DB.prepare(
+      `SELECT slug, name, city, state FROM businesses
+        WHERE status = 'published' AND (name LIKE ? ESCAPE '\\' OR tagline LIKE ? ESCAPE '\\')
+        ORDER BY rating_average DESC, name ASC LIMIT 5`,
+    )
+      .bind(like, like)
+      .all<{ slug: string; name: string; city: string; state: string }>(),
+    context.env.DB.prepare(
+      `SELECT slug, name FROM categories
+        WHERE is_active = 1 AND (name LIKE ? ESCAPE '\\' OR slug LIKE ? ESCAPE '\\')
+        ORDER BY sort_order LIMIT 4`,
+    )
+      .bind(like, like)
+      .all<{ slug: string; name: string }>(),
+    context.env.DB.prepare(
+      `SELECT slug, name, state FROM locations
+        WHERE is_active = 1 AND (name LIKE ? ESCAPE '\\' OR state LIKE ? ESCAPE '\\')
+        ORDER BY sort_order LIMIT 4`,
+    )
+      .bind(like, like)
+      .all<{ slug: string; name: string; state: string }>(),
+    context.env.DB.prepare(
+      `SELECT s.name AS service_name, b.slug AS business_slug, b.name AS business_name
+         FROM business_services s
+         JOIN businesses b ON b.id = s.business_id
+        WHERE s.is_active = 1 AND b.status = 'published' AND s.name LIKE ? ESCAPE '\\'
+        GROUP BY lower(s.name)
+        ORDER BY COUNT(*) DESC, s.name ASC LIMIT 4`,
+    )
+      .bind(like)
+      .all<{ service_name: string; business_slug: string; business_name: string }>(),
+  ]);
+
+  const items = [
+    ...businesses.results.map((row) => ({
+      type: "business" as const,
+      label: row.name,
+      hint: `${row.city}, ${row.state}`,
+      href: `/business/${row.slug}`,
+    })),
+    ...categories.results.map((row) => ({
+      type: "category" as const,
+      label: row.name,
+      hint: "Category",
+      href: `/category/${row.slug}`,
+    })),
+    ...locations.results.map((row) => ({
+      type: "location" as const,
+      label: row.name,
+      hint: row.state,
+      href: `/locations/${row.slug}`,
+    })),
+    ...services.results.map((row) => ({
+      type: "service" as const,
+      label: row.service_name,
+      hint: "Service",
+      href: `/search?q=${encodeURIComponent(row.service_name)}`,
+    })),
+  ].slice(0, 12);
+
+  return success({ items }, context.requestId, {
+    headers: { "cache-control": "public, max-age=30, s-maxage=300" },
   });
 }
 
@@ -873,6 +1286,28 @@ async function submitEnquiry(context: AppContext): Promise<Response> {
   await audit(context, user?.id ?? null, "enquiry.created", "enquiry", id, {
     businessId: input.businessId,
   });
+
+  // An enquiry nobody is told about is not a lead. Alert every authorised member
+  // of the business so the conversation can actually start.
+  const members = await context.env.DB.prepare(
+    `SELECT bm.user_id, b.name AS business_name
+       FROM business_members bm JOIN businesses b ON b.id = bm.business_id
+      WHERE bm.business_id = ?`,
+  )
+    .bind(input.businessId)
+    .all<{ user_id: string; business_name: string }>();
+  for (const member of members.results) {
+    await notify(
+      context,
+      member.user_id,
+      "enquiry.received",
+      `New enquiry for ${member.business_name}`,
+      `${input.name} asked about your services. Open the workspace to respond.`,
+      "/app",
+      { type: "enquiry", id },
+    );
+  }
+
   return success({ id, status: "new" }, context.requestId, { status: 201 });
 }
 
@@ -1318,16 +1753,41 @@ async function listSavedBusinesses(context: AppContext): Promise<Response> {
     `SELECT b.id, b.slug, b.name, b.tagline, b.about, b.category_slug,
             c.name AS category_name, b.location_slug, b.city, b.state, b.address,
             b.rating_average, b.review_count, b.verification_level, b.is_open_now,
-            b.whatsapp, b.phone, b.website
+            b.whatsapp, b.phone, b.website, b.price_range, b.amenities_json,
+            b.service_areas_json, b.socials_json,
+            d.year_established, d.team_size
        FROM saved_businesses s
        JOIN businesses b ON b.id = s.business_id AND b.status = 'published'
        JOIN categories c ON c.slug = b.category_slug
+       LEFT JOIN business_profile_details d ON d.business_id = b.id
       WHERE s.user_id = ?
       ORDER BY s.created_at DESC`,
   )
     .bind(auth.user.id)
-    .all<BusinessRow>();
-  return success({ items: rows.results.map(mapBusiness) }, context.requestId);
+    .all<BusinessRow & { year_established: number | null; team_size: string | null }>();
+
+  const hoursById = await hoursForBusinesses(
+    context,
+    rows.results.map((row) => row.id),
+  );
+  const current = lagosNow();
+
+  return success(
+    {
+      items: rows.results.map((row) => {
+        const hours = hoursById.get(row.id) ?? [];
+        return mapBusiness(row, {
+          hours,
+          openNow: hours.length
+            ? isOpenAt(hours, current.dayOfWeek, current.minutes)
+            : Boolean(row.is_open_now),
+          yearEstablished: row.year_established ?? null,
+          teamSize: row.team_size ?? "",
+        });
+      }),
+    },
+    context.requestId,
+  );
 }
 
 async function saveBusiness(context: AppContext): Promise<Response> {
@@ -1456,6 +1916,43 @@ async function availableBusinessSlug(
 
 const NOTE_REQUIRED_ACTIONS = new Set(["reject", "resolve", "dismiss", "complete", "contest"]);
 
+async function notifyRoomApplicant(
+  context: AppContext,
+  applicationId: string,
+  kind: string,
+  outcome: "approved" | "rejected",
+  note: string,
+): Promise<void> {
+  const application = await context.env.DB.prepare(
+    `SELECT a.user_id, r.name AS room_name, b.name AS business_name, r.status AS room_status
+       FROM room_applications a
+       JOIN contact_rooms r ON r.id = a.room_id
+       JOIN businesses b ON b.id = a.business_id
+      WHERE a.id = ?`,
+  )
+    .bind(applicationId)
+    .first<{
+      user_id: string;
+      room_name: string;
+      business_name: string;
+      room_status: string;
+    }>();
+  if (!application) return;
+  await notify(
+    context,
+    application.user_id,
+    kind,
+    outcome === "approved"
+      ? `${application.business_name} joined ${application.room_name}`
+      : `${application.business_name} was not admitted to ${application.room_name}`,
+    outcome === "approved"
+      ? "Your business is now listed in the circle and can receive member enquiries."
+      : note || "The circle owner or our team did not admit this application.",
+    "/app",
+    { type: "room_application", id: applicationId },
+  );
+}
+
 async function moderate(context: AppContext, queue: string, id: string): Promise<Response> {
   const auth = await requireAdmin(context);
   const body = await parseJson(
@@ -1527,6 +2024,18 @@ async function moderate(context: AppContext, queue: string, id: string): Promise
       )
         .bind(auth.user.id, input.note, now, input.id)
         .run();
+      if (application.applicant_user_id) {
+        await notify(
+          context,
+          application.applicant_user_id,
+          "listing.rejected",
+          `${application.business_name} was not published`,
+          input.note ||
+            "Our review team could not publish this listing yet. You may submit a corrected application.",
+          "/join",
+          { type: "listing_application", id: input.id },
+        );
+      }
     } else if (input.action === "approve") {
       const businessId = crypto.randomUUID();
       const slug = await availableBusinessSlug(context, application.business_name, businessId);
@@ -1577,6 +2086,17 @@ async function moderate(context: AppContext, queue: string, id: string): Promise
         );
       }
       await context.env.DB.batch(statements);
+      if (application.applicant_user_id) {
+        await notify(
+          context,
+          application.applicant_user_id,
+          "listing.approved",
+          `${application.business_name} is live`,
+          "Your listing passed review and is now published. You can refine details and opening hours from the workspace.",
+          `/business/${slug}`,
+          { type: "business", id: businessId },
+        );
+      }
       result = { ...result, businessId, slug };
     } else {
       throw new HttpError(
@@ -1587,10 +2107,18 @@ async function moderate(context: AppContext, queue: string, id: string): Promise
     }
   } else if (input.queue === "reviews") {
     const review = await context.env.DB.prepare(
-      "SELECT business_id, status FROM reviews WHERE id = ? AND status IN ('pending', 'disputed')",
+      `SELECT r.business_id, r.status, r.author_user_id, b.name AS business_name, b.slug AS business_slug
+         FROM reviews r JOIN businesses b ON b.id = r.business_id
+        WHERE r.id = ? AND r.status IN ('pending', 'disputed')`,
     )
       .bind(input.id)
-      .first<{ business_id: string; status: string }>();
+      .first<{
+        business_id: string;
+        status: string;
+        author_user_id: string;
+        business_name: string;
+        business_slug: string;
+      }>();
     if (!review) throw new HttpError(409, "NOT_PENDING", "This review is no longer pending.");
     const status =
       input.action === "approve" ? "published" : input.action === "reject" ? "rejected" : null;
@@ -1610,6 +2138,20 @@ async function moderate(context: AppContext, queue: string, id: string): Promise
           WHERE id = ?`,
       ).bind(review.business_id, review.business_id, now, review.business_id),
     ]);
+    await notify(
+      context,
+      review.author_user_id,
+      status === "published" ? "review.approved" : "review.rejected",
+      status === "published"
+        ? `Your review of ${review.business_name} is published`
+        : `Your review of ${review.business_name} was not published`,
+      status === "published"
+        ? "Thank you — your review is now visible on the business profile."
+        : input.note ||
+            "Our review team could not publish this review. You may submit a new one later.",
+      `/business/${review.business_slug}`,
+      { type: "review", id: input.id },
+    );
   } else if (input.queue === "claims") {
     const claim = await context.env.DB.prepare(
       `SELECT business_id, claimant_user_id, status FROM claims
@@ -1654,6 +2196,28 @@ async function moderate(context: AppContext, queue: string, id: string): Promise
       );
     }
     await context.env.DB.batch(statements);
+    await notify(
+      context,
+      claim.claimant_user_id,
+      status === "approved"
+        ? "claim.approved"
+        : status === "rejected"
+          ? "claim.rejected"
+          : "claim.updated",
+      status === "approved"
+        ? "Ownership confirmed"
+        : status === "rejected"
+          ? "Ownership claim was not approved"
+          : "Your ownership claim was updated",
+      status === "approved"
+        ? "Your evidence was accepted. The business workspace is now available to you."
+        : status === "rejected"
+          ? input.note ||
+            "We could not confirm ownership from the evidence supplied. You may reapply with stronger proof."
+          : `Claim status is now "${status}".`,
+      status === "approved" ? "/app" : "/claim",
+      { type: "claim", id: input.id },
+    );
   } else if (input.queue === "reports") {
     const status =
       input.action === "start_review"
@@ -1672,6 +2236,24 @@ async function moderate(context: AppContext, queue: string, id: string): Promise
       .run();
     if (write.meta.changes === 0)
       throw new HttpError(409, "NOT_PENDING", "This report is no longer open.");
+    const reporter = await context.env.DB.prepare(
+      "SELECT reporter_user_id FROM reports WHERE id = ?",
+    )
+      .bind(input.id)
+      .first<{ reporter_user_id: string | null }>();
+    if (reporter?.reporter_user_id) {
+      await notify(
+        context,
+        reporter.reporter_user_id,
+        status === "resolved" ? "report.resolved" : "report.updated",
+        status === "resolved" ? "Your report was resolved" : "Your report was updated",
+        status === "resolved"
+          ? input.note || "Thank you — our team has acted on this report."
+          : `Report status is now "${status}".`,
+        "/trust-safety",
+        { type: "report", id: input.id },
+      );
+    }
   } else if (input.queue === "rooms") {
     const status =
       input.action === "approve" ? "active" : input.action === "reject" ? "rejected" : null;
@@ -1684,6 +2266,24 @@ async function moderate(context: AppContext, queue: string, id: string): Promise
       .run();
     if (write.meta.changes === 0)
       throw new HttpError(409, "NOT_PENDING", "This room is no longer pending.");
+    const room = await context.env.DB.prepare(
+      "SELECT owner_user_id, name FROM contact_rooms WHERE id = ?",
+    )
+      .bind(input.id)
+      .first<{ owner_user_id: string; name: string }>();
+    if (room) {
+      await notify(
+        context,
+        room.owner_user_id,
+        status === "active" ? "room.approved" : "room.rejected",
+        status === "active" ? `${room.name} is live` : `${room.name} was not approved`,
+        status === "active"
+          ? "Your contact circle is now open for business applications."
+          : input.note || "This circle proposal did not meet our publication rules.",
+        status === "active" ? `/contact-gain/${input.id}` : "/contact-gain/create",
+        { type: "room", id: input.id },
+      );
+    }
   } else if (input.queue === "room_applications") {
     if (input.action === "approve") {
       const write = await context.env.DB.prepare(
@@ -1706,6 +2306,13 @@ async function moderate(context: AppContext, queue: string, id: string): Promise
           "The application is no longer queued or the room is full.",
         );
       }
+      await notifyRoomApplicant(
+        context,
+        input.id,
+        "room_application.approved",
+        "approved",
+        input.note,
+      );
     } else if (input.action === "reject") {
       const write = await context.env.DB.prepare(
         "UPDATE room_applications SET status = 'rejected', updated_at = ? WHERE id = ? AND status = 'queued'",
@@ -1714,6 +2321,13 @@ async function moderate(context: AppContext, queue: string, id: string): Promise
         .run();
       if (write.meta.changes === 0)
         throw new HttpError(409, "NOT_PENDING", "This application is no longer queued.");
+      await notifyRoomApplicant(
+        context,
+        input.id,
+        "room_application.rejected",
+        "rejected",
+        input.note,
+      );
     } else {
       throw new HttpError(
         422,
@@ -1739,6 +2353,26 @@ async function moderate(context: AppContext, queue: string, id: string): Promise
       .run();
     if (write.meta.changes === 0)
       throw new HttpError(409, "NOT_PENDING", "This suggestion is no longer pending.");
+    const suggestion = await context.env.DB.prepare(
+      "SELECT submitter_user_id, business_name FROM suggestions WHERE id = ?",
+    )
+      .bind(input.id)
+      .first<{ submitter_user_id: string | null; business_name: string }>();
+    if (suggestion?.submitter_user_id) {
+      await notify(
+        context,
+        suggestion.submitter_user_id,
+        status === "accepted" ? "suggestion.accepted" : "suggestion.updated",
+        status === "accepted"
+          ? `Thanks — your note about ${suggestion.business_name} was accepted`
+          : `Your suggestion about ${suggestion.business_name} was updated`,
+        status === "accepted"
+          ? "Our team has applied your correction to the directory."
+          : `Suggestion status is now "${status}".`,
+        "/suggest-business",
+        { type: "suggestion", id: input.id },
+      );
+    }
   } else if (input.queue === "data_requests") {
     const status =
       input.action === "mark_verifying"
@@ -1760,6 +2394,26 @@ async function moderate(context: AppContext, queue: string, id: string): Promise
       .run();
     if (write.meta.changes === 0)
       throw new HttpError(409, "NOT_PENDING", "This request is no longer active.");
+    const request = await context.env.DB.prepare(
+      "SELECT user_id, kind FROM data_requests WHERE id = ?",
+    )
+      .bind(input.id)
+      .first<{ user_id: string; kind: string }>();
+    if (request) {
+      await notify(
+        context,
+        request.user_id,
+        status === "completed" ? "data_request.completed" : "data_request.updated",
+        status === "completed"
+          ? "Your data request is complete"
+          : `Your data request moved to "${status}"`,
+        status === "completed"
+          ? input.note || `Your ${request.kind} request has been fulfilled.`
+          : input.note || `We are progressing your ${request.kind} request.`,
+        "/legal/data-request",
+        { type: "data_request", id: input.id },
+      );
+    }
   }
 
   await audit(context, auth.user.id, "admin.moderated", input.queue, input.id, {
@@ -1905,6 +2559,725 @@ async function adminQueue(context: AppContext): Promise<Response> {
   );
 }
 
+/* -------------------------------------------------------------------------- */
+/* Notifications                                                              */
+/* -------------------------------------------------------------------------- */
+
+async function listNotifications(context: AppContext): Promise<Response> {
+  const auth = await requireUser(context);
+  const [rows, unread] = await Promise.all([
+    context.env.DB.prepare(
+      `SELECT id, kind, title, body, href, read_at, created_at
+         FROM notifications WHERE user_id = ?
+        ORDER BY created_at DESC LIMIT 50`,
+    )
+      .bind(auth.user.id)
+      .all<{
+        id: string;
+        kind: string;
+        title: string;
+        body: string;
+        href: string;
+        read_at: string | null;
+        created_at: string;
+      }>(),
+    context.env.DB.prepare(
+      "SELECT COUNT(*) AS total FROM notifications WHERE user_id = ? AND read_at IS NULL",
+    )
+      .bind(auth.user.id)
+      .first<{ total: number }>(),
+  ]);
+  return success(
+    {
+      items: rows.results.map((row) => ({
+        id: row.id,
+        kind: row.kind,
+        title: row.title,
+        body: row.body,
+        href: row.href,
+        readAt: row.read_at,
+        createdAt: row.created_at,
+      })),
+      unreadCount: unread?.total ?? 0,
+    },
+    context.requestId,
+  );
+}
+
+async function markNotificationsRead(context: AppContext): Promise<Response> {
+  const auth = await requireUser(context);
+  const input = await parseJson(context.request, notificationsReadSchema);
+  const now = new Date().toISOString();
+  if (input.all || !input.ids?.length) {
+    await context.env.DB.prepare(
+      "UPDATE notifications SET read_at = ? WHERE user_id = ? AND read_at IS NULL",
+    )
+      .bind(now, auth.user.id)
+      .run();
+    return success({ updated: true }, context.requestId);
+  }
+  const placeholders = input.ids.map(() => "?").join(", ");
+  await context.env.DB.prepare(
+    `UPDATE notifications SET read_at = ?
+      WHERE user_id = ? AND read_at IS NULL AND id IN (${placeholders})`,
+  )
+    .bind(now, auth.user.id, ...input.ids)
+    .run();
+  return success({ updated: true }, context.requestId);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Owner analytics — the "contact gain" the product is named for               */
+/* -------------------------------------------------------------------------- */
+
+async function workspaceInsights(context: AppContext): Promise<Response> {
+  const auth = await requireUser(context);
+  const days = Math.min(90, Math.max(7, Number(context.url.searchParams.get("days") ?? 30) || 30));
+  const to = new Date();
+  const from = new Date(to.getTime() - days * 86_400_000);
+  const fromIso = from.toISOString();
+
+  const owned = context.env.DB.prepare(
+    `SELECT b.id, b.name, b.slug, b.rating_average, b.review_count
+       FROM businesses b JOIN business_members bm ON bm.business_id = b.id
+      WHERE bm.user_id = ?`,
+  ).bind(auth.user.id);
+
+  const [businesses, totals, byChannel, byDay, byBusiness, recent, enquiries] = await Promise.all([
+    owned.all<{
+      id: string;
+      name: string;
+      slug: string;
+      rating_average: number;
+      review_count: number;
+    }>(),
+    context.env.DB.prepare(
+      `SELECT COUNT(*) AS contacts, COUNT(DISTINCT e.visitor_hash) AS unique_visitors,
+              COUNT(CASE WHEN e.channel = 'whatsapp' THEN 1 END) AS whatsapp,
+              COUNT(CASE WHEN e.channel = 'phone' THEN 1 END) AS phone,
+              COUNT(CASE WHEN e.channel = 'website' THEN 1 END) AS website,
+              COUNT(CASE WHEN e.channel = 'directions' THEN 1 END) AS directions
+         FROM contact_events e
+         JOIN business_members bm ON bm.business_id = e.business_id
+        WHERE bm.user_id = ? AND e.created_at >= ?`,
+    )
+      .bind(auth.user.id, fromIso)
+      .first<{
+        contacts: number;
+        unique_visitors: number;
+        whatsapp: number;
+        phone: number;
+        website: number;
+        directions: number;
+      }>(),
+    context.env.DB.prepare(
+      `SELECT e.channel, COUNT(*) AS count
+         FROM contact_events e
+         JOIN business_members bm ON bm.business_id = e.business_id
+        WHERE bm.user_id = ? AND e.created_at >= ?
+        GROUP BY e.channel ORDER BY count DESC`,
+    )
+      .bind(auth.user.id, fromIso)
+      .all<{ channel: string; count: number }>(),
+    context.env.DB.prepare(
+      `SELECT substr(e.created_at, 1, 10) AS date,
+              COUNT(*) AS contacts,
+              0 AS enquiries
+         FROM contact_events e
+         JOIN business_members bm ON bm.business_id = e.business_id
+        WHERE bm.user_id = ? AND e.created_at >= ?
+        GROUP BY date ORDER BY date ASC`,
+    )
+      .bind(auth.user.id, fromIso)
+      .all<{ date: string; contacts: number; enquiries: number }>(),
+    context.env.DB.prepare(
+      `SELECT b.id, b.name, b.slug,
+              (SELECT COUNT(*) FROM contact_events e
+                WHERE e.business_id = b.id AND e.created_at >= ?) AS contacts,
+              (SELECT COUNT(DISTINCT e.visitor_hash) FROM contact_events e
+                WHERE e.business_id = b.id AND e.created_at >= ?) AS unique_visitors,
+              (SELECT COUNT(*) FROM enquiries q
+                WHERE q.business_id = b.id AND q.created_at >= ?) AS enquiries,
+              (SELECT COUNT(*) FROM saved_businesses s WHERE s.business_id = b.id) AS saved_by
+         FROM businesses b JOIN business_members bm ON bm.business_id = b.id
+        WHERE bm.user_id = ?
+        ORDER BY contacts DESC, b.name ASC`,
+    )
+      .bind(fromIso, fromIso, fromIso, auth.user.id)
+      .all<{
+        id: string;
+        name: string;
+        slug: string;
+        contacts: number;
+        unique_visitors: number;
+        enquiries: number;
+        saved_by: number;
+      }>(),
+    context.env.DB.prepare(
+      `SELECT e.channel, b.name AS business_name, e.created_at
+         FROM contact_events e
+         JOIN businesses b ON b.id = e.business_id
+         JOIN business_members bm ON bm.business_id = e.business_id
+        WHERE bm.user_id = ? AND e.created_at >= ?
+        ORDER BY e.created_at DESC LIMIT 12`,
+    )
+      .bind(auth.user.id, fromIso)
+      .all<{ channel: string; business_name: string; created_at: string }>(),
+    context.env.DB.prepare(
+      `SELECT substr(q.created_at, 1, 10) AS date, COUNT(*) AS enquiries
+         FROM enquiries q
+         JOIN business_members bm ON bm.business_id = q.business_id
+        WHERE bm.user_id = ? AND q.created_at >= ?
+        GROUP BY date`,
+    )
+      .bind(auth.user.id, fromIso)
+      .all<{ date: string; enquiries: number }>(),
+  ]);
+
+  const ratingById = new Map(businesses.results.map((row) => [row.id, row]));
+  const enquiryByDate = new Map(enquiries.results.map((row) => [row.date, row.enquiries]));
+  const totalsRow = totals ?? {
+    contacts: 0,
+    unique_visitors: 0,
+    whatsapp: 0,
+    phone: 0,
+    website: 0,
+    directions: 0,
+  };
+
+  return success(
+    {
+      range: { from: fromIso, to: to.toISOString() },
+      totals: {
+        contacts: totalsRow.contacts,
+        uniqueVisitors: totalsRow.unique_visitors,
+        enquiries: enquiries.results.reduce((sum, row) => sum + row.enquiries, 0),
+        whatsapp: totalsRow.whatsapp,
+        phone: totalsRow.phone,
+        website: totalsRow.website,
+        directions: totalsRow.directions,
+      },
+      byChannel: byChannel.results.map((row) => ({ channel: row.channel, count: row.count })),
+      byDay: byDay.results.map((row) => ({
+        date: row.date,
+        contacts: row.contacts,
+        enquiries: enquiryByDate.get(row.date) ?? 0,
+      })),
+      byBusiness: byBusiness.results.map((row) => ({
+        id: row.id,
+        name: row.name,
+        slug: row.slug,
+        contacts: row.contacts,
+        uniqueVisitors: row.unique_visitors,
+        enquiries: row.enquiries,
+        reviews: ratingById.get(row.id)?.review_count ?? 0,
+        rating: Number(ratingById.get(row.id)?.rating_average ?? 0),
+        savedBy: row.saved_by,
+      })),
+      recentContacts: recent.results.map((row) => ({
+        channel: row.channel,
+        businessName: row.business_name,
+        createdAt: row.created_at,
+      })),
+    },
+    context.requestId,
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* Owner listing management                                                    */
+/* -------------------------------------------------------------------------- */
+
+async function requireManagedBusiness(context: AuthContext, businessId: string) {
+  const row = await context.env.DB.prepare(
+    `SELECT b.id, b.slug, b.name, b.status
+       FROM businesses b JOIN business_members bm ON bm.business_id = b.id
+      WHERE b.id = ? AND bm.user_id = ?`,
+  )
+    .bind(businessId, context.user.id)
+    .first<{ id: string; slug: string; name: string; status: string }>();
+  if (!row) throw new HttpError(404, "NOT_FOUND", "Business not found.");
+  return row;
+}
+
+async function getManagedBusiness(context: AppContext, businessId: string): Promise<Response> {
+  const auth = await requireUser(context);
+  const business = await requireManagedBusiness(auth, businessId);
+  const [row, hours, services] = await Promise.all([
+    context.env.DB.prepare(
+      `SELECT tagline, about, whatsapp, phone, website, address, price_range,
+              amenities_json, service_areas_json, socials_json
+         FROM businesses WHERE id = ?`,
+    )
+      .bind(business.id)
+      .first<{
+        tagline: string;
+        about: string;
+        whatsapp: string;
+        phone: string;
+        website: string;
+        address: string;
+        price_range: string;
+        amenities_json: string;
+        service_areas_json: string;
+        socials_json: string;
+      }>(),
+    context.env.DB.prepare(
+      `SELECT day_of_week, is_closed, opens_at, closes_at
+         FROM business_hours WHERE business_id = ? ORDER BY day_of_week`,
+    )
+      .bind(business.id)
+      .all<{
+        day_of_week: number;
+        is_closed: number;
+        opens_at: string;
+        closes_at: string;
+      }>(),
+    context.env.DB.prepare(
+      `SELECT id, name, price, note FROM business_services
+        WHERE business_id = ? AND is_active = 1 ORDER BY sort_order, id`,
+    )
+      .bind(business.id)
+      .all<{ id: string; name: string; price: string; note: string }>(),
+  ]);
+  if (!row) throw new HttpError(404, "NOT_FOUND", "Business not found.");
+
+  return success(
+    {
+      id: business.id,
+      slug: business.slug,
+      name: business.name,
+      status: business.status,
+      tagline: row.tagline,
+      about: row.about,
+      whatsapp: row.whatsapp,
+      phone: row.phone,
+      website: row.website,
+      address: row.address,
+      priceRange: row.price_range ?? "",
+      amenities: parseJsonArray<string>(row.amenities_json, []),
+      serviceAreas: parseJsonArray<string>(row.service_areas_json, []),
+      socials: parseJsonArray<{ label: string; handle: string }>(row.socials_json, []),
+      hours: hoursFromRows(hours.results),
+      services: services.results,
+    },
+    context.requestId,
+  );
+}
+
+async function updateManagedBusiness(context: AppContext): Promise<Response> {
+  const auth = await requireUser(context);
+  const input = await parseJson(context.request, updateBusinessSchema);
+  const business = await requireManagedBusiness(auth, input.businessId);
+
+  const whatsapp = normalizePhone(input.whatsapp);
+  const phone = normalizePhone(input.phone);
+  const now = new Date().toISOString();
+
+  const hoursInput = input.hours ?? [];
+  const servicesInput = input.services ?? [];
+
+  // Duplicate days would silently overwrite in the upsert below; reject them first.
+  const seenDays = new Set<number>();
+  for (const entry of hoursInput) {
+    if (seenDays.has(entry.dayOfWeek)) {
+      throw new HttpError(422, "VALIDATION_ERROR", "Check the highlighted fields.", {
+        hours: "Each day may only appear once",
+      });
+    }
+    seenDays.add(entry.dayOfWeek);
+  }
+
+  const statements: D1PreparedStatement[] = [
+    context.env.DB.prepare(
+      `UPDATE businesses
+          SET tagline = ?, about = ?, whatsapp = ?, phone = ?, website = ?,
+              address = ?, price_range = ?, amenities_json = ?, service_areas_json = ?,
+              socials_json = ?, updated_at = ?
+        WHERE id = ?`,
+    ).bind(
+      input.tagline,
+      input.about,
+      whatsapp ?? "",
+      phone ?? "",
+      input.website,
+      input.address,
+      input.priceRange,
+      JSON.stringify(input.amenities),
+      JSON.stringify(input.serviceAreas),
+      JSON.stringify(input.socials),
+      now,
+      business.id,
+    ),
+    context.env.DB.prepare("UPDATE business_services SET is_active = 0 WHERE business_id = ?").bind(
+      business.id,
+    ),
+    context.env.DB.prepare("DELETE FROM business_hours WHERE business_id = ?").bind(business.id),
+  ];
+
+  servicesInput.forEach((service, index) => {
+    statements.push(
+      context.env.DB.prepare(
+        `INSERT INTO business_services
+           (id, business_id, name, price, note, sort_order, is_active)
+         VALUES (?, ?, ?, ?, ?, ?, 1)`,
+      ).bind(
+        crypto.randomUUID(),
+        business.id,
+        service.name,
+        service.price,
+        service.note,
+        (index + 1) * 10,
+      ),
+    );
+  });
+
+  for (const entry of hoursInput) {
+    statements.push(
+      context.env.DB.prepare(
+        `INSERT INTO business_hours (business_id, day_of_week, is_closed, opens_at, closes_at)
+         VALUES (?, ?, ?, ?, ?)`,
+      ).bind(
+        business.id,
+        entry.dayOfWeek,
+        entry.isClosed ? 1 : 0,
+        entry.isClosed ? "00:00" : entry.opensAt,
+        entry.isClosed ? "00:00" : entry.closesAt,
+      ),
+    );
+  }
+
+  await context.env.DB.batch(statements);
+  await audit(context, auth.user.id, "business.updated", "business", business.id, {
+    services: servicesInput.length,
+    hours: hoursInput.length,
+  });
+  void businessNotificationsEnabled();
+
+  return success({ id: business.id, updatedAt: now }, context.requestId);
+}
+
+async function listMyRooms(context: AppContext): Promise<Response> {
+  const auth = await requireUser(context);
+  const [owned, memberships] = await Promise.all([
+    context.env.DB.prepare(
+      `SELECT r.id, r.name, r.purpose, r.state, r.status,
+              COUNT(CASE WHEN a.status = 'approved' THEN 1 END) AS member_count,
+              COUNT(CASE WHEN a.status = 'queued' THEN 1 END) AS queued_count
+         FROM contact_rooms r
+         LEFT JOIN room_applications a ON a.room_id = r.id
+        WHERE r.owner_user_id = ?
+        GROUP BY r.id ORDER BY r.created_at DESC`,
+    )
+      .bind(auth.user.id)
+      .all<{
+        id: string;
+        name: string;
+        purpose: string;
+        state: string;
+        status: string;
+        member_count: number;
+        queued_count: number;
+      }>(),
+    context.env.DB.prepare(
+      `SELECT a.id, a.room_id, a.status, r.name AS room_name, b.name AS business_name,
+              b.slug AS business_slug, a.created_at
+         FROM room_applications a
+         JOIN contact_rooms r ON r.id = a.room_id
+         JOIN businesses b ON b.id = a.business_id
+         JOIN business_members bm ON bm.business_id = a.business_id
+        WHERE bm.user_id = ?
+        ORDER BY a.created_at DESC`,
+    )
+      .bind(auth.user.id)
+      .all<{
+        id: string;
+        room_id: string;
+        status: string;
+        room_name: string;
+        business_name: string;
+        business_slug: string;
+        created_at: string;
+      }>(),
+  ]);
+  return success(
+    {
+      owned: owned.results.map((row) => ({
+        id: row.id,
+        name: row.name,
+        purpose: row.purpose,
+        state: row.state,
+        status: row.status,
+        memberCount: row.member_count,
+        queuedCount: row.queued_count,
+      })),
+      applications: memberships.results.map((row) => ({
+        id: row.id,
+        roomId: row.room_id,
+        status: row.status,
+        roomName: row.room_name,
+        businessName: row.business_name,
+        businessSlug: row.business_slug,
+        createdAt: row.created_at,
+      })),
+    },
+    context.requestId,
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* Account management                                                          */
+/* -------------------------------------------------------------------------- */
+
+const RESET_TOKEN_MINUTES = 60;
+
+function maskIdentity(value: string | null): string {
+  if (!value) return "";
+  if (value.includes("@")) {
+    const [local = "", domain = ""] = value.split("@");
+    return `${local.slice(0, 2)}***@${domain}`;
+  }
+  return `${value.slice(0, 4)}***${value.slice(-2)}`;
+}
+
+async function queueOutbox(
+  context: AppContext,
+  toAddress: string,
+  subject: string,
+  body: string,
+  kind: string,
+): Promise<void> {
+  await context.env.DB.prepare(
+    `INSERT INTO outbox_messages (id, to_address, subject, body, kind, status, created_at)
+     VALUES (?, ?, ?, ?, ?, 'pending', ?)`,
+  )
+    .bind(crypto.randomUUID(), toAddress, subject, body, kind, new Date().toISOString())
+    .run();
+}
+
+async function forgotPassword(context: AppContext): Promise<Response> {
+  await enforceRateLimit(context, "auth-forgot", 5, 900);
+  const input = await parseJson(context.request, forgotPasswordSchema);
+  const identity = input.identity.trim();
+  const maybeEmail = identity.includes("@") ? normalizeEmail(identity) : null;
+  let maybePhone: string | null = null;
+  if (!maybeEmail) {
+    try {
+      maybePhone = normalizePhone(identity);
+    } catch {
+      maybePhone = null;
+    }
+  }
+
+  const user = await context.env.DB.prepare(
+    `SELECT id, email, phone FROM users
+      WHERE status = 'active' AND ((? IS NOT NULL AND email = ?) OR (? IS NOT NULL AND phone = ?))
+      LIMIT 1`,
+  )
+    .bind(maybeEmail, maybeEmail, maybePhone, maybePhone)
+    .first<{ id: string; email: string | null; phone: string | null }>();
+
+  // Always answer identically. Revealing whether an account exists turns this
+  // endpoint into an account-enumeration oracle.
+  const neutral = {
+    accepted: true,
+    message:
+      "If an active account matches those details, a reset link is on its way. It expires in 60 minutes.",
+  };
+
+  if (!user) {
+    await audit(context, null, "auth.password_reset_unmatched", "user", "unknown");
+    return success(neutral, context.requestId);
+  }
+
+  const token = bytesToBase64(crypto.getRandomValues(new Uint8Array(32)))
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
+  const now = new Date().toISOString();
+  const expiresAt = new Date(Date.now() + RESET_TOKEN_MINUTES * 60_000).toISOString();
+
+  await context.env.DB.batch([
+    // Revoke any outstanding token so only the newest link works.
+    context.env.DB.prepare(
+      "DELETE FROM password_resets WHERE user_id = ? AND consumed_at IS NULL",
+    ).bind(user.id),
+    context.env.DB.prepare(
+      `INSERT INTO password_resets (token_hash, user_id, expires_at, created_at, request_id)
+       VALUES (?, ?, ?, ?, ?)`,
+    ).bind(await sha256(token), user.id, expiresAt, now, context.requestId),
+  ]);
+
+  const destination = user.email ?? user.phone ?? "";
+  const link = `/auth?reset=${token}`;
+  await queueOutbox(
+    context,
+    destination,
+    "Reset your GainHub password",
+    `Use this link within ${RESET_TOKEN_MINUTES} minutes to choose a new password:\n${link}\n\n` +
+      "If you did not request this, no action is needed — the link expires on its own.",
+    "password_reset",
+  );
+  await audit(context, user.id, "auth.password_reset_requested", "user", user.id);
+
+  return success(
+    {
+      ...neutral,
+      // Never in production: without a transactional mail provider configured the
+      // link cannot leave the server, so the honest thing is to hand it back to the
+      // caller and say so, rather than claim an email was delivered.
+      ...(context.env.APP_ENV === "production"
+        ? {}
+        : { devResetLink: link, devNote: "No mail provider configured; link not emailed." }),
+    },
+    context.requestId,
+  );
+}
+
+async function validateResetToken(context: AppContext, token: string): Promise<Response> {
+  const parsed = z.string().trim().min(20).max(200).safeParse(token);
+  if (!parsed.success) return success({ valid: false }, context.requestId);
+  const row = await context.env.DB.prepare(
+    `SELECT pr.user_id, u.email, u.phone
+       FROM password_resets pr JOIN users u ON u.id = pr.user_id
+      WHERE pr.token_hash = ? AND pr.consumed_at IS NULL AND pr.expires_at > ? AND u.status = 'active'`,
+  )
+    .bind(await sha256(parsed.data), new Date().toISOString())
+    .first<{ user_id: string; email: string | null; phone: string | null }>();
+  return success(
+    row
+      ? { valid: true, identity: maskIdentity(row.email ?? row.phone) }
+      : { valid: false, identity: "" },
+    context.requestId,
+  );
+}
+
+async function resetPassword(context: AppContext): Promise<Response> {
+  await enforceRateLimit(context, "auth-reset", 10, 900);
+  const input = await parseJson(context.request, resetPasswordSchema);
+  const now = new Date().toISOString();
+  const row = await context.env.DB.prepare(
+    `SELECT pr.user_id FROM password_resets pr JOIN users u ON u.id = pr.user_id
+      WHERE pr.token_hash = ? AND pr.consumed_at IS NULL AND pr.expires_at > ? AND u.status = 'active'`,
+  )
+    .bind(await sha256(input.token), now)
+    .first<{ user_id: string }>();
+  // Identical response whether the token is unknown, expired or consumed, so the
+  // endpoint cannot be used to probe which tokens were ever issued.
+  if (!row) {
+    throw new HttpError(
+      400,
+      "INVALID_RESET_TOKEN",
+      "This reset link is no longer valid. Request a new one.",
+    );
+  }
+
+  const password = await hashPassword(input.password);
+  await context.env.DB.batch([
+    context.env.DB.prepare(
+      "UPDATE password_resets SET consumed_at = ? WHERE token_hash = ? AND consumed_at IS NULL",
+    ).bind(now, await sha256(input.token)),
+    context.env.DB.prepare(
+      "UPDATE users SET password_hash = ?, password_salt = ?, updated_at = ? WHERE id = ?",
+    ).bind(password.hash, password.salt, now, row.user_id),
+    // A password reset must end every existing session, including the attacker's.
+    context.env.DB.prepare("DELETE FROM sessions WHERE user_id = ?").bind(row.user_id),
+  ]);
+  await audit(context, row.user_id, "auth.password_reset_completed", "user", row.user_id);
+  await notify(
+    context,
+    row.user_id,
+    "security.password_reset",
+    "Your password was reset",
+    "Your GainHub password was changed and every signed-in device was signed out. If this was not you, contact support immediately.",
+    "/account",
+  );
+
+  return success({ reset: true }, context.requestId);
+}
+
+async function changePassword(context: AppContext): Promise<Response> {
+  const auth = await requireUser(context);
+  await enforceRateLimit(context, "auth-change-password", 10, 900);
+  const input = await parseJson(context.request, changePasswordSchema);
+  const user = await context.env.DB.prepare(
+    "SELECT id, password_hash, password_salt FROM users WHERE id = ? AND status = 'active'",
+  )
+    .bind(auth.user.id)
+    .first<{ id: string; password_hash: string; password_salt: string }>();
+  if (!user) throw new HttpError(401, "AUTH_REQUIRED", "Sign in to continue.");
+
+  const derived = await hashPassword(input.currentPassword, base64ToBytes(user.password_salt));
+  if (!constantTimeEqual(derived.hash, user.password_hash)) {
+    throw new HttpError(400, "INVALID_CREDENTIALS", "Your current password is incorrect.");
+  }
+
+  const next = await hashPassword(input.newPassword);
+  const now = new Date().toISOString();
+  const currentToken = cookieValue(context.request, "__Host-gh_session");
+  await context.env.DB.batch([
+    context.env.DB.prepare(
+      "UPDATE users SET password_hash = ?, password_salt = ?, updated_at = ? WHERE id = ?",
+    ).bind(next.hash, next.salt, now, user.id),
+    // Keep this device signed in; end every other session.
+    context.env.DB.prepare("DELETE FROM sessions WHERE user_id = ? AND token_hash != ?").bind(
+      user.id,
+      currentToken ? await sha256(currentToken) : "__none__",
+    ),
+  ]);
+  await audit(context, user.id, "auth.password_changed", "user", user.id);
+  await notify(
+    context,
+    user.id,
+    "security.password_changed",
+    "Your password was changed",
+    "Your GainHub password was updated. Other signed-in devices were signed out.",
+    "/account",
+  );
+  return success({ changed: true }, context.requestId);
+}
+
+async function updateProfile(context: AppContext): Promise<Response> {
+  const auth = await requireUser(context);
+  const input = await parseJson(context.request, updateProfileSchema);
+  const email = normalizeEmail(input.email);
+  const phone = normalizePhone(input.phone);
+  if (!email && !phone) {
+    throw new HttpError(422, "VALIDATION_ERROR", "Check the highlighted fields.", {
+      email: "Keep at least an email address or phone number",
+    });
+  }
+  const clash = await context.env.DB.prepare(
+    `SELECT id FROM users
+      WHERE id != ? AND ((? IS NOT NULL AND email = ?) OR (? IS NOT NULL AND phone = ?))
+      LIMIT 1`,
+  )
+    .bind(auth.user.id, email, email, phone, phone)
+    .first<{ id: string }>();
+  if (clash) {
+    throw new HttpError(409, "ACCOUNT_EXISTS", "Those contact details belong to another account.");
+  }
+  const now = new Date().toISOString();
+  await context.env.DB.prepare(
+    "UPDATE users SET full_name = ?, email = ?, phone = ?, updated_at = ? WHERE id = ?",
+  )
+    .bind(input.fullName, email, phone, now, auth.user.id)
+    .run();
+  await audit(context, auth.user.id, "user.profile_updated", "user", auth.user.id);
+  return success(
+    {
+      user: {
+        id: auth.user.id,
+        fullName: input.fullName,
+        email,
+        phone,
+        role: auth.user.role,
+      },
+    },
+    context.requestId,
+  );
+}
+
 async function route(context: AppContext): Promise<Response> {
   const { request, url } = context;
   const path = url.pathname.replace(/\/+$/, "") || "/";
@@ -1929,6 +3302,15 @@ async function route(context: AppContext): Promise<Response> {
     return getRoom(context, decodeURIComponent(path.slice("/v1/rooms/".length)));
   }
   if (request.method === "GET" && path === "/v1/businesses") return listBusinesses(context);
+  if (request.method === "GET" && path === "/v1/suggest") return searchSuggestions(context);
+  const reviewsMatch = path.match(/^\/v1\/businesses\/([^/]+)\/reviews$/);
+  if (request.method === "GET" && reviewsMatch?.[1]) {
+    return listBusinessReviews(context, decodeURIComponent(reviewsMatch[1]));
+  }
+  const relatedMatch = path.match(/^\/v1\/businesses\/([^/]+)\/related$/);
+  if (request.method === "GET" && relatedMatch?.[1]) {
+    return relatedBusinesses(context, decodeURIComponent(relatedMatch[1]));
+  }
   if (request.method === "GET" && path.startsWith("/v1/businesses/")) {
     return getBusiness(context, decodeURIComponent(path.slice("/v1/businesses/".length)));
   }
@@ -1937,6 +3319,17 @@ async function route(context: AppContext): Promise<Response> {
   if (request.method === "POST" && path === "/v1/auth/login") return login(context);
   if (request.method === "POST" && path === "/v1/auth/logout") return logout(context);
   if (request.method === "GET" && path === "/v1/auth/session") return currentSession(context);
+  if (request.method === "POST" && path === "/v1/auth/forgot-password")
+    return forgotPassword(context);
+  const resetTokenMatch = path.match(/^\/v1\/auth\/reset-password\/([^/]+)$/);
+  if (request.method === "GET" && resetTokenMatch?.[1]) {
+    return validateResetToken(context, decodeURIComponent(resetTokenMatch[1]));
+  }
+  if (request.method === "POST" && path === "/v1/auth/reset-password")
+    return resetPassword(context);
+  if (request.method === "POST" && path === "/v1/auth/change-password")
+    return changePassword(context);
+  if (request.method === "PATCH" && path === "/v1/me") return updateProfile(context);
 
   if (request.method === "POST" && path === "/v1/listing-applications")
     return submitListing(context);
@@ -1954,6 +3347,18 @@ async function route(context: AppContext): Promise<Response> {
   if (request.method === "POST" && path === "/v1/events/contact") return recordContact(context);
   if (request.method === "GET" && path === "/v1/workspace/summary")
     return workspaceSummary(context);
+  if (request.method === "GET" && path === "/v1/workspace/insights")
+    return workspaceInsights(context);
+  if (request.method === "GET" && path === "/v1/workspace/rooms") return listMyRooms(context);
+  const managedMatch = path.match(/^\/v1\/workspace\/businesses\/([^/]+)$/);
+  if (managedMatch?.[1]) {
+    const id = decodeURIComponent(managedMatch[1]);
+    if (request.method === "GET") return getManagedBusiness(context, id);
+    if (request.method === "PATCH") return updateManagedBusiness(context);
+  }
+  if (request.method === "GET" && path === "/v1/notifications") return listNotifications(context);
+  if (request.method === "POST" && path === "/v1/notifications/read")
+    return markNotificationsRead(context);
   const enquiryMatch = path.match(/^\/v1\/workspace\/enquiries\/([^/]+)$/);
   if (request.method === "PATCH" && enquiryMatch?.[1]) {
     return updateEnquiryStatus(context, decodeURIComponent(enquiryMatch[1]));
@@ -2084,6 +3489,14 @@ async function scheduledHandler(_controller: ScheduledController, env: Env): Pro
     env.DB.prepare("DELETE FROM rate_limits WHERE expires_at <= ?").bind(nowEpochSeconds),
     env.DB.prepare("DELETE FROM contact_events WHERE created_at <= ?").bind(shortLivedCutoff),
     env.DB.prepare("DELETE FROM audit_events WHERE created_at <= ?").bind(accountabilityCutoff),
+    env.DB.prepare("DELETE FROM password_resets WHERE expires_at <= ?").bind(nowIso),
+    env.DB.prepare("DELETE FROM notifications WHERE read_at IS NOT NULL AND read_at <= ?").bind(
+      shortLivedCutoff,
+    ),
+    env.DB.prepare("DELETE FROM notifications WHERE created_at <= ?").bind(shortLivedCutoff),
+    env.DB.prepare("DELETE FROM outbox_messages WHERE status = 'sent' AND created_at <= ?").bind(
+      shortLivedCutoff,
+    ),
     env.DB.prepare(
       "DELETE FROM listing_applications WHERE status IN ('approved', 'rejected', 'withdrawn') AND updated_at <= ?",
     ).bind(accountabilityCutoff),
@@ -2112,6 +3525,33 @@ async function scheduledHandler(_controller: ScheduledController, env: Env): Pro
     }
   }
   await env.DB.batch(cleanup);
+
+  // Keep the denormalised is_open_now column honest for businesses that publish
+  // opening hours. Public reads derive this at query time, but the stored value is
+  // still used as the fallback for businesses with no hours and by ad-hoc queries.
+  const current = lagosNow(now);
+  const nowMinutes = String(current.minutes).padStart(4, "0");
+  await env.DB.batch([
+    env.DB.prepare(
+      `UPDATE businesses SET is_open_now = 1, updated_at = updated_at
+        WHERE EXISTS (
+          SELECT 1 FROM business_hours h
+           WHERE h.business_id = businesses.id AND h.day_of_week = ? AND h.is_closed = 0
+             AND ((h.opens_at <= ? AND h.closes_at > ?)
+               OR (h.closes_at <= h.opens_at AND (h.opens_at <= ? OR h.closes_at > ?)))
+        ) AND is_open_now = 0`,
+    ).bind(current.dayOfWeek, nowMinutes, nowMinutes, nowMinutes, nowMinutes),
+    env.DB.prepare(
+      `UPDATE businesses SET is_open_now = 0, updated_at = updated_at
+        WHERE EXISTS (SELECT 1 FROM business_hours h WHERE h.business_id = businesses.id)
+          AND NOT EXISTS (
+            SELECT 1 FROM business_hours h
+             WHERE h.business_id = businesses.id AND h.day_of_week = ? AND h.is_closed = 0
+               AND ((h.opens_at <= ? AND h.closes_at > ?)
+                 OR (h.closes_at <= h.opens_at AND (h.opens_at <= ? OR h.closes_at > ?)))
+          ) AND is_open_now = 1`,
+    ).bind(current.dayOfWeek, nowMinutes, nowMinutes, nowMinutes, nowMinutes),
+  ]);
 }
 
 export default {

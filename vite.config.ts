@@ -15,4 +15,13 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+  vite: {
+    server: {
+      // Dev-only: allow the ephemeral sandbox preview hostnames (and Vercel preview
+      // domains) to reach the Vite dev server. `allowedHosts` is a development-server
+      // option only — it is never compiled into the production build.
+      allowedHosts: [".e2b.app", ".vercel.app", ".lovable.app", ".lovableproject.com"],
+      cors: true,
+    },
+  },
 });

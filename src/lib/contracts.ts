@@ -161,6 +161,110 @@ export const saveBusinessSchema = z.object({
   saved: z.boolean(),
 });
 
+/* -------------------------------------------------------------------------- */
+/* Opening hours                                                              */
+/* -------------------------------------------------------------------------- */
+
+/** `HH:MM` in Africa/Lagos, zero-padded. `closesAt <= opensAt` means overnight. */
+const timeOfDay = z
+  .string()
+  .trim()
+  .regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Use a 24-hour HH:MM time");
+
+export const businessHoursEntrySchema = z.object({
+  dayOfWeek: z.coerce.number().int().min(0).max(6),
+  isClosed: z.boolean().default(false),
+  opensAt: timeOfDay.default("09:00"),
+  closesAt: timeOfDay.default("18:00"),
+});
+
+export const businessHoursSchema = z.array(businessHoursEntrySchema).max(7).default([]);
+
+/* -------------------------------------------------------------------------- */
+/* Account management                                                          */
+/* -------------------------------------------------------------------------- */
+
+export const forgotPasswordSchema = z.object({
+  identity: trimmed(3, 254),
+});
+
+export const resetPasswordSchema = z.object({
+  token: z.string().trim().min(20).max(200),
+  password: passwordSchema,
+});
+
+export const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1).max(128),
+  newPassword: passwordSchema,
+});
+
+export const updateProfileSchema = z
+  .object({
+    fullName: trimmed(2, 100),
+    email: z
+      .union([emailSchema, z.literal("")])
+      .optional()
+      .default(""),
+    phone: z
+      .union([phoneSchema, z.literal("")])
+      .optional()
+      .default(""),
+  })
+  .refine((value) => Boolean(value.email || value.phone), {
+    message: "Keep at least an email address or phone number",
+    path: ["email"],
+  });
+
+/* -------------------------------------------------------------------------- */
+/* Owner listing management                                                    */
+/* -------------------------------------------------------------------------- */
+
+export const updateBusinessSchema = z.object({
+  businessId: z.string().uuid(),
+  tagline: trimmed(8, 160),
+  about: trimmed(40, 2_000),
+  whatsapp: phoneSchema,
+  phone: z
+    .union([phoneSchema, z.literal("")])
+    .optional()
+    .default(""),
+  website: z
+    .union([z.string().trim().url().max(300), z.literal("")])
+    .optional()
+    .default(""),
+  address: trimmed(5, 220),
+  priceRange: z.enum(["", "₦", "₦₦", "₦₦₦"]).optional().default(""),
+  amenities: z.array(z.string().trim().min(2).max(60)).max(24).optional().default([]),
+  serviceAreas: z.array(z.string().trim().min(2).max(80)).max(24).optional().default([]),
+  socials: z
+    .array(
+      z.object({
+        label: z.string().trim().min(2).max(40),
+        handle: z.string().trim().min(2).max(120),
+      }),
+    )
+    .max(8)
+    .optional()
+    .default([]),
+  hours: businessHoursSchema.optional().default([]),
+  services: z
+    .array(
+      z.object({
+        name: z.string().trim().min(2).max(120),
+        price: z.string().trim().max(60).optional().default(""),
+        note: z.string().trim().max(200).optional().default(""),
+      }),
+    )
+    .max(24)
+    .optional()
+    .default([]),
+});
+
+export const notificationsReadSchema = z.object({
+  ids: z.array(z.string().uuid()).max(200).optional(),
+  all: z.boolean().optional().default(false),
+});
+
 export const moderationActionSchema = z.object({
   queue: z.enum([
     "listing_applications",
@@ -195,6 +299,18 @@ export type SuggestionInput = z.infer<typeof suggestionSchema>;
 export type ReportInput = z.infer<typeof reportSchema>;
 export type RoomProposalInput = z.infer<typeof roomProposalSchema>;
 
+export type BusinessHoursEntry = {
+  dayOfWeek: number;
+  isClosed: boolean;
+  opensAt: string;
+  closesAt: string;
+};
+
+export type PublicBusinessHours = BusinessHoursEntry & {
+  /** Local (Africa/Lagos) label, e.g. "Monday". */
+  label: string;
+};
+
 export type PublicBusiness = {
   id: string;
   slug: string;
@@ -214,7 +330,76 @@ export type PublicBusiness = {
   whatsapp: string;
   phone: string;
   website: string;
+  priceRange: string;
+  amenities: string[];
+  serviceAreas: string[];
+  socials: Array<{ label: string; handle: string }>;
+  hours: PublicBusinessHours[];
+  yearEstablished: number | null;
+  teamSize: string;
   services?: Array<{ id: string; name: string; price: string; note: string }>;
+};
+
+export type PublicReview = {
+  id: string;
+  rating: number;
+  body: string;
+  createdAt: string;
+  authorName: string;
+};
+
+export type ReviewListResponse = {
+  items: PublicReview[];
+  summary: { average: number; total: number; distribution: Record<1 | 2 | 3 | 4 | 5, number> };
+};
+
+export type SearchSuggestion = {
+  type: "business" | "category" | "location" | "service";
+  label: string;
+  hint: string;
+  href: string;
+};
+
+export type AppNotification = {
+  id: string;
+  kind: string;
+  title: string;
+  body: string;
+  href: string;
+  readAt: string | null;
+  createdAt: string;
+};
+
+export type NotificationList = {
+  items: AppNotification[];
+  unreadCount: number;
+};
+
+export type BusinessInsights = {
+  range: { from: string; to: string };
+  totals: {
+    contacts: number;
+    uniqueVisitors: number;
+    enquiries: number;
+    whatsapp: number;
+    phone: number;
+    website: number;
+    directions: number;
+  };
+  byChannel: Array<{ channel: string; count: number }>;
+  byDay: Array<{ date: string; contacts: number; enquiries: number }>;
+  byBusiness: Array<{
+    id: string;
+    name: string;
+    slug: string;
+    contacts: number;
+    uniqueVisitors: number;
+    enquiries: number;
+    reviews: number;
+    rating: number;
+    savedBy: number;
+  }>;
+  recentContacts: Array<{ channel: string; businessName: string; createdAt: string }>;
 };
 
 export type DirectoryResponse = {

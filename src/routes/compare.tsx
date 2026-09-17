@@ -98,7 +98,7 @@ function ComparePage() {
         subtitle="Choose up to three live listings. Your selection stays in the page URL, so it can be shared without an account or hidden browser storage."
       />
       <div className="mx-auto max-w-7xl space-y-10 px-4 py-12">
-        <Card className="card-surface">
+        <Card className="rounded-3xl border-border/70">
           <CardContent className="p-6">
             <form method="get" action="/compare" className="flex flex-col gap-3 sm:flex-row">
               {searchIds ? <input type="hidden" name="ids" value={searchIds} /> : null}
@@ -255,7 +255,7 @@ function ComparePage() {
             </div>
           </section>
         ) : (
-          <Card className="card-surface border-dashed">
+          <Card className="rounded-3xl border-border/70 border-dashed">
             <CardContent className="p-9 text-center">
               <h2 className="text-xl font-semibold">Your shortlist is empty.</h2>
               <p className="mx-auto mt-2 max-w-lg text-sm leading-6 text-muted-foreground">
@@ -279,7 +279,7 @@ function ComparePage() {
                   const isSelected = ids.includes(business.id);
                   const full = ids.length >= 3;
                   return (
-                    <Card key={business.id} className="card-surface">
+                    <Card key={business.id} className="rounded-3xl border-border/70">
                       <CardContent className="flex items-center justify-between gap-4 p-5">
                         <div className="min-w-0">
                           <Link

@@ -42,6 +42,8 @@ import { Route as LegalDataRequestRouteImport } from './routes/legal.data-reques
 import { Route as LegalPrivacyRouteImport } from './routes/legal.privacy'
 import { Route as LegalTermsRouteImport } from './routes/legal.terms'
 import { Route as LocationsSlugRouteImport } from './routes/locations.$slug'
+import { Route as AppBusinessesIndexRouteImport } from './routes/app/businesses.index'
+import { Route as AppBusinessesIdRouteImport } from './routes/app/businesses.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -208,6 +210,16 @@ const LocationsSlugRoute = LocationsSlugRouteImport.update({
   path: '/$slug',
   getParentRoute: () => LocationsRoute,
 } as any)
+const AppBusinessesIndexRoute = AppBusinessesIndexRouteImport.update({
+  id: '/businesses/',
+  path: '/businesses/',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppBusinessesIdRoute = AppBusinessesIdRouteImport.update({
+  id: '/businesses/$id',
+  path: '/businesses/$id',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -243,6 +255,8 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AdminIndexRoute
   '/app/': typeof AppIndexRoute
   '/contact-gain/': typeof ContactGainIndexRoute
+  '/app/businesses/$id': typeof AppBusinessesIdRoute
+  '/app/businesses/': typeof AppBusinessesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -276,6 +290,8 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminIndexRoute
   '/app': typeof AppIndexRoute
   '/contact-gain': typeof ContactGainIndexRoute
+  '/app/businesses/$id': typeof AppBusinessesIdRoute
+  '/app/businesses': typeof AppBusinessesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -312,6 +328,8 @@ export interface FileRoutesById {
   '/admin/': typeof AdminIndexRoute
   '/app/': typeof AppIndexRoute
   '/contact-gain/': typeof ContactGainIndexRoute
+  '/app/businesses/$id': typeof AppBusinessesIdRoute
+  '/app/businesses/': typeof AppBusinessesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -349,6 +367,8 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/app/'
     | '/contact-gain/'
+    | '/app/businesses/$id'
+    | '/app/businesses/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -382,6 +402,8 @@ export interface FileRouteTypes {
     | '/admin'
     | '/app'
     | '/contact-gain'
+    | '/app/businesses/$id'
+    | '/app/businesses'
   id:
     | '__root__'
     | '/'
@@ -417,6 +439,8 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/app/'
     | '/contact-gain/'
+    | '/app/businesses/$id'
+    | '/app/businesses/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -685,6 +709,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LocationsSlugRouteImport
       parentRoute: typeof LocationsRoute
     }
+    '/app/businesses/': {
+      id: '/app/businesses/'
+      path: '/businesses'
+      fullPath: '/app/businesses/'
+      preLoaderRoute: typeof AppBusinessesIndexRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/app/businesses/$id': {
+      id: '/app/businesses/$id'
+      path: '/businesses/$id'
+      fullPath: '/app/businesses/$id'
+      preLoaderRoute: typeof AppBusinessesIdRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
   }
 }
 
@@ -702,10 +740,14 @@ const AdminRouteRouteWithChildren = AdminRouteRoute._addFileChildren(
 
 interface AppRouteRouteChildren {
   AppIndexRoute: typeof AppIndexRoute
+  AppBusinessesIdRoute: typeof AppBusinessesIdRoute
+  AppBusinessesIndexRoute: typeof AppBusinessesIndexRoute
 }
 
 const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppIndexRoute: AppIndexRoute,
+  AppBusinessesIdRoute: AppBusinessesIdRoute,
+  AppBusinessesIndexRoute: AppBusinessesIndexRoute,
 }
 
 const AppRouteRouteWithChildren = AppRouteRoute._addFileChildren(

@@ -1,8 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { LayoutDashboard } from "lucide-react";
+import { Building2, LayoutDashboard } from "lucide-react";
 import { ConsoleShell, type NavItem } from "@/components/console/ConsoleShell";
 
-const items: NavItem[] = [{ to: "/app", label: "Workspace overview", icon: LayoutDashboard }];
+const items: NavItem[] = [
+  { to: "/app", label: "Workspace overview", icon: LayoutDashboard },
+  { to: "/app/businesses", label: "My listings", icon: Building2 },
+];
 
 export const Route = createFileRoute("/app")({
   head: () => ({

@@ -1,21 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import {
-  ArrowRight,
-  Building2,
-  CircleHelp,
-  Flag,
-  Search,
-  ShieldCheck,
-  UserRound,
-} from "lucide-react";
+import { ArrowRight, Building2, Flag, Search, UserRound } from "lucide-react";
+import { Reveal } from "@/components/motion";
+import { CtaBand, EditorialSection, FaqList } from "@/components/site/editorial";
 import { PageHead, PublicShell } from "@/components/site/PublicShell";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
 export const Route = createFileRoute("/help")({
@@ -107,88 +94,55 @@ function HelpPage() {
         title="Start with what you are trying to do."
         subtitle="Each action has one honest route. Choose below, or read the answers for what happens next."
       />
-      <div className="mx-auto max-w-6xl space-y-14 px-4 py-14">
+      <div className="mx-auto max-w-6xl px-5 py-16">
         <section aria-labelledby="routes-heading">
           <h2 id="routes-heading" className="sr-only">
             Help routes
           </h2>
-          <div className="grid gap-4 md:grid-cols-2">
-            {routes.map((route) => (
-              <Card key={route.title} className="card-surface h-full">
-                <CardContent className="flex h-full flex-col p-6">
-                  <span className="grid size-11 place-items-center rounded-xl bg-primary/10 text-primary">
-                    <route.icon className="size-5" aria-hidden="true" />
-                  </span>
-                  <h3 className="mt-5 text-lg font-semibold">{route.title}</h3>
-                  <p className="mt-2 flex-1 text-sm leading-6 text-muted-foreground">
-                    {route.text}
-                  </p>
-                  <Link
-                    to={route.to}
-                    className="mt-5 inline-flex min-h-11 items-center gap-1 self-start rounded-lg font-semibold text-primary hover:gap-2 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring/30"
-                  >
-                    {route.label}{" "}
-                    <ArrowRight className="size-4 transition-all" aria-hidden="true" />
-                  </Link>
-                </CardContent>
-              </Card>
+          <ul className="grid gap-4 md:grid-cols-2">
+            {routes.map((route, index) => (
+              <Reveal as="li" key={route.title} delay={index % 2} className="h-full">
+                <Card className="group h-full rounded-3xl border-border/70 transition-[border-color,box-shadow] duration-500 hover:border-primary/30 hover:shadow-lift">
+                  <CardContent className="flex h-full flex-col p-6">
+                    <span className="grid size-11 place-items-center rounded-2xl bg-secondary text-primary transition-transform duration-500 group-hover:-rotate-6 group-hover:scale-110">
+                      <route.icon className="size-5" aria-hidden="true" />
+                    </span>
+                    <h3 className="mt-5 text-lg font-bold">{route.title}</h3>
+                    <p className="mt-2.5 flex-1 text-sm leading-6 text-muted-foreground">
+                      {route.text}
+                    </p>
+                    <Link
+                      to={route.to}
+                      className="mt-5 inline-flex min-h-11 items-center gap-1 self-start rounded-lg font-semibold text-primary transition-all hover:gap-2 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring/30"
+                    >
+                      {route.label}{" "}
+                      <ArrowRight className="size-4 transition-all" aria-hidden="true" />
+                    </Link>
+                  </CardContent>
+                </Card>
+              </Reveal>
             ))}
-          </div>
+          </ul>
         </section>
 
-        <section className="grid gap-8 lg:grid-cols-[0.72fr_1.28fr]" aria-labelledby="faq-heading">
-          <div>
-            <p className="eyebrow">Straight answers</p>
-            <h2 id="faq-heading" className="mt-3 text-3xl font-bold">
-              Before you press submit
-            </h2>
-            <p className="mt-4 text-sm leading-6 text-muted-foreground">
-              These answers describe the current product. They do not promise features or response
-              times that the application cannot provide.
-            </p>
-            <Button asChild variant="outline" className="mt-6">
-              <Link to="/trust-safety">
-                <ShieldCheck aria-hidden="true" /> Read trust guidance
-              </Link>
-            </Button>
-          </div>
-          <Accordion type="single" collapsible className="rounded-2xl border bg-card px-5">
-            {faqs.map((faq, index) => (
-              <AccordionItem key={faq.q} value={`item-${index}`}>
-                <AccordionTrigger className="text-left text-base">{faq.q}</AccordionTrigger>
-                <AccordionContent className="pr-6 text-sm leading-6 text-muted-foreground">
-                  {faq.a}
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
-        </section>
-
-        <section
-          className="rounded-[2rem] bg-secondary/55 p-7 sm:p-9"
-          aria-labelledby="still-heading"
+        <EditorialSection
+          id="faq"
+          eyebrow="Straight answers"
+          title="Before you press submit"
+          lead="These answers describe the current product. They do not promise features or response times that the application cannot provide."
         >
-          <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <CircleHelp className="size-6 text-primary" aria-hidden="true" />
-              <h2 id="still-heading" className="mt-3 text-2xl font-bold">
-                Is the listing wrong or unsafe?
-              </h2>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-                Use a correction for ordinary factual changes. Use a report for fraud,
-                impersonation, abuse, closure or another safety concern.
-              </p>
-            </div>
-            <div className="flex shrink-0 flex-wrap gap-3">
-              <Button asChild variant="outline">
-                <Link to="/suggest-business">Suggest correction</Link>
-              </Button>
-              <Button asChild>
-                <Link to="/report">Report concern</Link>
-              </Button>
-            </div>
-          </div>
-        </section>
+          <FaqList items={faqs} />
+        </EditorialSection>
+
+        <div className="mt-14">
+          <CtaBand
+            eyebrow="Still unresolved"
+            title="Is the listing wrong or unsafe?"
+            body="Use a correction for ordinary factual changes. Use a report for fraud, impersonation, abuse, closure or another safety concern."
+            primary={{ to: "/report", label: "Report concern" }}
+            secondary={{ to: "/suggest-business", label: "Suggest correction" }}
+          />
+        </div>
       </div>
     </PublicShell>
   );
