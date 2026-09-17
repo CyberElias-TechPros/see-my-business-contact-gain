@@ -9,11 +9,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { categories, locations } from "@/data/mock";
+import { getDirectoryTaxonomy } from "@/lib/directory.functions";
 import { useSubmission } from "@/hooks/use-submission";
 import { apiRequest, jsonBody } from "@/lib/api";
 
 export const Route = createFileRoute("/join")({
+  loader: () => getDirectoryTaxonomy(),
   head: () => ({
     meta: [
       { title: "List your business for review — GainHub NG" },
@@ -52,6 +53,7 @@ const reviewSteps = [
 ];
 
 function JoinPage() {
+  const { taxonomy } = Route.useLoaderData();
   const submission = useSubmission();
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
@@ -196,7 +198,7 @@ function JoinPage() {
                     <option value="" disabled>
                       Choose a category
                     </option>
-                    {categories.map((category) => (
+                    {taxonomy.categories.map((category) => (
                       <option key={category.slug} value={category.slug}>
                         {category.name}
                       </option>
@@ -217,7 +219,7 @@ function JoinPage() {
                     <option value="" disabled>
                       Choose a city
                     </option>
-                    {locations.map((location) => (
+                    {taxonomy.locations.map((location) => (
                       <option key={location.slug} value={location.slug}>
                         {location.name}
                       </option>

@@ -32,6 +32,7 @@ import { Route as TrustSafetyRouteImport } from './routes/trust-safety'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as ApiSplatRouteImport } from './routes/api/$'
 import { Route as AppIndexRouteImport } from './routes/app/index'
+import { Route as AppCirclesRouteImport } from './routes/app/circles'
 import { Route as BusinessIdRouteImport } from './routes/business.$id'
 import { Route as CategorySlugRouteImport } from './routes/category.$slug'
 import { Route as ContactGainIndexRouteImport } from './routes/contact-gain.index'
@@ -42,6 +43,8 @@ import { Route as LegalDataRequestRouteImport } from './routes/legal.data-reques
 import { Route as LegalPrivacyRouteImport } from './routes/legal.privacy'
 import { Route as LegalTermsRouteImport } from './routes/legal.terms'
 import { Route as LocationsSlugRouteImport } from './routes/locations.$slug'
+import { Route as AppBusinessesIndexRouteImport } from './routes/app/businesses.index'
+import { Route as AppBusinessesIdRouteImport } from './routes/app/businesses.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -158,6 +161,11 @@ const AppIndexRoute = AppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppRouteRoute,
 } as any)
+const AppCirclesRoute = AppCirclesRouteImport.update({
+  id: '/circles',
+  path: '/circles',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 const BusinessIdRoute = BusinessIdRouteImport.update({
   id: '/business/$id',
   path: '/business/$id',
@@ -208,6 +216,16 @@ const LocationsSlugRoute = LocationsSlugRouteImport.update({
   path: '/$slug',
   getParentRoute: () => LocationsRoute,
 } as any)
+const AppBusinessesIndexRoute = AppBusinessesIndexRouteImport.update({
+  id: '/businesses/',
+  path: '/businesses/',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppBusinessesIdRoute = AppBusinessesIdRouteImport.update({
+  id: '/businesses/$id',
+  path: '/businesses/$id',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -231,6 +249,7 @@ export interface FileRoutesByFullPath {
   '/suggest-business': typeof SuggestBusinessRoute
   '/trust-safety': typeof TrustSafetyRoute
   '/api/$': typeof ApiSplatRoute
+  '/app/circles': typeof AppCirclesRoute
   '/business/$id': typeof BusinessIdRoute
   '/category/$slug': typeof CategorySlugRoute
   '/contact-gain/$id': typeof ContactGainIdRoute
@@ -243,6 +262,8 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AdminIndexRoute
   '/app/': typeof AppIndexRoute
   '/contact-gain/': typeof ContactGainIndexRoute
+  '/app/businesses/$id': typeof AppBusinessesIdRoute
+  '/app/businesses/': typeof AppBusinessesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -264,6 +285,7 @@ export interface FileRoutesByTo {
   '/suggest-business': typeof SuggestBusinessRoute
   '/trust-safety': typeof TrustSafetyRoute
   '/api/$': typeof ApiSplatRoute
+  '/app/circles': typeof AppCirclesRoute
   '/business/$id': typeof BusinessIdRoute
   '/category/$slug': typeof CategorySlugRoute
   '/contact-gain/$id': typeof ContactGainIdRoute
@@ -276,6 +298,8 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminIndexRoute
   '/app': typeof AppIndexRoute
   '/contact-gain': typeof ContactGainIndexRoute
+  '/app/businesses/$id': typeof AppBusinessesIdRoute
+  '/app/businesses': typeof AppBusinessesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -300,6 +324,7 @@ export interface FileRoutesById {
   '/suggest-business': typeof SuggestBusinessRoute
   '/trust-safety': typeof TrustSafetyRoute
   '/api/$': typeof ApiSplatRoute
+  '/app/circles': typeof AppCirclesRoute
   '/business/$id': typeof BusinessIdRoute
   '/category/$slug': typeof CategorySlugRoute
   '/contact-gain/$id': typeof ContactGainIdRoute
@@ -312,6 +337,8 @@ export interface FileRoutesById {
   '/admin/': typeof AdminIndexRoute
   '/app/': typeof AppIndexRoute
   '/contact-gain/': typeof ContactGainIndexRoute
+  '/app/businesses/$id': typeof AppBusinessesIdRoute
+  '/app/businesses/': typeof AppBusinessesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -337,6 +364,7 @@ export interface FileRouteTypes {
     | '/suggest-business'
     | '/trust-safety'
     | '/api/$'
+    | '/app/circles'
     | '/business/$id'
     | '/category/$slug'
     | '/contact-gain/$id'
@@ -349,6 +377,8 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/app/'
     | '/contact-gain/'
+    | '/app/businesses/$id'
+    | '/app/businesses/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -370,6 +400,7 @@ export interface FileRouteTypes {
     | '/suggest-business'
     | '/trust-safety'
     | '/api/$'
+    | '/app/circles'
     | '/business/$id'
     | '/category/$slug'
     | '/contact-gain/$id'
@@ -382,6 +413,8 @@ export interface FileRouteTypes {
     | '/admin'
     | '/app'
     | '/contact-gain'
+    | '/app/businesses/$id'
+    | '/app/businesses'
   id:
     | '__root__'
     | '/'
@@ -405,6 +438,7 @@ export interface FileRouteTypes {
     | '/suggest-business'
     | '/trust-safety'
     | '/api/$'
+    | '/app/circles'
     | '/business/$id'
     | '/category/$slug'
     | '/contact-gain/$id'
@@ -417,6 +451,8 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/app/'
     | '/contact-gain/'
+    | '/app/businesses/$id'
+    | '/app/businesses/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -615,6 +651,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRouteRoute
     }
+    '/app/circles': {
+      id: '/app/circles'
+      path: '/circles'
+      fullPath: '/app/circles'
+      preLoaderRoute: typeof AppCirclesRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
     '/business/$id': {
       id: '/business/$id'
       path: '/business/$id'
@@ -685,6 +728,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LocationsSlugRouteImport
       parentRoute: typeof LocationsRoute
     }
+    '/app/businesses/': {
+      id: '/app/businesses/'
+      path: '/businesses'
+      fullPath: '/app/businesses/'
+      preLoaderRoute: typeof AppBusinessesIndexRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/app/businesses/$id': {
+      id: '/app/businesses/$id'
+      path: '/businesses/$id'
+      fullPath: '/app/businesses/$id'
+      preLoaderRoute: typeof AppBusinessesIdRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
   }
 }
 
@@ -701,11 +758,17 @@ const AdminRouteRouteWithChildren = AdminRouteRoute._addFileChildren(
 )
 
 interface AppRouteRouteChildren {
+  AppCirclesRoute: typeof AppCirclesRoute
   AppIndexRoute: typeof AppIndexRoute
+  AppBusinessesIdRoute: typeof AppBusinessesIdRoute
+  AppBusinessesIndexRoute: typeof AppBusinessesIndexRoute
 }
 
 const AppRouteRouteChildren: AppRouteRouteChildren = {
+  AppCirclesRoute: AppCirclesRoute,
   AppIndexRoute: AppIndexRoute,
+  AppBusinessesIdRoute: AppBusinessesIdRoute,
+  AppBusinessesIndexRoute: AppBusinessesIndexRoute,
 }
 
 const AppRouteRouteWithChildren = AppRouteRoute._addFileChildren(

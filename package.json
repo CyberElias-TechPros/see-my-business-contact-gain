@@ -18,12 +18,13 @@
     "worker:seed": "rm -f .wrangler/deploy/config.json && wrangler d1 execute gainhub-development --local --config wrangler.jsonc --file worker/seed.local.sql",
     "worker:build": "rm -f .wrangler/deploy/config.json && wrangler deploy --dry-run --env=\"\" --config wrangler.jsonc --outdir .worker-build",
     "check": "npm run format:check && npm run typecheck && npm run lint && npm run test && npm run test:integration && npm run test:frontend && npm run worker:build && npm run audit",
-    "test:integration": "npm run worker:migrate && npm run worker:seed && node scripts/worker-smoke.mjs",
+    "test:integration": "npm run worker:reset && npm run worker:migrate && npm run worker:seed && node scripts/worker-smoke.mjs",
     "validate:production-env": "node scripts/validate-production-env.mjs",
     "build:production": "npm run validate:production-env && vite build",
-    "test:frontend": "npm run worker:migrate && npm run worker:seed && VITE_SITE_URL=https://smoke.gainhub.test VITE_LEGAL_OPERATOR_NAME=\"Smoke Test Operator Ltd\" VITE_PRIVACY_EMAIL=privacy@smoke.gainhub.test VITE_SUPPORT_EMAIL=support@smoke.gainhub.test VITE_GOVERNING_LAW=\"the laws used for this automated smoke test\" VITE_DISPUTE_FORUM=\"the automated smoke-test forum\" CLOUDFLARE_API_URL=http://127.0.0.1:8810 vite build && node scripts/frontend-smoke.mjs",
+    "test:frontend": "npm run worker:reset && npm run worker:migrate && npm run worker:seed && VITE_SITE_URL=https://smoke.gainhub.test VITE_LEGAL_OPERATOR_NAME=\"Smoke Test Operator Ltd\" VITE_PRIVACY_EMAIL=privacy@smoke.gainhub.test VITE_SUPPORT_EMAIL=support@smoke.gainhub.test VITE_GOVERNING_LAW=\"the laws used for this automated smoke test\" VITE_DISPUTE_FORUM=\"the automated smoke-test forum\" CLOUDFLARE_API_URL=http://127.0.0.1:8810 vite build && node scripts/frontend-smoke.mjs",
     "audit": "npm audit && npm audit --omit=dev",
-    "build:vercel": "node scripts/vercel-build.mjs"
+    "build:vercel": "node scripts/vercel-build.mjs",
+    "worker:reset": "rm -rf .wrangler/state/v3/d1"
   },
   "dependencies": {
     "@fontsource-variable/bricolage-grotesque": "^5.3.0",

@@ -8,11 +8,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { categories } from "@/data/mock";
+import { getDirectoryTaxonomy } from "@/lib/directory.functions";
 import { useSubmission } from "@/hooks/use-submission";
 import { apiRequest, jsonBody } from "@/lib/api";
 
 export const Route = createFileRoute("/suggest-business")({
+  loader: () => getDirectoryTaxonomy(),
   head: () => ({
     meta: [
       { title: "Suggest a business or correction — GainHub NG" },
@@ -28,6 +29,7 @@ export const Route = createFileRoute("/suggest-business")({
 });
 
 function SuggestPage() {
+  const { taxonomy } = Route.useLoaderData();
   const submission = useSubmission();
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
@@ -92,7 +94,7 @@ function SuggestPage() {
                   defaultValue=""
                 >
                   <option value="">Not sure</option>
-                  {categories.map((category) => (
+                  {taxonomy.categories.map((category) => (
                     <option key={category.slug} value={category.slug}>
                       {category.name}
                     </option>

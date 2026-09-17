@@ -167,9 +167,47 @@ try {
   );
   assert(Array.isArray(result.payload.data.rooms), "Sitemap room data was malformed");
 
+  result = await request(`/v1/businesses/${fixtureBusinessId}/reviews`);
+  assert(result.payload.data.items.length === 3, "Published fixture reviews were not readable");
+  assert(result.payload.data.summary.total === 3, "Review summary did not count published reviews");
+  assert(
+    Math.abs(result.payload.data.summary.average - 4.67) < 0.01,
+    `Review average was not derived from the reviews: ${result.payload.data.summary.average}`,
+  );
+  assert(
+    result.payload.data.items.every((review) => review.authorName.length > 0),
+    "Published reviews were missing their author",
+  );
+
+  result = await request(`/v1/businesses/${fixtureBusinessId}/related`);
+  assert(result.payload.data.length > 0, "Related businesses were not returned");
+  assert(
+    !result.payload.data.some((business) => business.id === fixtureBusinessId),
+    "Related businesses included the business itself",
+  );
+
+  result = await request("/v1/suggest?q=repair");
+  assert(result.payload.data.items.length > 0, "Search suggestions were empty");
+  assert(
+    result.payload.data.items.some((item) => item.type === "category"),
+    "Search suggestions did not include taxonomy matches",
+  );
+
+  result = await request("/v1/suggest?q=%20");
+  assert(result.payload.data.items.length === 0, "Short suggestion queries must not fan out");
+
   result = await request(`/v1/businesses/${fixtureBusinessId}`);
   assert(result.payload.data.name === "SwiftFix Lab — demo", "Business lookup by ID failed");
-  assert(result.payload.data.services.length === 2, "Business services were not included");
+  assert(result.payload.data.services.length === 3, "Business services were not included");
+  assert(result.payload.data.hours.length === 7, "Business opening hours were not included");
+  assert(
+    result.payload.data.hours.every((entry) => entry.label.length > 0),
+    "Opening hours were missing their day labels",
+  );
+  assert(
+    Array.isArray(result.payload.data.amenities) && result.payload.data.amenities.length > 0,
+    "Published profile amenities were not returned",
+  );
 
   result = await request("/v1/auth/register", { method: "POST", body: {}, expected: 403 });
   assert(
@@ -264,6 +302,94 @@ try {
   });
   assert(result.payload.data.status === "pending", "Review bypassed moderation");
   const reviewId = result.payload.data.id;
+
+  /* ---- Review editing (gap H6) ------------------------------------------- */
+
+  // The author can see their own pending review, and it must not be counted in
+  // the published aggregate until it is approved.
+  result = await request(`/v1/businesses/${fixtureBusinessId}/reviews`, {
+    authenticated: true,
+  });
+  const publishedBefore = result.payload.data.summary.total;
+  assert(result.payload.data.mine?.id === reviewId, "Author's own review is not surfaced");
+  assert(result.payload.data.mine?.status === "pending", "Own review is not pending");
+  assert(result.payload.data.mine?.editedAt === null, "A fresh review reports an edit date");
+
+  // Anonymous readers must never receive the viewer's private review row.
+  result = await request(`/v1/businesses/${fixtureBusinessId}/reviews`);
+  assert(result.payload.data.mine === null, "Anonymous reader was handed a 'mine' row");
+
+  result = await request(`/v1/reviews/${reviewId}`, {
+    method: "PATCH",
+    body: {
+      rating: 4,
+      body: `Edited integration review ${runId} with enough detail to pass validation.`,
+    },
+    authenticated: true,
+    intent: true,
+  });
+  assert(result.payload.data.status === "pending", "Edited review did not return to moderation");
+  assert(
+    result.payload.data.reSubmitted === false,
+    "A pending review reports re-submission it did not make",
+  );
+
+  result = await request(`/v1/businesses/${fixtureBusinessId}/reviews`, {
+    authenticated: true,
+  });
+  assert(result.payload.data.mine?.rating === 4, "Edit did not change the rating");
+  assert(result.payload.data.mine?.editedAt !== null, "Edit did not record editedAt");
+  assert(
+    result.payload.data.summary.total === publishedBefore,
+    "A pending review leaked into the published aggregate",
+  );
+
+  // Editing requires the CSRF intent header, a session, and ownership.
+  result = await request(`/v1/reviews/${reviewId}`, {
+    method: "PATCH",
+    body: { rating: 3, body: "Missing the intent header, so this must be rejected outright." },
+    authenticated: true,
+    expected: 403,
+  });
+  assert(
+    result.payload.error.code === "REQUEST_INTENT_REQUIRED",
+    "Review edit without the intent header was accepted",
+  );
+
+  result = await request(`/v1/reviews/${reviewId}`, {
+    method: "PATCH",
+    body: { rating: 3, body: "Anonymous edit attempt that must never reach the database." },
+    intent: true,
+    expected: 401,
+  });
+  assert(
+    result.payload.error.code === "AUTH_REQUIRED",
+    "Anonymous review edit was not rejected with AUTH_REQUIRED",
+  );
+
+  result = await request(`/v1/reviews/99999999-9999-4999-8999-999999999999`, {
+    method: "PATCH",
+    body: { rating: 3, body: "Editing a review that does not exist at all, expect a 404." },
+    authenticated: true,
+    intent: true,
+    expected: 404,
+  });
+  assert(
+    result.payload.error.code === "NOT_FOUND",
+    "Editing a missing review did not produce a structured 404",
+  );
+
+  result = await request(`/v1/reviews/${reviewId}`, {
+    method: "PATCH",
+    body: { rating: 9, body: "x" },
+    authenticated: true,
+    intent: true,
+    expected: 422,
+  });
+  assert(
+    Boolean(result.payload.error.fields?.rating && result.payload.error.fields?.body),
+    "Invalid review edit did not report per-field errors",
+  );
 
   result = await request("/v1/data-requests", {
     method: "POST",
@@ -582,6 +708,240 @@ try {
   });
   assert(result.payload.data.status === "contacted", "Owner could not update an enquiry status");
 
+  result = await request(`/v1/workspace/businesses/${fixtureBusinessId}`, {
+    authenticated: true,
+  });
+  assert(result.payload.data.slug === "demo-swiftfix", "Owner could not read a managed listing");
+
+  result = await request(`/v1/workspace/businesses/${fixtureBusinessId}`, {
+    method: "PATCH",
+    body: {
+      businessId: fixtureBusinessId,
+      tagline: "Same-day phone and laptop repairs in Ikeja",
+      about:
+        "An owner-managed description used by the local integration test to prove the workspace edit path persists end to end.",
+      whatsapp: "+2348000000001",
+      phone: "+2348000000001",
+      website: "https://example.com",
+      address: "14 Obafemi Awolowo Way, Ikeja, Lagos",
+      priceRange: "\u20a6\u20a6",
+      amenities: ["Walk-in welcome", "Card payment"],
+      serviceAreas: ["Ikeja", "Ogba"],
+      socials: [{ label: "Instagram", handle: "@swiftfix.demo" }],
+      hours: [
+        { dayOfWeek: 1, isClosed: false, opensAt: "09:00", closesAt: "19:00" },
+        { dayOfWeek: 3, isClosed: false, opensAt: "09:00", closesAt: "19:00" },
+      ],
+      services: [{ name: "Diagnostic check", price: "Free", note: "Quote first" }],
+    },
+    authenticated: true,
+    intent: true,
+  });
+  assert(result.payload.data.id === fixtureBusinessId, "Owner edit did not persist");
+
+  result = await request(`/v1/businesses/${fixtureBusinessId}`);
+  assert(
+    result.payload.data.services.length === 1 &&
+      result.payload.data.services[0].name === "Diagnostic check",
+    "Owner service edits were not reflected publicly",
+  );
+  assert(result.payload.data.hours.length === 2, "Owner opening-hours edits did not persist");
+
+  result = await request(`/v1/workspace/businesses/${fixtureBusinessId}`, {
+    method: "PATCH",
+    body: {
+      businessId: fixtureBusinessId,
+      tagline: "Same-day phone and laptop repairs in Ikeja",
+      about:
+        "An owner-managed description used by the local integration test to prove the workspace edit path persists end to end.",
+      whatsapp: "+2348000000001",
+      address: "14 Obafemi Awolowo Way, Ikeja, Lagos",
+      hours: [
+        { dayOfWeek: 1, isClosed: false, opensAt: "09:00", closesAt: "19:00" },
+        { dayOfWeek: 1, isClosed: false, opensAt: "11:00", closesAt: "15:00" },
+      ],
+    },
+    authenticated: true,
+    intent: true,
+    expected: 422,
+  });
+  assert(
+    result.payload.error.fields?.hours === "Each day may only appear once",
+    "Duplicate opening-hours days were accepted",
+  );
+
+  result = await request("/v1/workspace/insights?days=30", { authenticated: true });
+  assert(result.payload.data.totals.contacts >= 1, "Contact analytics did not count the event");
+  assert(
+    result.payload.data.byBusiness.some((business) => business.id === fixtureBusinessId),
+    "Contact analytics omitted the managed business",
+  );
+
+  result = await request("/v1/workspace/rooms", { authenticated: true });
+  assert(
+    result.payload.data.owned.some((room) => room.id === roomId),
+    "Owned contact circles were not returned",
+  );
+  assert(
+    result.payload.data.applications.some((item) => item.id === roomApplicationId),
+    "Joined circles were not returned",
+  );
+  assert(Array.isArray(result.payload.data.queue), "Circle queue was not returned");
+
+  /* ---- Leaving a circle (gap H5) ----------------------------------------- */
+
+  // The applicant is an approved member at this point, so leaving must succeed
+  // and release the slot.
+  result = await request(`/v1/rooms/${roomId}/leave`, {
+    method: "POST",
+    body: {},
+    authenticated: true,
+    intent: true,
+  });
+  assert(result.payload.data.status === "left", "Leaving a circle did not report 'left'");
+
+  result = await request(`/v1/rooms/${roomId}`);
+  assert(result.payload.data.memberCount === 0, "Leaving did not release the circle slot");
+
+  // Leaving again is a no-op that must not 500, and must not reveal whether a
+  // room exists: an unknown id answers identically.
+  result = await request(`/v1/rooms/${roomId}/leave`, {
+    method: "POST",
+    body: {},
+    authenticated: true,
+    intent: true,
+    expected: 409,
+  });
+  assert(result.payload.error.code === "NOT_A_MEMBER", "Leaving twice did not report NOT_A_MEMBER");
+
+  result = await request("/v1/rooms/99999999-9999-4999-8999-999999999999/leave", {
+    method: "POST",
+    body: {},
+    authenticated: true,
+    intent: true,
+    expected: 409,
+  });
+  assert(
+    result.payload.error.code === "NOT_A_MEMBER",
+    "Leaving an unknown circle leaked its existence",
+  );
+
+  result = await request(`/v1/rooms/${roomId}/leave`, {
+    method: "POST",
+    body: {},
+    intent: true,
+    expected: 401,
+  });
+  assert(result.payload.error.code === "AUTH_REQUIRED", "Anonymous circle leave was not rejected");
+
+  // Re-applying after leaving must reopen the row, not dead-end on the UNIQUE
+  // constraint — otherwise leaving is permanent. Reopening an existing row is an
+  // update, so the API answers 200 rather than 201.
+  result = await request("/v1/room-applications", {
+    method: "POST",
+    body: { roomId, businessId: publishedBusinessId, acceptedRules: true },
+    authenticated: true,
+    intent: true,
+    expected: 200,
+  });
+  const reopenedApplicationId = result.payload.data.id;
+  assert(reopenedApplicationId === roomApplicationId, "Re-applying created a duplicate row");
+
+  /* ---- Owner-side circle management (gap H5) ----------------------------- */
+
+  // The circle owner decides join requests themselves; a platform admin is no
+  // longer the only way in.
+  result = await request("/v1/workspace/rooms", { authenticated: true });
+  assert(
+    result.payload.data.queue.some((item) => item.id === reopenedApplicationId),
+    "Reopened application did not appear in the owner's queue",
+  );
+
+  result = await request(`/v1/workspace/rooms/${roomId}/applications/${reopenedApplicationId}`, {
+    method: "POST",
+    body: { action: "approve" },
+    intent: true,
+    expected: 401,
+  });
+  assert(
+    result.payload.error.code === "AUTH_REQUIRED",
+    "Anonymous circle decision was not rejected",
+  );
+
+  result = await request("/v1/rooms/99999999-9999-4999-8999-999999999999/applications", {
+    method: "POST",
+    body: {},
+    authenticated: true,
+    intent: true,
+    expected: 404,
+  });
+
+  result = await request("/v1/workspace/rooms", { authenticated: true });
+  const decided = result.payload.data.queue.length;
+  result = await request(`/v1/workspace/rooms/${roomId}/applications/${reopenedApplicationId}`, {
+    method: "POST",
+    body: { action: "reject", note: "Declined by the integration test." },
+    authenticated: true,
+    intent: true,
+  });
+  assert(result.payload.data.status === "rejected", "Owner could not decline a join request");
+
+  result = await request("/v1/workspace/rooms", { authenticated: true });
+  assert(
+    result.payload.data.queue.length === decided - 1,
+    "Declined request was not removed from the owner's queue",
+  );
+
+  result = await request("/v1/notifications", { authenticated: true });
+  assert(result.payload.data.unreadCount > 0, "Workflow notifications were not created");
+  assert(
+    result.payload.data.items.some((item) => item.kind === "listing.approved"),
+    "Listing approval did not notify the applicant",
+  );
+
+  result = await request("/v1/notifications/read", {
+    method: "POST",
+    body: { all: true },
+    authenticated: true,
+    intent: true,
+  });
+  result = await request("/v1/notifications", { authenticated: true });
+  assert(result.payload.data.unreadCount === 0, "Marking notifications read did not persist");
+
+  result = await request("/v1/me", {
+    method: "PATCH",
+    body: { fullName: "Smoke Test Renamed", email, phone },
+    authenticated: true,
+    intent: true,
+  });
+  assert(result.payload.data.user.fullName === "Smoke Test Renamed", "Profile update failed");
+
+  result = await request("/v1/auth/change-password", {
+    method: "POST",
+    body: {
+      currentPassword: "A-long-safe-passphrase-2026",
+      newPassword: "A-renewed-safe-passphrase-2026",
+    },
+    authenticated: true,
+    intent: true,
+  });
+  assert(result.payload.data.changed === true, "Password change failed");
+
+  result = await request("/v1/auth/change-password", {
+    method: "POST",
+    body: {
+      currentPassword: "A-long-safe-passphrase-2026",
+      newPassword: "Another-safe-passphrase-2026",
+    },
+    authenticated: true,
+    intent: true,
+    expected: 400,
+  });
+  assert(
+    result.payload.error.code === "INVALID_CREDENTIALS",
+    "Password change accepted a stale current password",
+  );
+
   result = await request("/v1/admin/queue", { authenticated: true });
   assert(
     !result.payload.data.items.reviews.some((item) => item.id === reviewId) &&
@@ -602,6 +962,81 @@ try {
 
   result = await request("/v1/auth/session", { authenticated: true });
   assert(result.payload.data.user === null, "Revoked session remained active");
+
+  result = await request("/v1/auth/forgot-password", {
+    method: "POST",
+    body: { identity: email },
+    intent: true,
+  });
+  assert(result.payload.data.accepted === true, "Password reset request was rejected");
+  assert(
+    typeof result.payload.data.devResetLink === "string" &&
+      result.payload.data.devResetLink.includes("reset="),
+    "Development reset link was not returned when no mail provider exists",
+  );
+  const resetToken = result.payload.data.devResetLink.split("reset=")[1];
+
+  const unknownIdentity = await request("/v1/auth/forgot-password", {
+    method: "POST",
+    body: { identity: `nobody-${runId}@example.com` },
+    intent: true,
+  });
+  assert(
+    unknownIdentity.payload.data.accepted === true &&
+      unknownIdentity.payload.data.devResetLink === undefined,
+    "Password reset leaked account existence",
+  );
+
+  result = await request(`/v1/auth/reset-password/${resetToken}`);
+  assert(result.payload.data.valid === true, "Issued reset token did not validate");
+  assert(
+    result.payload.data.identity.includes("***"),
+    "Reset validation returned an unmasked identity",
+  );
+
+  result = await request("/v1/auth/reset-password", {
+    method: "POST",
+    body: { token: "a".repeat(43), password: "Another-safe-passphrase-2026" },
+    intent: true,
+    expected: 400,
+  });
+  assert(
+    result.payload.error.code === "INVALID_RESET_TOKEN",
+    "An unknown reset token was accepted",
+  );
+
+  result = await request("/v1/auth/reset-password", {
+    method: "POST",
+    body: { token: resetToken, password: "A-third-safe-passphrase-2026" },
+    intent: true,
+  });
+  assert(result.payload.data.reset === true, "Password reset did not complete");
+
+  result = await request("/v1/auth/reset-password", {
+    method: "POST",
+    body: { token: resetToken, password: "A-fourth-safe-passphrase-2026" },
+    intent: true,
+    expected: 400,
+  });
+  assert(result.payload.error.code === "INVALID_RESET_TOKEN", "A consumed reset token was reused");
+
+  result = await request("/v1/auth/login", {
+    method: "POST",
+    body: { identity: email, password: "A-renewed-safe-passphrase-2026" },
+    intent: true,
+    expected: 401,
+  });
+  assert(
+    result.payload.error.code === "INVALID_CREDENTIALS",
+    "Reset did not invalidate the previous password",
+  );
+
+  result = await request("/v1/auth/login", {
+    method: "POST",
+    body: { identity: email, password: "A-third-safe-passphrase-2026" },
+    intent: true,
+  });
+  assert(result.payload.data.user.email === email, "Sign-in with the new password failed");
 
   console.log(`Worker integration smoke test passed (${checks} HTTP checks).`);
 } catch (error) {

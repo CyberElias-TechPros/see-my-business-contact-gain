@@ -1,31 +1,33 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { Search, WifiOff } from "lucide-react";
-import { BusinessCard } from "@/components/kit";
+import { Search, Store, WifiOff } from "lucide-react";
+import { BusinessCard, EmptyState } from "@/components/kit";
+import { Reveal } from "@/components/motion";
 import { PageHead, PublicShell } from "@/components/site/PublicShell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { categories, locations } from "@/data/mock";
-import { getDirectoryResults } from "@/lib/directory.functions";
+import { directoryQuerySchema } from "@/lib/contracts";
+import { getDirectoryResults, getDirectoryTaxonomy } from "@/lib/directory.functions";
 
 export const Route = createFileRoute("/locations/$slug")({
-  loader: ({ params }) => {
-    if (!locations.some((location) => location.slug === params.slug)) throw notFound();
-    return getDirectoryResults({
+  loader: async ({ params }) => {
+    const taxonomy = await getDirectoryTaxonomy();
+    // Only a real, active city is a page — anything else is a 404, not an indexable
+    // empty page.
+    const location = taxonomy.taxonomy.locations.find((item) => item.slug === params.slug);
+    if (!location) throw notFound();
+    const results = await getDirectoryResults({
       data: {
-        q: "",
+        ...directoryQuerySchema.parse({}),
         location: params.slug,
-        verified: false,
-        openNow: false,
-        minRating: 0,
         sort: "relevance",
         page: 1,
         pageSize: 12,
       },
     });
+    return { location, results, categories: taxonomy.taxonomy.categories };
   },
-  head: ({ params }) => {
-    const location = locations.find((item) => item.slug === params.slug);
-    const name = location?.name ?? "Nigeria";
+  head: ({ loaderData }) => {
+    const name = loaderData?.location.name ?? "Nigeria";
     return {
       meta: [
         { title: `Businesses in ${name} — GainHub NG` },
@@ -46,8 +48,8 @@ export const Route = createFileRoute("/locations/$slug")({
 
 function LocationPage() {
   const { slug } = Route.useParams();
-  const { available, result } = Route.useLoaderData();
-  const location = locations.find((item) => item.slug === slug)!;
+  const { location, results, categories } = Route.useLoaderData();
+  const { available, result } = results;
 
   return (
     <PublicShell>
@@ -63,13 +65,15 @@ function LocationPage() {
           </Button>
         }
       />
-      <div className="mx-auto max-w-7xl space-y-10 px-4 py-12">
+      <div className="mx-auto max-w-7xl space-y-12 px-5 py-14">
         <section aria-labelledby="location-categories">
-          <p className="eyebrow">Choose a service</p>
-          <h2 id="location-categories" className="mt-2 text-2xl font-bold">
-            Search categories in {location.name}
-          </h2>
-          <div className="mt-5 flex flex-wrap gap-2">
+          <Reveal>
+            <p className="eyebrow text-primary">Choose a service</p>
+            <h2 id="location-categories" className="display-md mt-3">
+              Search categories in {location.name}
+            </h2>
+          </Reveal>
+          <div className="mt-6 flex flex-wrap gap-2">
             {categories.map((category) => (
               <Link
                 key={category.slug}
@@ -83,23 +87,13 @@ function LocationPage() {
           </div>
         </section>
 
-        {available && result.items.length > 0 ? (
-          <section aria-labelledby="location-results" className="border-t pt-9">
-            <p className="eyebrow">Current directory</p>
-            <h2 id="location-results" className="mt-2 text-2xl font-bold">
-              {result.pagination.total} {result.pagination.total === 1 ? "listing" : "listings"} in{" "}
-              {location.name}
-            </h2>
-            <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {result.items.map((business) => (
-                <BusinessCard key={business.id} business={business} />
-              ))}
-            </div>
-          </section>
-        ) : !available ? (
-          <Card className="card-surface border-amber-300/60 bg-amber-50/60">
+        {!available ? (
+          <Card className="rounded-3xl border-warning/40 bg-warning/8">
             <CardContent className="flex gap-4 p-6">
-              <WifiOff className="mt-1 size-5 shrink-0 text-amber-800" aria-hidden="true" />
+              <WifiOff
+                className="mt-1 size-5 shrink-0 text-warning-foreground"
+                aria-hidden="true"
+              />
               <div>
                 <h2 className="font-semibold">The live directory is temporarily unavailable.</h2>
                 <p className="mt-1 text-sm text-muted-foreground">
@@ -108,14 +102,30 @@ function LocationPage() {
               </div>
             </CardContent>
           </Card>
+        ) : result.items.length > 0 ? (
+          <section aria-labelledby="location-results" className="border-t border-border/60 pt-10">
+            <Reveal>
+              <p className="eyebrow text-primary">Current directory</p>
+              <h2 id="location-results" className="display-md mt-3">
+                {result.pagination.total} {result.pagination.total === 1 ? "listing" : "listings"}{" "}
+                in {location.name}
+              </h2>
+            </Reveal>
+            <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {result.items.map((business, index) => (
+                <Reveal key={business.id} delay={index % 3} className="h-full">
+                  <BusinessCard business={business} />
+                </Reveal>
+              ))}
+            </div>
+          </section>
         ) : (
-          <Card className="card-surface">
-            <CardContent className="p-8 text-center">
-              <h2 className="text-xl font-semibold">No published listings in this city yet.</h2>
-              <p className="mx-auto mt-2 max-w-xl text-sm text-muted-foreground">
-                Search all locations or apply to list an eligible local business.
-              </p>
-              <div className="mt-5 flex flex-wrap justify-center gap-3">
+          <EmptyState
+            icon={<Store className="size-7" />}
+            title="No published listings in this city yet"
+            body="Search all locations or apply to list an eligible local business."
+            action={
+              <div className="flex flex-wrap justify-center gap-3">
                 <Button asChild>
                   <Link to="/join">Apply for a listing</Link>
                 </Button>
@@ -123,13 +133,13 @@ function LocationPage() {
                   <Link to="/locations">Choose another city</Link>
                 </Button>
               </div>
-            </CardContent>
-          </Card>
+            }
+          />
         )}
 
-        <section className="border-t pt-9" aria-labelledby="area-context">
-          <p className="eyebrow">Area context</p>
-          <h2 id="area-context" className="mt-2 text-2xl font-bold">
+        <section className="border-t border-border/60 pt-10" aria-labelledby="area-context">
+          <p className="eyebrow text-primary">Area context</p>
+          <h2 id="area-context" className="display-md mt-3">
             Neighbourhoods represented in {location.name}
           </h2>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">

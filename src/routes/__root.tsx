@@ -10,6 +10,7 @@ import {
   type ErrorComponentProps,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
+import { CustomCursor, ScrollProgress } from "@/components/motion";
 import { AlertTriangle, ArrowLeft, RefreshCw } from "lucide-react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -27,24 +28,52 @@ function NotFoundComponent() {
       <meta name="robots" content="noindex, nofollow" />
       <main
         id="main-content"
-        className="paper-grid grid min-h-screen place-items-center bg-background px-4 py-16"
+        className="grain relative grid min-h-screen place-items-center overflow-hidden bg-ink px-5 py-20 text-ink-foreground"
       >
-        <div className="max-w-xl text-center">
-          <p className="eyebrow text-primary">404 · Lost signal</p>
-          <h1 className="mt-4 text-6xl font-bold leading-none text-foreground sm:text-8xl">
-            Not on the map.
-          </h1>
-          <p className="mx-auto mt-5 max-w-md text-muted-foreground">
+        <div aria-hidden="true" className="aurora opacity-60" />
+        <div
+          aria-hidden="true"
+          className="absolute -left-32 top-10 size-[28rem] rounded-full border border-white/8"
+        />
+        <div
+          aria-hidden="true"
+          className="absolute -right-24 bottom-0 size-[22rem] rounded-full border border-sidebar-primary/14"
+        />
+
+        <div
+          className="relative max-w-2xl text-center"
+          style={{ animation: "reveal-up 800ms var(--ease-out-expo) both" }}
+        >
+          <p className="eyebrow text-sidebar-primary">404 · Lost signal</p>
+
+          {/* The number carries the moment: oversized, outlined, and part of the
+              composition rather than a stock error glyph. */}
+          <p
+            aria-hidden="true"
+            className="mt-6 select-none font-display text-[8rem] font-extrabold leading-[0.78] tracking-[-0.06em] text-transparent sm:text-[11rem]"
+            style={{ WebkitTextStroke: "1.5px oklch(1 0 0 / 0.22)" }}
+          >
+            404
+          </p>
+          <h1 className="display-md -mt-4 text-ink-foreground sm:-mt-8">Not on the map.</h1>
+
+          <p className="mx-auto mt-5 max-w-md leading-7 text-ink-foreground/65">
             This page may have moved, been removed, or never existed. Let&apos;s get you back to a
             useful route.
           </p>
-          <div className="mt-8 flex flex-wrap justify-center gap-3">
-            <Button asChild>
+
+          <div className="mt-9 flex flex-wrap justify-center gap-3">
+            <Button asChild size="lg" variant="secondary">
               <Link to="/">
                 <ArrowLeft /> Go home
               </Link>
             </Button>
-            <Button asChild variant="outline">
+            <Button
+              asChild
+              size="lg"
+              variant="outline"
+              className="border-white/20 bg-transparent text-ink-foreground hover:bg-white/10"
+            >
               <Link to="/search">Search the directory</Link>
             </Button>
           </div>
@@ -68,32 +97,18 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
       <meta name="robots" content="noindex, nofollow" />
       <main
         id="main-content"
-        className="paper-grid grid min-h-screen place-items-center bg-background px-4 py-16"
+        className="grain paper-grid relative grid min-h-screen place-items-center overflow-hidden bg-background px-5 py-20"
       >
-        <div className="card-surface max-w-lg p-8 text-center sm:p-10">
-          <span className="mx-auto grid size-12 place-items-center rounded-2xl bg-destructive/10 text-destructive">
-            <AlertTriangle className="size-6" />
+        <div aria-hidden="true" className="aurora opacity-25" />
+        <div className="relative max-w-lg text-center">
+          <span className="mx-auto grid size-14 place-items-center rounded-2xl bg-destructive/10 text-destructive">
+            <AlertTriangle className="size-6" aria-hidden="true" />
           </span>
-          <h1 className="mt-5 text-3xl font-bold tracking-tight text-foreground">
-            The signal dropped.
-          </h1>
-          <p className="mt-3 text-sm leading-6 text-muted-foreground">
+          <h1 className="display-md mt-6">The signal dropped.</h1>
+          <p className="mx-auto mt-4 max-w-md text-sm leading-7 text-muted-foreground">
             This page did not load correctly. Try once more; if the problem continues, return home
             and use another route.
           </p>
-          <div className="mt-7 flex flex-wrap justify-center gap-3">
-            <Button
-              onClick={() => {
-                void router.invalidate();
-                reset();
-              }}
-            >
-              <RefreshCw /> Try again
-            </Button>
-            <Button asChild variant="outline">
-              <a href="/">Go home</a>
-            </Button>
-          </div>
         </div>
       </main>
     </>
@@ -199,6 +214,11 @@ function RootShell({ children }: { children: ReactNode }) {
         />
       </head>
       <body>
+        {/* Motion primitives rely on CSS for their hidden state. Without scripting
+            the end state is applied immediately so nothing is ever invisible. */}
+        <noscript>
+          <style>{`.motion-reveal{opacity:1!important;filter:none!important;transform:none!important;clip-path:none!important}.text-reveal__inner{transform:none!important}`}</style>
+        </noscript>
         {children}
         <Scripts />
       </body>
@@ -208,13 +228,20 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const pathname = useLocation({ select: (location) => location.pathname });
 
   return (
     <QueryClientProvider client={queryClient}>
       <a href="#main-content" className="skip-link">
         Skip to main content
       </a>
-      <Outlet />
+      <ScrollProgress />
+      <CustomCursor />
+      {/* Keyed on the pathname so navigation replays the entrance animation and
+          the experience feels continuous rather than abrupt. */}
+      <div key={pathname} className="route-transition">
+        <Outlet />
+      </div>
     </QueryClientProvider>
   );
 }

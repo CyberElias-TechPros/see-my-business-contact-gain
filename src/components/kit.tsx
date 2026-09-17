@@ -1,43 +1,256 @@
 import { Link } from "@tanstack/react-router";
-import { ArrowUpRight, BadgeCheck, MapPin, Star } from "lucide-react";
+import { ArrowUpRight, BadgeCheck, Clock3, MapPin, Star } from "lucide-react";
 import type { ReactNode } from "react";
+import { Magnetic, Spotlight, Tilt } from "@/components/motion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import type { Business } from "@/data/mock";
 import type { PublicBusiness } from "@/lib/contracts";
+import { businessIdentity } from "@/lib/identity";
+import { cn } from "@/lib/utils";
 
-export function StatCard({
-  label,
-  value,
-  delta,
-  hint,
+/* -------------------------------------------------------------------------- */
+/* Generative identity                                                        */
+/* -------------------------------------------------------------------------- */
+
+export function BusinessMark({
+  name,
+  id,
+  className = "",
 }: {
-  label: string;
-  value: string;
-  delta?: string;
-  hint?: string;
+  name: string;
+  id: string;
+  className?: string;
 }) {
+  const { hue, initials } = businessIdentity(id);
+  const fallback = name
+    .split(" ")
+    .slice(0, 2)
+    .map((word) => word[0])
+    .join("");
+
   return (
-    <Card className="card-surface">
-      <CardContent className="p-5">
-        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
-        <p className="mt-2 font-display text-2xl font-bold">{value}</p>
-        <p className="mt-1 text-xs text-muted-foreground">
-          {delta ? <span className="font-semibold text-primary">{delta}</span> : null} {hint}
-        </p>
-      </CardContent>
-    </Card>
+    <span
+      aria-hidden="true"
+      className={cn(
+        "grid shrink-0 place-items-center rounded-2xl font-display font-extrabold text-white shadow-soft",
+        className,
+      )}
+      style={{
+        background: `linear-gradient(140deg, oklch(0.62 0.16 ${hue}), oklch(0.42 0.13 ${hue}))`,
+      }}
+    >
+      {fallback || initials}
+    </span>
   );
 }
+
+/* -------------------------------------------------------------------------- */
+/* Badges                                                                     */
+/* -------------------------------------------------------------------------- */
+
+const VERIFICATION_COPY: Record<
+  PublicBusiness["verificationLevel"],
+  { label: string; className: string }
+> = {
+  unverified: {
+    label: "Unverified",
+    className: "border-border/70 bg-muted/60 text-muted-foreground",
+  },
+  email: {
+    label: "Email checked",
+    className: "border-primary/25 bg-primary/10 text-primary",
+  },
+  phone: {
+    label: "Phone checked",
+    className: "border-primary/30 bg-primary/12 text-primary",
+  },
+  documents: {
+    label: "Documents checked",
+    className: "border-primary/40 bg-primary/16 text-primary",
+  },
+  premium: {
+    label: "Premium verified",
+    className: "border-accent/45 bg-accent/18 text-accent-foreground",
+  },
+};
+
+export function VerifiedBadge({
+  level,
+  compact = false,
+}: {
+  level: PublicBusiness["verificationLevel"];
+  compact?: boolean;
+}) {
+  const copy = VERIFICATION_COPY[level];
+  return (
+    <Badge
+      variant="outline"
+      className={cn("gap-1 font-semibold", copy.className)}
+      title="A review of the evidence supplied to GainHub — not a guarantee of service quality."
+    >
+      {level !== "unverified" ? <BadgeCheck className="size-3" aria-hidden="true" /> : null}
+      {compact ? copy.label.split(" ")[0] : copy.label}
+    </Badge>
+  );
+}
+
+export function Stars({
+  rating,
+  count,
+  className = "",
+}: {
+  rating: number;
+  count?: number;
+  className?: string;
+}) {
+  return (
+    <span
+      className={cn("flex items-center gap-1 text-sm", className)}
+      aria-label={`${rating.toFixed(1)} out of 5 stars${count === undefined ? "" : ` from ${count} reviews`}`}
+    >
+      <Star className="size-3.5 fill-accent text-accent" aria-hidden="true" />
+      <span className="font-bold tabular-nums">{rating.toFixed(1)}</span>
+      {count === undefined ? null : (
+        <span className="text-xs font-medium text-muted-foreground tabular-nums">({count})</span>
+      )}
+    </span>
+  );
+}
+
+export function OpenNowPill({ open, hours }: { open: boolean; hours?: PublicBusiness["hours"] }) {
+  const today = new Date().getDay();
+  const todayHours = hours?.find((entry) => entry.dayOfWeek === today);
+  const detail = !todayHours
+    ? "Hours not published"
+    : todayHours.isClosed
+      ? "Closed today"
+      : `${todayHours.opensAt} – ${todayHours.closesAt}`;
+
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[0.7rem] font-bold",
+        open ? "bg-primary/12 text-primary" : "bg-muted text-muted-foreground",
+      )}
+      title={detail}
+    >
+      <span
+        className={cn("size-1.5 rounded-full", open ? "bg-primary" : "bg-muted-foreground/50")}
+        aria-hidden="true"
+      />
+      {open ? "Open now" : "Closed now"}
+    </span>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* Business card                                                              */
+/* -------------------------------------------------------------------------- */
+
+export function BusinessCard({
+  business,
+  priority = false,
+}: {
+  business: PublicBusiness;
+  priority?: boolean;
+}) {
+  const { hue, hue2 } = businessIdentity(business.id);
+
+  return (
+    <Tilt max={5} className="h-full">
+      <Spotlight className="h-full">
+        <Card
+          className={cn(
+            "group relative flex h-full flex-col overflow-hidden rounded-3xl border-border/70",
+            "transition-[transform,box-shadow,border-color] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]",
+            "hover:-translate-y-1.5 hover:border-primary/30 hover:shadow-lift",
+            "focus-within:border-primary/40",
+          )}
+        >
+          {/* Generative cover */}
+          <div
+            className="cover-generative relative h-32 shrink-0"
+            style={
+              {
+                "--cover-hue": String(hue),
+                "--cover-hue-2": String(hue2),
+              } as React.CSSProperties
+            }
+          >
+            <div className="absolute inset-0 bg-gradient-to-t from-card via-card/10 to-transparent" />
+            <div className="absolute right-4 top-4 flex gap-1.5">
+              {business.priceRange ? (
+                <span className="rounded-full border border-white/20 bg-black/35 px-2.5 py-1 text-[0.68rem] font-bold text-white backdrop-blur-sm">
+                  {business.priceRange}
+                </span>
+              ) : null}
+            </div>
+          </div>
+
+          <CardContent className="relative -mt-8 flex flex-1 flex-col gap-4 p-5 pt-0">
+            <BusinessMark
+              name={business.name}
+              id={business.id}
+              className="size-14 border-4 border-card text-lg"
+            />
+
+            <div className="space-y-2">
+              <div className="flex items-start justify-between gap-3">
+                <h3 className="text-lg font-bold leading-tight">
+                  {/* Stretched link: the whole card is the target, but the accessible
+                      name stays the business name. */}
+                  <Link
+                    to="/business/$id"
+                    params={{ id: business.slug }}
+                    className="after:absolute after:inset-0 after:content-[''] hover:text-primary focus-visible:outline-none"
+                  >
+                    {business.name}
+                  </Link>
+                </h3>
+                {business.reviewCount > 0 ? (
+                  <Stars rating={business.rating} count={business.reviewCount} />
+                ) : (
+                  <span className="shrink-0 text-xs font-semibold text-muted-foreground">New</span>
+                )}
+              </div>
+              <p className="line-clamp-2 min-h-10 text-sm leading-5 text-muted-foreground">
+                {business.tagline}
+              </p>
+            </div>
+
+            <div className="mt-auto space-y-3">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-muted-foreground">
+                <span className="flex items-center gap-1">
+                  <MapPin className="size-3.5 shrink-0" aria-hidden="true" />
+                  {business.city}, {business.state}
+                </span>
+                <span className="flex items-center gap-1">
+                  <Clock3 className="size-3.5 shrink-0" aria-hidden="true" />
+                  {business.openNow ? "Open now" : "Closed"}
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between gap-2 border-t border-border/60 pt-3.5">
+                <VerifiedBadge level={business.verificationLevel} />
+                <span
+                  className="flex items-center gap-1 text-xs font-bold text-primary opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-within:opacity-100"
+                  aria-hidden="true"
+                >
+                  View <ArrowUpRight className="size-3.5" />
+                </span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </Spotlight>
+    </Tilt>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* Layout helpers                                                             */
+/* -------------------------------------------------------------------------- */
 
 export function Panel({
   title,
@@ -51,8 +264,8 @@ export function Panel({
   className?: string;
 }) {
   return (
-    <Card className={`card-surface ${className ?? ""}`}>
-      <CardHeader className="flex flex-row items-center justify-between gap-3 border-b pb-3">
+    <Card className={cn("rounded-2xl border-border/70", className)}>
+      <CardHeader className="flex flex-row items-center justify-between gap-3 border-b border-border/60 pb-3.5">
         <CardTitle className="text-base">{title}</CardTitle>
         {action}
       </CardHeader>
@@ -61,176 +274,64 @@ export function Panel({
   );
 }
 
-export function SimpleTable({
-  columns,
-  rows,
+export function Stat({
+  label,
+  value,
+  hint,
+  icon,
 }: {
-  columns: string[];
-  rows: (ReactNode[] | { cells: ReactNode[] })[];
+  label: string;
+  value: ReactNode;
+  hint?: string;
+  icon?: ReactNode;
 }) {
   return (
-    <div className="overflow-x-auto">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            {columns.map((c) => (
-              <TableHead key={c} className="whitespace-nowrap text-xs uppercase tracking-wide">
-                {c}
-              </TableHead>
-            ))}
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {rows.map((row, i) => {
-            const cells = Array.isArray(row) ? row : row.cells;
-            return (
-              <TableRow key={i}>
-                {cells.map((cell, j) => (
-                  <TableCell key={j} className="whitespace-nowrap text-sm">
-                    {cell}
-                  </TableCell>
-                ))}
-              </TableRow>
-            );
-          })}
-        </TableBody>
-      </Table>
-    </div>
-  );
-}
-
-export function BarTrend({ data }: { data: { label: string; contacts: number; leads: number }[] }) {
-  const max = Math.max(...data.map((d) => d.contacts));
-  return (
-    <div className="flex h-40 items-end gap-3">
-      {data.map((d) => (
-        <div key={d.label} className="flex flex-1 flex-col items-center gap-2">
-          <div className="flex h-32 w-full items-end justify-center gap-1">
-            <div
-              className="w-1/2 rounded-t bg-primary/80"
-              style={{ height: `${(d.contacts / max) * 100}%` }}
-              title={`${d.contacts} contacts`}
-            />
-            <div
-              className="w-1/2 rounded-t bg-accent/80"
-              style={{ height: `${(d.leads / max) * 100}%` }}
-              title={`${d.leads} leads`}
-            />
-          </div>
-          <span className="text-xs text-muted-foreground">{d.label}</span>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-export function SourceBars({ data }: { data: { label: string; value: number }[] }) {
-  return (
-    <div className="space-y-3">
-      {data.map((d) => (
-        <div key={d.label}>
-          <div className="flex justify-between text-sm">
-            <span>{d.label}</span>
-            <span className="font-semibold">{d.value}%</span>
-          </div>
-          <div className="mt-1 h-2 rounded-full bg-muted">
-            <div className="h-2 rounded-full bg-primary" style={{ width: `${d.value}%` }} />
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-export function VerifiedBadge({ level }: { level: Business["verified"] }) {
-  if (level === "unverified") return <Badge variant="outline">Unverified</Badge>;
-  const label =
-    level === "premium"
-      ? "Premium verified"
-      : level === "documents"
-        ? "Documents verified"
-        : `${level} verified`;
-  return (
-    <Badge className="gap-1 capitalize">
-      <BadgeCheck className="size-3" /> {label}
-    </Badge>
-  );
-}
-
-export function Stars({ rating }: { rating: number }) {
-  return (
-    <span
-      className="flex items-center gap-1 text-sm"
-      aria-label={`${rating.toFixed(1)} out of 5 stars`}
-    >
-      <Star className="size-3.5 fill-accent text-accent" aria-hidden="true" />
-      <span className="font-bold tabular-nums">{rating.toFixed(1)}</span>
-    </span>
-  );
-}
-
-export function BusinessCard({ business }: { business: Business | PublicBusiness }) {
-  const isPreview = "isDemo" in business;
-  const routeId = isPreview ? business.id : business.slug;
-  const category = isPreview ? business.category : business.categoryName;
-  const verification = isPreview ? business.verified : business.verificationLevel;
-  const cover = isPreview ? business.cover : "bg-ink-mesh";
-
-  return (
-    <Card className="card-surface group relative overflow-hidden transition-[transform,box-shadow,border-color] duration-300 hover:-translate-y-1 hover:border-primary/25 hover:shadow-lift">
-      <div className={`paper-grid relative h-28 overflow-hidden ${cover}`}>
-        <div className="absolute -right-8 -top-12 size-32 rounded-full border border-white/15 transition-transform duration-500 group-hover:scale-110" />
-        <div className="absolute -right-2 -top-7 size-20 rounded-full border border-sidebar-primary/30" />
-        {isPreview ? (
-          <Badge className="absolute left-4 top-4 border-white/15 bg-ink/70 text-ink-foreground backdrop-blur">
-            Product preview
-          </Badge>
-        ) : null}
+    <div className="rounded-2xl border border-border/60 bg-card/70 p-5">
+      <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        {icon}
+        {label}
       </div>
-      <CardContent className="relative -mt-7 space-y-4 p-5 pt-0">
-        <div className="grid size-14 place-items-center rounded-2xl border-4 border-card bg-accent font-display text-lg font-extrabold text-accent-foreground shadow-soft">
-          {business.name
-            .split(" ")
-            .slice(0, 2)
-            .map((word) => word[0])
-            .join("")}
-        </div>
-        <div>
-          <div className="flex items-start justify-between gap-3">
-            <Link
-              to="/business/$id"
-              params={{ id: routeId }}
-              className="after:absolute after:inset-0 after:content-[''] hover:text-primary focus-visible:outline-none"
-            >
-              <h3 className="text-lg font-bold leading-tight">{business.name}</h3>
-            </Link>
-            {business.rating > 0 ? (
-              <Stars rating={business.rating} />
-            ) : (
-              <span className="text-xs text-muted-foreground">New</span>
-            )}
-          </div>
-          <p className="mt-2 line-clamp-2 min-h-10 text-sm leading-5 text-muted-foreground">
-            {business.tagline}
-          </p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-          <Badge variant="secondary" className="max-w-full truncate">
-            {category}
-          </Badge>
-          <span className="flex items-center gap-1">
-            <MapPin className="size-3" aria-hidden="true" /> {business.city}, {business.state}
-          </span>
-        </div>
-        <div className="relative z-10 flex items-center justify-between gap-2 border-t pt-4">
-          <VerifiedBadge level={verification} />
-          <Button asChild size="sm" variant="ghost" className="gap-1">
-            <Link to="/business/$id" params={{ id: routeId }}>
-              View <ArrowUpRight />
-            </Link>
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+      <p className="mt-2 font-display text-3xl font-extrabold tabular-nums">{value}</p>
+      {hint ? <p className="mt-1 text-xs text-muted-foreground">{hint}</p> : null}
+    </div>
   );
+}
+
+export function EmptyState({
+  icon,
+  title,
+  body,
+  action,
+}: {
+  icon: ReactNode;
+  title: string;
+  body: string;
+  action?: ReactNode;
+}) {
+  return (
+    <div className="grid min-h-80 place-items-center rounded-3xl border border-dashed border-border/70 bg-muted/25 p-10 text-center">
+      <div className="max-w-md">
+        <span className="mx-auto grid size-14 place-items-center rounded-2xl bg-secondary text-primary">
+          {icon}
+        </span>
+        <h3 className="mt-5 font-display text-2xl font-bold">{title}</h3>
+        <p className="mt-2 text-sm leading-6 text-muted-foreground">{body}</p>
+        {action ? <div className="mt-6">{action}</div> : null}
+      </div>
+    </div>
+  );
+}
+
+export function PrimaryCta({
+  children,
+  to,
+  href,
+  ...props
+}: { children: ReactNode; to?: string; href?: string } & Record<string, unknown>) {
+  const inner = (
+    <Button size="lg" className="px-7" asChild={Boolean(to || href)} {...(props as object)}>
+      {to ? <Link to={to}>{children}</Link> : href ? <a href={href}>{children}</a> : children}
+    </Button>
+  );
+  return <Magnetic>{inner}</Magnetic>;
 }

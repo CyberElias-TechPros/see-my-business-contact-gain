@@ -14,23 +14,38 @@ The product does **not** currently sell subscriptions, advertising, paid placeme
 ### Public discovery
 
 - server-rendered home, search, category, location, and business-profile routes;
-- search by business text or active service, with category, location, rating, verification, and recorded-open filters;
-- URL-based comparison of up to three current published businesses;
-- published ratings, services, contact details, narrowly described verification states, and outbound-link safeguards;
+- search by business text or active service, with category, location, rating, verification, and opening-hours filters;
+- a type-ahead combobox that suggests businesses, categories, locations and services as you type;
+- URL-based comparison of up to three current published businesses, with a type-ahead picker fed by live directory results and a "highest rated" rail so discovery does not depend on already knowing a name;
+- published ratings **and readable published reviews**, with a per-star distribution and a moderated review form;
+- **editable reviews** — an author can revise their own review, and editing a published one returns it to moderation and drops it from the aggregate until it is re-approved;
+- opening hours stored per weekday and evaluated in Africa/Lagos, so "open now" is derived rather than stored;
+- related-business links on every profile, derived from category and city;
+- services, amenities, service areas, socials, price range and deterministic generative cover art per listing;
+- contact details, narrowly described verification states, and outbound-link safeguards;
 - WhatsApp, phone, website, and directions contact-event recording using a salted visitor hash;
-- runtime `robots.txt`, an XML sitemap containing taxonomy and current published profile/circle URLs, canonical links, Open Graph metadata, and JSON-LD;
-- clearly labelled, fictional product-preview profiles that are no-indexed and have contact actions disabled.
+- runtime `robots.txt`, an XML sitemap built from the live taxonomy and current published profile/circle URLs, canonical links, Open Graph metadata, and JSON-LD.
+
+No fictional preview profiles are shipped. Every public page reads the live API, and each
+loader returns an explicit availability flag, so an API incident degrades to an honest
+message instead of substituted data.
 
 ### Customer and business workflows
 
 - email or Nigerian-phone registration and sign-in;
+- **password recovery** with single-use, expiring tokens that revoke existing sessions on use;
 - saved businesses;
 - consented enquiries and moderated reviews;
 - free listing applications with supported taxonomy validation;
 - authenticated ownership claims with private PDF/PNG/JPEG/WebP evidence;
 - an owner workspace limited to authorised businesses and their enquiries;
+- **owner editing of published listings** — hours, services, amenities, service areas, socials and profile fields, each section saving independently;
 - owner-controlled enquiry transitions (`new`, `contacted`, `qualified`, `closed`, or `spam`);
+- **contact-gain insights** — contacts by channel, unique visitors, enquiries and recent activity, derived only from recorded events;
+- **in-app notifications** when a listing is approved or rejected, a claim is decided, an enquiry arrives, a review is moderated, or a password is reset;
+- account settings for name, email, phone and password changes;
 - opt-in contact-circle proposals and capacity-safe business applications;
+- **`/app/circles`** — circles you run (with the join requests waiting on you, which you admit or decline yourself), circles your businesses belong to, the ability to leave one, and a history of closed applications;
 - factual suggestions, safety reports, and tracked personal-data requests.
 
 ### Administration
@@ -381,7 +396,9 @@ Recommended launch alerts include sustained `/health` failure, elevated API 5xx,
 The current repository does not pretend to provide:
 
 - live payment, subscription, invoicing, advertising, or sponsored-ranking infrastructure;
-- automated email/SMS verification or password-reset delivery;
+- automated email/SMS verification, or automated delivery of password-reset links (a reset can be
+  requested and completed, but the link is surfaced through the operator's outbox — and, in local
+  development, returned directly — rather than emailed);
 - automatic execution of data access/deletion requests (administrators track identity checks and manual fulfilment);
 - a self-service verification upgrade or ownership-transfer workflow;
 - guaranteed review times, business performance, directory coverage, or search ranking; or
