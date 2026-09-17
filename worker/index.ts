@@ -15,6 +15,8 @@ import {
   reportSchema,
   resetPasswordSchema,
   reviewSchema,
+  reviewUpdateSchema,
+  roomApplicationDecisionSchema,
   roomApplicationSchema,
   roomProposalSchema,
   saveBusinessSchema,
@@ -455,13 +457,24 @@ async function privacyHash(value: string, env: Env): Promise<string> {
   return sha256(`${salt}:${value}`);
 }
 
+/**
+ * `actor` lets a caller key the bucket on something better than the source IP.
+ * Rate limits here were IP-only, which is wrong for an audience that is mostly
+ * on mobile carrier NAT: one person writing reviews would drain the shared
+ * budget for every other subscriber behind the same address, and there is
+ * nothing they can do about it. Signed-in writes therefore bucket on the user
+ * id (impossible to evade by rotating IPs, impossible to collide with a
+ * stranger), while anonymous endpoints keep the IP bucket because that is the
+ * only handle we have on the caller.
+ */
 async function enforceRateLimit(
   context: AppContext,
   scope: string,
   limit: number,
   windowSeconds: number,
+  actor?: string,
 ): Promise<void> {
-  const identity = await privacyHash(context.ip, context.env);
+  const identity = actor ?? (await privacyHash(context.ip, context.env));
   const bucket = Math.floor(Date.now() / (windowSeconds * 1_000));
   const expiresAt = Math.floor(Date.now() / 1_000) + windowSeconds + 60;
   const row = await context.env.DB.prepare(
@@ -834,6 +847,27 @@ async function listBusinessReviews(context: AppContext, identifier: string): Pro
     distribution[bucket] += 1;
   }
 
+  // The reader's own review, in any moderation state. Read separately (and never
+  // cached with the public list) so a pending or rejected review is visible to
+  // its author without leaking into the published set.
+  const viewer = await sessionUser(context);
+  const own = viewer
+    ? await context.env.DB.prepare(
+        `SELECT id, rating, body, status, created_at, updated_at, edited_at
+           FROM reviews WHERE business_id = ? AND author_user_id = ?`,
+      )
+        .bind(business.id, viewer.id)
+        .first<{
+          id: string;
+          rating: number;
+          body: string;
+          status: string;
+          created_at: string;
+          updated_at: string;
+          edited_at: string | null;
+        }>()
+    : null;
+
   return success(
     {
       items: rows.results.map((row) => ({
@@ -848,9 +882,23 @@ async function listBusinessReviews(context: AppContext, identifier: string): Pro
         total: summary?.total ?? 0,
         distribution,
       },
+      mine: own
+        ? {
+            id: own.id,
+            rating: own.rating,
+            body: own.body,
+            status: own.status,
+            createdAt: own.created_at,
+            updatedAt: own.updated_at,
+            editedAt: own.edited_at,
+          }
+        : null,
     },
     context.requestId,
-    { headers: { "cache-control": "public, max-age=30, s-maxage=180" } },
+    // Only cache the anonymous shape; a signed-in response carries private state.
+    viewer
+      ? { headers: { "cache-control": "private, no-store" } }
+      : { headers: { "cache-control": "public, max-age=30, s-maxage=180" } },
   );
 }
 
@@ -1312,8 +1360,8 @@ async function submitEnquiry(context: AppContext): Promise<Response> {
 }
 
 async function submitReview(context: AppContext): Promise<Response> {
-  await enforceRateLimit(context, "review", 5, 3_600);
   const auth = await requireUser(context);
+  await enforceRateLimit(context, "review", 5, 3_600, `user:${auth.user.id}`);
   const input = await parseJson(context.request, reviewSchema);
   const exists = await context.env.DB.prepare(
     "SELECT id FROM businesses WHERE id = ? AND status = 'published'",
@@ -1341,6 +1389,90 @@ async function submitReview(context: AppContext): Promise<Response> {
     businessId: input.businessId,
   });
   return success({ id, status: "pending" }, context.requestId, { status: 201 });
+}
+
+/**
+ * Edit your own review.
+ *
+ * An edit is treated as a fresh submission: a review that was already published
+ * goes back to the moderation queue and drops out of the aggregate until it is
+ * re-approved. That is deliberately stricter than "edit in place" — without it,
+ * a review could be approved and then rewritten into something that would never
+ * have passed.
+ */
+async function updateReview(context: AppContext, reviewId: string): Promise<Response> {
+  /*
+   * Edits get their own bucket rather than sharing the 5/hour "review" write
+   * budget. Rate limits are IP-scoped, so a shared bucket would let one person
+   * writing new reviews exhaust the budget of everyone behind the same NAT who
+   * just wants to correct a typo in a review they already own. Editing only
+   * ever touches a single row the caller owns, so a higher ceiling is safe.
+   */
+  const auth = await requireUser(context);
+  await enforceRateLimit(context, "review-edit", 10, 3_600, `user:${auth.user.id}`);
+  if (!z.string().uuid().safeParse(reviewId).success) {
+    throw new HttpError(404, "NOT_FOUND", "Review not found.");
+  }
+  const input = await parseJson(context.request, reviewUpdateSchema);
+
+  const review = await context.env.DB.prepare(
+    `SELECT r.id, r.status, r.business_id, b.slug AS business_slug, b.name AS business_name
+       FROM reviews r JOIN businesses b ON b.id = r.business_id
+      WHERE r.id = ? AND r.author_user_id = ?`,
+  )
+    .bind(reviewId, auth.user.id)
+    .first<{
+      id: string;
+      status: string;
+      business_id: string;
+      business_slug: string;
+      business_name: string;
+    }>();
+  // A review you cannot edit and a review that does not exist are the same thing
+  // from the outside, so the response does not confirm which one it was.
+  if (!review) throw new HttpError(404, "NOT_FOUND", "Review not found.");
+  if (review.status === "disputed") {
+    throw new HttpError(409, "REVIEW_LOCKED", "This review is under review and cannot be edited.");
+  }
+
+  const now = new Date().toISOString();
+  const wasPublished = review.status === "published";
+  const nextStatus = wasPublished ? "pending" : review.status;
+
+  const statements: D1PreparedStatement[] = [
+    context.env.DB.prepare(
+      `UPDATE reviews SET rating = ?, body = ?, status = ?, edited_at = ?, updated_at = ?
+        WHERE id = ? AND author_user_id = ?`,
+    ).bind(input.rating, input.body, nextStatus, now, now, reviewId, auth.user.id),
+  ];
+
+  // Recompute only when the aggregate could have changed.
+  if (wasPublished) {
+    statements.push(
+      context.env.DB.prepare(
+        `UPDATE businesses
+            SET rating_average = COALESCE((SELECT AVG(rating) FROM reviews WHERE business_id = ? AND status = 'published'), 0),
+                review_count = (SELECT COUNT(*) FROM reviews WHERE business_id = ? AND status = 'published'),
+                updated_at = ?
+          WHERE id = ?`,
+      ).bind(review.business_id, review.business_id, now, review.business_id),
+    );
+  }
+
+  await context.env.DB.batch(statements);
+  await audit(context, auth.user.id, "review.updated", "review", reviewId, {
+    businessId: review.business_id,
+    reSubmitted: nextStatus,
+  });
+
+  return success(
+    {
+      id: reviewId,
+      status: nextStatus,
+      reSubmitted: wasPublished,
+    },
+    context.requestId,
+  );
 }
 
 async function submitSuggestion(context: AppContext): Promise<Response> {
@@ -1443,8 +1575,8 @@ async function hasValidEvidenceSignature(file: File): Promise<boolean> {
 }
 
 async function submitClaim(context: AppContext): Promise<Response> {
-  await enforceRateLimit(context, "claim", 3, 86_400);
   const auth = await requireUser(context);
+  await enforceRateLimit(context, "claim", 3, 86_400, `user:${auth.user.id}`);
   const contentType = context.request.headers.get("content-type") ?? "";
   if (!contentType.startsWith("multipart/form-data")) {
     throw new HttpError(
@@ -1649,8 +1781,8 @@ async function getRoom(context: AppContext, id: string): Promise<Response> {
 }
 
 async function proposeRoom(context: AppContext): Promise<Response> {
-  await enforceRateLimit(context, "room-proposal", 2, 86_400);
   const auth = await requireUser(context);
+  await enforceRateLimit(context, "room-proposal", 2, 86_400, `user:${auth.user.id}`);
   const input = await parseJson(context.request, roomProposalSchema);
   const id = crypto.randomUUID();
   const now = new Date().toISOString();
@@ -1686,8 +1818,8 @@ async function proposeRoom(context: AppContext): Promise<Response> {
 }
 
 async function applyToRoom(context: AppContext): Promise<Response> {
-  await enforceRateLimit(context, "room-application", 10, 86_400);
   const auth = await requireUser(context);
+  await enforceRateLimit(context, "room-application", 10, 86_400, `user:${auth.user.id}`);
   const input = await parseJson(context.request, roomApplicationSchema);
   const membership = await context.env.DB.prepare(
     `SELECT b.id, b.verification_level, r.verified_only
@@ -1718,22 +1850,204 @@ async function applyToRoom(context: AppContext): Promise<Response> {
       .bind(id, input.roomId, input.businessId, auth.user.id, now, now)
       .run();
   } catch (error) {
-    if (String(error).includes("UNIQUE")) {
+    if (!String(error).includes("UNIQUE")) throw error;
+
+    // A business can only ever have one row per room. Rather than dead-ending on
+    // a duplicate (which permanently blocks re-applying after leaving or being
+    // declined), reopen the existing row when it is in a terminal state.
+    const existing = await context.env.DB.prepare(
+      `SELECT id, status FROM room_applications
+        WHERE room_id = ? AND business_id = ?`,
+    )
+      .bind(input.roomId, input.businessId)
+      .first<{ id: string; status: string }>();
+
+    if (!existing || !["left", "rejected", "removed"].includes(existing.status)) {
       throw new HttpError(
         409,
         "APPLICATION_EXISTS",
-        "This business has already applied to the room.",
+        existing?.status === "queued"
+          ? "This business already has an application waiting for review."
+          : "This business is already a member of this room.",
       );
     }
-    throw error;
+
+    await context.env.DB.prepare(
+      "UPDATE room_applications SET status = 'queued', user_id = ?, updated_at = ? WHERE id = ?",
+    )
+      .bind(auth.user.id, now, existing.id)
+      .run();
+    await audit(
+      context,
+      auth.user.id,
+      "room.application_reopened",
+      "room_application",
+      existing.id,
+    );
+    return success({ id: existing.id, status: "queued" }, context.requestId);
   }
   await audit(context, auth.user.id, "room.application_created", "room_application", id);
   return success({ id, status: "queued" }, context.requestId, { status: 201 });
 }
 
-async function createDataRequest(context: AppContext): Promise<Response> {
-  await enforceRateLimit(context, "data-request", 3, 86_400);
+/**
+ * Leave a contact circle.
+ *
+ * Membership is recorded as an approved application, so leaving marks that row
+ * `left` rather than deleting it: the circle keeps an honest history of who
+ * joined and when, and the business can apply again later.
+ */
+async function leaveRoom(context: AppContext, roomId: string): Promise<Response> {
   const auth = await requireUser(context);
+  if (!z.string().uuid().safeParse(roomId).success) {
+    throw new HttpError(404, "NOT_FOUND", "Room not found.");
+  }
+
+  /*
+   * One person can hold more than one business, and each of those businesses
+   * holds its own row in the room. Leaving has to release all of them: picking
+   * a single row would silently leave the caller inside a circle they believe
+   * they have walked away from.
+   */
+  const rows = await context.env.DB.prepare(
+    `SELECT a.id, r.owner_user_id, r.name AS room_name, b.name AS business_name
+       FROM room_applications a
+       JOIN contact_rooms r ON r.id = a.room_id
+       JOIN businesses b ON b.id = a.business_id
+       JOIN business_members bm ON bm.business_id = a.business_id
+      WHERE a.room_id = ? AND bm.user_id = ? AND a.status = 'approved'`,
+  )
+    .bind(roomId, auth.user.id)
+    .all<{
+      id: string;
+      owner_user_id: string;
+      room_name: string;
+      business_name: string;
+    }>();
+  const [first, ...rest] = rows.results;
+  if (!first) {
+    throw new HttpError(409, "NOT_A_MEMBER", "You are not an active member of this room.");
+  }
+
+  const now = new Date().toISOString();
+  const released = [first, ...rest];
+  await context.env.DB.batch(
+    released.map((row) =>
+      context.env.DB.prepare(
+        "UPDATE room_applications SET status = 'left', updated_at = ? WHERE id = ?",
+      ).bind(now, row.id),
+    ),
+  );
+
+  await audit(context, auth.user.id, "room.left", "room_application", first.id, {
+    roomId,
+    released: released.length,
+  });
+  await notify(
+    context,
+    first.owner_user_id,
+    "room.member_left",
+    `${first.business_name} left ${first.room_name}`,
+    "A member has left your circle. Its slot is available again.",
+    "/app/circles",
+    { type: "room", id: roomId },
+  );
+
+  return success({ id: first.id, status: "left", released: released.length }, context.requestId);
+}
+
+/**
+ * Lets a circle owner admit or decline a join request without a platform admin
+ * acting as a go-between. The admission SQL is deliberately the same shape as
+ * the admin path: it will not flip a row that is no longer queued, and it will
+ * not overshoot the circle's slot limit even if two owners act at once.
+ */
+async function decideRoomApplication(
+  context: AppContext,
+  roomId: string,
+  applicationId: string,
+): Promise<Response> {
+  const auth = await requireUser(context);
+  if (!z.string().uuid().safeParse(roomId).success) {
+    throw new HttpError(404, "NOT_FOUND", "Application not found.");
+  }
+  if (!z.string().uuid().safeParse(applicationId).success) {
+    throw new HttpError(404, "NOT_FOUND", "Application not found.");
+  }
+
+  const owned = await context.env.DB.prepare(
+    "SELECT id FROM contact_rooms WHERE id = ? AND owner_user_id = ?",
+  )
+    .bind(roomId, auth.user.id)
+    .first<{ id: string }>();
+  /*
+   * A non-owner gets the same 404 as a nonexistent circle. Naming the room's
+   * existence in the error would let anyone enumerate which circles are real.
+   */
+  if (!owned) throw new HttpError(404, "NOT_FOUND", "Application not found.");
+
+  const input = await parseJson(context.request, roomApplicationDecisionSchema);
+  const now = new Date().toISOString();
+
+  if (input.action === "approve") {
+    const write = await context.env.DB.prepare(
+      `UPDATE room_applications
+          SET status = 'approved', updated_at = ?
+        WHERE id = ? AND room_id = ? AND status = 'queued'
+          AND EXISTS (
+            SELECT 1 FROM contact_rooms r
+             WHERE r.id = room_applications.room_id AND r.status = 'active'
+               AND (SELECT COUNT(*) FROM room_applications members
+                     WHERE members.room_id = r.id AND members.status = 'approved') < r.slot_limit
+          )`,
+    )
+      .bind(now, applicationId, roomId)
+      .run();
+    if (write.meta.changes === 0) {
+      throw new HttpError(
+        409,
+        "ROOM_UNAVAILABLE",
+        "This request is no longer queued, or the circle is already full.",
+      );
+    }
+    await notifyRoomApplicant(context, applicationId, "room_application.approved", "approved", "");
+  } else {
+    const write = await context.env.DB.prepare(
+      `UPDATE room_applications SET status = 'rejected', updated_at = ?
+        WHERE id = ? AND room_id = ? AND status = 'queued'`,
+    )
+      .bind(now, applicationId, roomId)
+      .run();
+    if (write.meta.changes === 0) {
+      throw new HttpError(409, "NOT_PENDING", "This request is no longer queued.");
+    }
+    await notifyRoomApplicant(
+      context,
+      applicationId,
+      "room_application.rejected",
+      "rejected",
+      input.note ?? "",
+    );
+  }
+
+  await audit(
+    context,
+    auth.user.id,
+    input.action === "approve" ? "room.application_approved" : "room.application_rejected",
+    "room_application",
+    applicationId,
+    { roomId },
+  );
+
+  return success(
+    { id: applicationId, status: input.action === "approve" ? "approved" : "rejected" },
+    context.requestId,
+  );
+}
+
+async function createDataRequest(context: AppContext): Promise<Response> {
+  const auth = await requireUser(context);
+  await enforceRateLimit(context, "data-request", 3, 86_400, `user:${auth.user.id}`);
   const input = await parseJson(context.request, dataRequestSchema);
   const id = crypto.randomUUID();
   const now = new Date().toISOString();
@@ -2959,9 +3273,9 @@ async function updateManagedBusiness(context: AppContext): Promise<Response> {
 
 async function listMyRooms(context: AppContext): Promise<Response> {
   const auth = await requireUser(context);
-  const [owned, memberships] = await Promise.all([
+  const [owned, queue, memberships] = await Promise.all([
     context.env.DB.prepare(
-      `SELECT r.id, r.name, r.purpose, r.state, r.status,
+      `SELECT r.id, r.name, r.purpose, r.state, r.status, r.slot_limit,
               COUNT(CASE WHEN a.status = 'approved' THEN 1 END) AS member_count,
               COUNT(CASE WHEN a.status = 'queued' THEN 1 END) AS queued_count
          FROM contact_rooms r
@@ -2976,12 +3290,42 @@ async function listMyRooms(context: AppContext): Promise<Response> {
         purpose: string;
         state: string;
         status: string;
+        slot_limit: number;
         member_count: number;
         queued_count: number;
       }>(),
+    /*
+     * The join requests waiting on this user as an owner. Without this the
+     * "circles I run" view can only report that people are waiting, never who,
+     * which forces every admission through a platform admin.
+     */
     context.env.DB.prepare(
-      `SELECT a.id, a.room_id, a.status, r.name AS room_name, b.name AS business_name,
-              b.slug AS business_slug, a.created_at
+      `SELECT a.id, a.room_id, a.created_at,
+              r.name AS room_name, r.status AS room_status,
+              b.id AS business_id, b.name AS business_name, b.slug AS business_slug,
+              u.full_name AS applicant_name
+         FROM room_applications a
+         JOIN contact_rooms r ON r.id = a.room_id
+         JOIN businesses b ON b.id = a.business_id
+         JOIN users u ON u.id = a.user_id
+        WHERE r.owner_user_id = ? AND a.status = 'queued'
+        ORDER BY a.created_at ASC`,
+    )
+      .bind(auth.user.id)
+      .all<{
+        id: string;
+        room_id: string;
+        created_at: string;
+        room_name: string;
+        room_status: string;
+        business_id: string;
+        business_name: string;
+        business_slug: string;
+        applicant_name: string;
+      }>(),
+    context.env.DB.prepare(
+      `SELECT a.id, a.room_id, a.status, r.name AS room_name, r.status AS room_status,
+              b.id AS business_id, b.name AS business_name, b.slug AS business_slug, a.created_at
          FROM room_applications a
          JOIN contact_rooms r ON r.id = a.room_id
          JOIN businesses b ON b.id = a.business_id
@@ -2995,6 +3339,8 @@ async function listMyRooms(context: AppContext): Promise<Response> {
         room_id: string;
         status: string;
         room_name: string;
+        room_status: string;
+        business_id: string;
         business_name: string;
         business_slug: string;
         created_at: string;
@@ -3010,12 +3356,25 @@ async function listMyRooms(context: AppContext): Promise<Response> {
         status: row.status,
         memberCount: row.member_count,
         queuedCount: row.queued_count,
+        slotLimit: row.slot_limit,
+      })),
+      queue: queue.results.map((row) => ({
+        id: row.id,
+        roomId: row.room_id,
+        roomName: row.room_name,
+        businessId: row.business_id,
+        businessName: row.business_name,
+        businessSlug: row.business_slug,
+        applicantName: row.applicant_name,
+        createdAt: row.created_at,
       })),
       applications: memberships.results.map((row) => ({
         id: row.id,
         roomId: row.room_id,
         status: row.status,
         roomName: row.room_name,
+        roomStatus: row.room_status,
+        businessId: row.business_id,
         businessName: row.business_name,
         businessSlug: row.business_slug,
         createdAt: row.created_at,
@@ -3335,10 +3694,22 @@ async function route(context: AppContext): Promise<Response> {
     return submitListing(context);
   if (request.method === "POST" && path === "/v1/enquiries") return submitEnquiry(context);
   if (request.method === "POST" && path === "/v1/reviews") return submitReview(context);
+  {
+    const match = path.match(/^\/v1\/reviews\/([^/]+)$/);
+    if (request.method === "PATCH" && match?.[1]) {
+      return updateReview(context, decodeURIComponent(match[1]));
+    }
+  }
   if (request.method === "POST" && path === "/v1/suggestions") return submitSuggestion(context);
   if (request.method === "POST" && path === "/v1/reports") return submitReport(context);
   if (request.method === "POST" && path === "/v1/claims") return submitClaim(context);
   if (request.method === "POST" && path === "/v1/rooms") return proposeRoom(context);
+  {
+    const match = path.match(/^\/v1\/rooms\/([^/]+)\/leave$/);
+    if (request.method === "POST" && match?.[1]) {
+      return leaveRoom(context, decodeURIComponent(match[1]));
+    }
+  }
   if (request.method === "POST" && path === "/v1/room-applications") return applyToRoom(context);
   if (request.method === "POST" && path === "/v1/data-requests") return createDataRequest(context);
   if (request.method === "GET" && path === "/v1/me/saved-businesses")
@@ -3350,6 +3721,16 @@ async function route(context: AppContext): Promise<Response> {
   if (request.method === "GET" && path === "/v1/workspace/insights")
     return workspaceInsights(context);
   if (request.method === "GET" && path === "/v1/workspace/rooms") return listMyRooms(context);
+  {
+    const match = path.match(/^\/v1\/workspace\/rooms\/([^/]+)\/applications\/([^/]+)$/);
+    if (request.method === "POST" && match?.[1] && match[2]) {
+      return decideRoomApplication(
+        context,
+        decodeURIComponent(match[1]),
+        decodeURIComponent(match[2]),
+      );
+    }
+  }
   const managedMatch = path.match(/^\/v1\/workspace\/businesses\/([^/]+)$/);
   if (managedMatch?.[1]) {
     const id = decodeURIComponent(managedMatch[1]);

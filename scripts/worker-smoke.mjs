@@ -303,6 +303,94 @@ try {
   assert(result.payload.data.status === "pending", "Review bypassed moderation");
   const reviewId = result.payload.data.id;
 
+  /* ---- Review editing (gap H6) ------------------------------------------- */
+
+  // The author can see their own pending review, and it must not be counted in
+  // the published aggregate until it is approved.
+  result = await request(`/v1/businesses/${fixtureBusinessId}/reviews`, {
+    authenticated: true,
+  });
+  const publishedBefore = result.payload.data.summary.total;
+  assert(result.payload.data.mine?.id === reviewId, "Author's own review is not surfaced");
+  assert(result.payload.data.mine?.status === "pending", "Own review is not pending");
+  assert(result.payload.data.mine?.editedAt === null, "A fresh review reports an edit date");
+
+  // Anonymous readers must never receive the viewer's private review row.
+  result = await request(`/v1/businesses/${fixtureBusinessId}/reviews`);
+  assert(result.payload.data.mine === null, "Anonymous reader was handed a 'mine' row");
+
+  result = await request(`/v1/reviews/${reviewId}`, {
+    method: "PATCH",
+    body: {
+      rating: 4,
+      body: `Edited integration review ${runId} with enough detail to pass validation.`,
+    },
+    authenticated: true,
+    intent: true,
+  });
+  assert(result.payload.data.status === "pending", "Edited review did not return to moderation");
+  assert(
+    result.payload.data.reSubmitted === false,
+    "A pending review reports re-submission it did not make",
+  );
+
+  result = await request(`/v1/businesses/${fixtureBusinessId}/reviews`, {
+    authenticated: true,
+  });
+  assert(result.payload.data.mine?.rating === 4, "Edit did not change the rating");
+  assert(result.payload.data.mine?.editedAt !== null, "Edit did not record editedAt");
+  assert(
+    result.payload.data.summary.total === publishedBefore,
+    "A pending review leaked into the published aggregate",
+  );
+
+  // Editing requires the CSRF intent header, a session, and ownership.
+  result = await request(`/v1/reviews/${reviewId}`, {
+    method: "PATCH",
+    body: { rating: 3, body: "Missing the intent header, so this must be rejected outright." },
+    authenticated: true,
+    expected: 403,
+  });
+  assert(
+    result.payload.error.code === "REQUEST_INTENT_REQUIRED",
+    "Review edit without the intent header was accepted",
+  );
+
+  result = await request(`/v1/reviews/${reviewId}`, {
+    method: "PATCH",
+    body: { rating: 3, body: "Anonymous edit attempt that must never reach the database." },
+    intent: true,
+    expected: 401,
+  });
+  assert(
+    result.payload.error.code === "AUTH_REQUIRED",
+    "Anonymous review edit was not rejected with AUTH_REQUIRED",
+  );
+
+  result = await request(`/v1/reviews/99999999-9999-4999-8999-999999999999`, {
+    method: "PATCH",
+    body: { rating: 3, body: "Editing a review that does not exist at all, expect a 404." },
+    authenticated: true,
+    intent: true,
+    expected: 404,
+  });
+  assert(
+    result.payload.error.code === "NOT_FOUND",
+    "Editing a missing review did not produce a structured 404",
+  );
+
+  result = await request(`/v1/reviews/${reviewId}`, {
+    method: "PATCH",
+    body: { rating: 9, body: "x" },
+    authenticated: true,
+    intent: true,
+    expected: 422,
+  });
+  assert(
+    Boolean(result.payload.error.fields?.rating && result.payload.error.fields?.body),
+    "Invalid review edit did not report per-field errors",
+  );
+
   result = await request("/v1/data-requests", {
     method: "POST",
     body: { kind: "access", details: "Local integration test request." },
@@ -693,6 +781,115 @@ try {
   assert(
     result.payload.data.owned.some((room) => room.id === roomId),
     "Owned contact circles were not returned",
+  );
+  assert(
+    result.payload.data.applications.some((item) => item.id === roomApplicationId),
+    "Joined circles were not returned",
+  );
+  assert(Array.isArray(result.payload.data.queue), "Circle queue was not returned");
+
+  /* ---- Leaving a circle (gap H5) ----------------------------------------- */
+
+  // The applicant is an approved member at this point, so leaving must succeed
+  // and release the slot.
+  result = await request(`/v1/rooms/${roomId}/leave`, {
+    method: "POST",
+    body: {},
+    authenticated: true,
+    intent: true,
+  });
+  assert(result.payload.data.status === "left", "Leaving a circle did not report 'left'");
+
+  result = await request(`/v1/rooms/${roomId}`);
+  assert(result.payload.data.memberCount === 0, "Leaving did not release the circle slot");
+
+  // Leaving again is a no-op that must not 500, and must not reveal whether a
+  // room exists: an unknown id answers identically.
+  result = await request(`/v1/rooms/${roomId}/leave`, {
+    method: "POST",
+    body: {},
+    authenticated: true,
+    intent: true,
+    expected: 409,
+  });
+  assert(result.payload.error.code === "NOT_A_MEMBER", "Leaving twice did not report NOT_A_MEMBER");
+
+  result = await request("/v1/rooms/99999999-9999-4999-8999-999999999999/leave", {
+    method: "POST",
+    body: {},
+    authenticated: true,
+    intent: true,
+    expected: 409,
+  });
+  assert(
+    result.payload.error.code === "NOT_A_MEMBER",
+    "Leaving an unknown circle leaked its existence",
+  );
+
+  result = await request(`/v1/rooms/${roomId}/leave`, {
+    method: "POST",
+    body: {},
+    intent: true,
+    expected: 401,
+  });
+  assert(result.payload.error.code === "AUTH_REQUIRED", "Anonymous circle leave was not rejected");
+
+  // Re-applying after leaving must reopen the row, not dead-end on the UNIQUE
+  // constraint — otherwise leaving is permanent. Reopening an existing row is an
+  // update, so the API answers 200 rather than 201.
+  result = await request("/v1/room-applications", {
+    method: "POST",
+    body: { roomId, businessId: publishedBusinessId, acceptedRules: true },
+    authenticated: true,
+    intent: true,
+    expected: 200,
+  });
+  const reopenedApplicationId = result.payload.data.id;
+  assert(reopenedApplicationId === roomApplicationId, "Re-applying created a duplicate row");
+
+  /* ---- Owner-side circle management (gap H5) ----------------------------- */
+
+  // The circle owner decides join requests themselves; a platform admin is no
+  // longer the only way in.
+  result = await request("/v1/workspace/rooms", { authenticated: true });
+  assert(
+    result.payload.data.queue.some((item) => item.id === reopenedApplicationId),
+    "Reopened application did not appear in the owner's queue",
+  );
+
+  result = await request(`/v1/workspace/rooms/${roomId}/applications/${reopenedApplicationId}`, {
+    method: "POST",
+    body: { action: "approve" },
+    intent: true,
+    expected: 401,
+  });
+  assert(
+    result.payload.error.code === "AUTH_REQUIRED",
+    "Anonymous circle decision was not rejected",
+  );
+
+  result = await request("/v1/rooms/99999999-9999-4999-8999-999999999999/applications", {
+    method: "POST",
+    body: {},
+    authenticated: true,
+    intent: true,
+    expected: 404,
+  });
+
+  result = await request("/v1/workspace/rooms", { authenticated: true });
+  const decided = result.payload.data.queue.length;
+  result = await request(`/v1/workspace/rooms/${roomId}/applications/${reopenedApplicationId}`, {
+    method: "POST",
+    body: { action: "reject", note: "Declined by the integration test." },
+    authenticated: true,
+    intent: true,
+  });
+  assert(result.payload.data.status === "rejected", "Owner could not decline a join request");
+
+  result = await request("/v1/workspace/rooms", { authenticated: true });
+  assert(
+    result.payload.data.queue.length === decided - 1,
+    "Declined request was not removed from the owner's queue",
   );
 
   result = await request("/v1/notifications", { authenticated: true });

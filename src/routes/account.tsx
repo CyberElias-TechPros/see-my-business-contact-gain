@@ -9,6 +9,7 @@ import {
   LogOut,
   ShieldCheck,
   UserRound,
+  Users,
 } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { BusinessCard, EmptyState } from "@/components/kit";
@@ -382,6 +383,11 @@ function AccountPage() {
                     <Button asChild className="w-full">
                       <Link to="/app">
                         <Building2 /> Business workspace
+                      </Link>
+                    </Button>
+                    <Button asChild variant="outline" className="w-full">
+                      <Link to="/app/circles">
+                        <Users /> My contact circles
                       </Link>
                     </Button>
                     <Button asChild variant="outline" className="w-full">

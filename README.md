@@ -16,8 +16,9 @@ The product does **not** currently sell subscriptions, advertising, paid placeme
 - server-rendered home, search, category, location, and business-profile routes;
 - search by business text or active service, with category, location, rating, verification, and opening-hours filters;
 - a type-ahead combobox that suggests businesses, categories, locations and services as you type;
-- URL-based comparison of up to three current published businesses;
+- URL-based comparison of up to three current published businesses, with a type-ahead picker fed by live directory results and a "highest rated" rail so discovery does not depend on already knowing a name;
 - published ratings **and readable published reviews**, with a per-star distribution and a moderated review form;
+- **editable reviews** — an author can revise their own review, and editing a published one returns it to moderation and drops it from the aggregate until it is re-approved;
 - opening hours stored per weekday and evaluated in Africa/Lagos, so "open now" is derived rather than stored;
 - related-business links on every profile, derived from category and city;
 - services, amenities, service areas, socials, price range and deterministic generative cover art per listing;
@@ -44,6 +45,7 @@ message instead of substituted data.
 - **in-app notifications** when a listing is approved or rejected, a claim is decided, an enquiry arrives, a review is moderated, or a password is reset;
 - account settings for name, email, phone and password changes;
 - opt-in contact-circle proposals and capacity-safe business applications;
+- **`/app/circles`** — circles you run (with the join requests waiting on you, which you admit or decline yourself), circles your businesses belong to, the ability to leave one, and a history of closed applications;
 - factual suggestions, safety reports, and tracked personal-data requests.
 
 ### Administration

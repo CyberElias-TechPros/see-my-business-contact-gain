@@ -32,6 +32,7 @@ import { Route as TrustSafetyRouteImport } from './routes/trust-safety'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as ApiSplatRouteImport } from './routes/api/$'
 import { Route as AppIndexRouteImport } from './routes/app/index'
+import { Route as AppCirclesRouteImport } from './routes/app/circles'
 import { Route as BusinessIdRouteImport } from './routes/business.$id'
 import { Route as CategorySlugRouteImport } from './routes/category.$slug'
 import { Route as ContactGainIndexRouteImport } from './routes/contact-gain.index'
@@ -160,6 +161,11 @@ const AppIndexRoute = AppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppRouteRoute,
 } as any)
+const AppCirclesRoute = AppCirclesRouteImport.update({
+  id: '/circles',
+  path: '/circles',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 const BusinessIdRoute = BusinessIdRouteImport.update({
   id: '/business/$id',
   path: '/business/$id',
@@ -243,6 +249,7 @@ export interface FileRoutesByFullPath {
   '/suggest-business': typeof SuggestBusinessRoute
   '/trust-safety': typeof TrustSafetyRoute
   '/api/$': typeof ApiSplatRoute
+  '/app/circles': typeof AppCirclesRoute
   '/business/$id': typeof BusinessIdRoute
   '/category/$slug': typeof CategorySlugRoute
   '/contact-gain/$id': typeof ContactGainIdRoute
@@ -278,6 +285,7 @@ export interface FileRoutesByTo {
   '/suggest-business': typeof SuggestBusinessRoute
   '/trust-safety': typeof TrustSafetyRoute
   '/api/$': typeof ApiSplatRoute
+  '/app/circles': typeof AppCirclesRoute
   '/business/$id': typeof BusinessIdRoute
   '/category/$slug': typeof CategorySlugRoute
   '/contact-gain/$id': typeof ContactGainIdRoute
@@ -316,6 +324,7 @@ export interface FileRoutesById {
   '/suggest-business': typeof SuggestBusinessRoute
   '/trust-safety': typeof TrustSafetyRoute
   '/api/$': typeof ApiSplatRoute
+  '/app/circles': typeof AppCirclesRoute
   '/business/$id': typeof BusinessIdRoute
   '/category/$slug': typeof CategorySlugRoute
   '/contact-gain/$id': typeof ContactGainIdRoute
@@ -355,6 +364,7 @@ export interface FileRouteTypes {
     | '/suggest-business'
     | '/trust-safety'
     | '/api/$'
+    | '/app/circles'
     | '/business/$id'
     | '/category/$slug'
     | '/contact-gain/$id'
@@ -390,6 +400,7 @@ export interface FileRouteTypes {
     | '/suggest-business'
     | '/trust-safety'
     | '/api/$'
+    | '/app/circles'
     | '/business/$id'
     | '/category/$slug'
     | '/contact-gain/$id'
@@ -427,6 +438,7 @@ export interface FileRouteTypes {
     | '/suggest-business'
     | '/trust-safety'
     | '/api/$'
+    | '/app/circles'
     | '/business/$id'
     | '/category/$slug'
     | '/contact-gain/$id'
@@ -639,6 +651,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRouteRoute
     }
+    '/app/circles': {
+      id: '/app/circles'
+      path: '/circles'
+      fullPath: '/app/circles'
+      preLoaderRoute: typeof AppCirclesRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
     '/business/$id': {
       id: '/business/$id'
       path: '/business/$id'
@@ -739,12 +758,14 @@ const AdminRouteRouteWithChildren = AdminRouteRoute._addFileChildren(
 )
 
 interface AppRouteRouteChildren {
+  AppCirclesRoute: typeof AppCirclesRoute
   AppIndexRoute: typeof AppIndexRoute
   AppBusinessesIdRoute: typeof AppBusinessesIdRoute
   AppBusinessesIndexRoute: typeof AppBusinessesIndexRoute
 }
 
 const AppRouteRouteChildren: AppRouteRouteChildren = {
+  AppCirclesRoute: AppCirclesRoute,
   AppIndexRoute: AppIndexRoute,
   AppBusinessesIdRoute: AppBusinessesIdRoute,
   AppBusinessesIndexRoute: AppBusinessesIndexRoute,

@@ -59,6 +59,7 @@ export const getBusinessReviews = createServerFn({ method: "GET" })
       reviews: reviews ?? {
         items: [],
         summary: { average: 0, total: 0, distribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 } },
+        mine: null,
       },
     };
   });

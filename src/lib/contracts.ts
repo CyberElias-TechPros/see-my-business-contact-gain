@@ -103,6 +103,12 @@ export const reviewSchema = z.object({
   body: trimmed(20, 1_500),
 });
 
+/** Editing a review re-submits it, so the same bounds apply as on first write. */
+export const reviewUpdateSchema = z.object({
+  rating: z.coerce.number().int().min(1).max(5),
+  body: trimmed(20, 1_500),
+});
+
 export const enquiryStatusSchema = z.object({
   status: z.enum(["new", "contacted", "qualified", "closed", "spam"]),
 });
@@ -149,6 +155,16 @@ export const roomApplicationSchema = z.object({
   roomId: z.string().uuid(),
   businessId: z.string().uuid(),
   acceptedRules: z.literal(true),
+});
+
+/**
+ * A circle owner admitting or declining a join request. The note is optional and
+ * is only surfaced to the applicant on a decline, so a rejection can explain
+ * itself instead of arriving as a silent status change.
+ */
+export const roomApplicationDecisionSchema = z.object({
+  action: z.enum(["approve", "reject"]),
+  note: z.string().trim().max(400).optional().default(""),
 });
 
 export const dataRequestSchema = z.object({
@@ -348,9 +364,26 @@ export type PublicReview = {
   authorName: string;
 };
 
+export type MyReview = {
+  id: string;
+  rating: number;
+  body: string;
+  status: "pending" | "published" | "rejected" | "disputed";
+  createdAt: string;
+  updatedAt: string;
+  editedAt: string | null;
+};
+
 export type ReviewListResponse = {
   items: PublicReview[];
   summary: { average: number; total: number; distribution: Record<1 | 2 | 3 | 4 | 5, number> };
+  /**
+   * The signed-in reader's own review of this business, in any moderation state.
+   * `null` when anonymous or when they have not reviewed it. Without this the
+   * interface cannot tell "you have not reviewed this" apart from "your review
+   * is still pending", which is exactly the confusion the review gap describes.
+   */
+  mine: MyReview | null;
 };
 
 export type SearchSuggestion = {
@@ -400,6 +433,49 @@ export type BusinessInsights = {
     savedBy: number;
   }>;
   recentContacts: Array<{ channel: string; businessName: string; createdAt: string }>;
+};
+
+/** One circle the signed-in user owns, with the join requests waiting on them. */
+export type OwnedCircle = {
+  id: string;
+  name: string;
+  purpose: "business" | "niche" | "network";
+  state: string;
+  status: string;
+  memberCount: number;
+  queuedCount: number;
+  slotLimit: number;
+};
+
+/** A join request sitting in an owned circle's queue. */
+export type CircleQueueItem = {
+  id: string;
+  roomId: string;
+  roomName: string;
+  businessId: string;
+  businessName: string;
+  businessSlug: string;
+  applicantName: string;
+  createdAt: string;
+};
+
+/** A circle the signed-in user has applied to, in any state. */
+export type JoinedCircle = {
+  id: string;
+  roomId: string;
+  status: "queued" | "approved" | "rejected" | "left" | "removed";
+  roomName: string;
+  roomStatus: string;
+  businessId: string;
+  businessName: string;
+  businessSlug: string;
+  createdAt: string;
+};
+
+export type MyCirclesResponse = {
+  owned: OwnedCircle[];
+  queue: CircleQueueItem[];
+  applications: JoinedCircle[];
 };
 
 export type DirectoryResponse = {

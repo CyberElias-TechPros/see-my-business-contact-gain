@@ -179,6 +179,7 @@ try {
     "/account",
     "/app",
     "/app/businesses",
+    "/app/circles",
     "/admin",
   ]) {
     const rendered = await page(route);
@@ -225,6 +226,20 @@ try {
   assert(
     result.text.includes("Mama Ope Kitchen — demo"),
     "Location landing page did not use live directory data",
+  );
+
+  result = await page("/compare");
+  assert(
+    toText(result.text).includes("Highest rated right now"),
+    "Compare discovery rail was not server-rendered",
+  );
+  assert(
+    result.text.includes('id="compare-picker"') && result.text.includes('aria-autocomplete="list"'),
+    "Compare discovery picker is missing its combobox semantics",
+  );
+  assert(
+    result.text.includes('method="get"') && result.text.includes('name="q"'),
+    "Compare picker lost its no-JavaScript search fallback",
   );
 
   result = await page("/legal/terms");

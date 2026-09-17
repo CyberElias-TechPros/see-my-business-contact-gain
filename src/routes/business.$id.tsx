@@ -30,7 +30,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useSession } from "@/hooks/use-session";
 import { useSubmission } from "@/hooks/use-submission";
 import { apiRequest, jsonBody } from "@/lib/api";
-import type { PublicBusiness, ReviewListResponse } from "@/lib/contracts";
+import type { MyReview, PublicBusiness, ReviewListResponse } from "@/lib/contracts";
 import {
   getBusinessReviews,
   getDirectoryBusiness,
@@ -271,38 +271,64 @@ function EnquiryForm({ business }: { business: PublicBusiness }) {
 /* Review form                                                                */
 /* -------------------------------------------------------------------------- */
 
-function ReviewForm({
+const REVIEW_STATUS_COPY: Record<
+  MyReview["status"],
+  { label: string; tone: string; detail: string }
+> = {
+  pending: {
+    label: "Awaiting moderation",
+    tone: "bg-accent/15 text-accent-foreground border-accent/35",
+    detail:
+      "Our team is reading this now. It is not public yet, and it is not counted in the score above.",
+  },
+  published: {
+    label: "Published",
+    tone: "bg-primary/12 text-primary border-primary/30",
+    detail: "This review is live and counted in the score above.",
+  },
+  rejected: {
+    label: "Not published",
+    tone: "bg-muted text-muted-foreground border-border",
+    detail:
+      "This review did not pass moderation, so it is not shown publicly. You can rewrite it and send it back.",
+  },
+  disputed: {
+    label: "Under dispute",
+    tone: "bg-destructive/12 text-destructive border-destructive/30",
+    detail:
+      "The business has raised a dispute about this review. Editing is paused until our team resolves it.",
+  },
+};
+
+/**
+ * A single composer for both writing and editing a review.
+ *
+ * The interesting half is the edit path: a published review that gets edited is
+ * pulled back out of the public aggregate and re-moderated, so the interface has
+ * to say that out loud *before* someone submits. Silently hiding a review a
+ * person believes is already live reads like a bug.
+ */
+function ReviewComposer({
   business,
-  onSubmitted,
+  mine,
+  onChanged,
 }: {
   business: PublicBusiness;
-  onSubmitted: () => void;
+  mine: MyReview | null;
+  onChanged: () => void;
 }) {
   const session = useSession();
   const submission = useSubmission();
   const user = session.data?.user ?? null;
-  const [rating, setRating] = useState(5);
+  const [rating, setRating] = useState(mine?.rating ?? 5);
+  const [editing, setEditing] = useState(false);
 
-  async function onSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const form = new FormData(event.currentTarget);
-    const ok = await submission.submit(
-      () =>
-        apiRequest("/v1/reviews", {
-          method: "POST",
-          body: jsonBody({
-            businessId: business.id,
-            rating,
-            body: String(form.get("body") ?? ""),
-          }),
-        }),
-      "Thanks. Your review is awaiting moderation before it appears publicly.",
-    );
-    if (ok) {
-      event.currentTarget.reset();
-      onSubmitted();
-    }
-  }
+  // Adopt the server's copy whenever it changes, so a successful edit collapses
+  // the form and an out-of-band refresh does not leave stale text on screen.
+  useEffect(() => {
+    setRating(mine?.rating ?? 5);
+    setEditing(false);
+  }, [mine?.rating, mine?.updatedAt, mine?.status]);
 
   if (!user) {
     return (
@@ -322,13 +348,147 @@ function ReviewForm({
     );
   }
 
+  const status = mine ? REVIEW_STATUS_COPY[mine.status] : null;
+
+  async function onSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    const body = String(form.get("body") ?? "");
+    const wasPublished = mine?.status === "published";
+
+    const ok = mine
+      ? await submission.submit(
+          () =>
+            apiRequest(`/v1/reviews/${mine.id}`, {
+              method: "PATCH",
+              body: jsonBody({ rating, body }),
+            }),
+          wasPublished
+            ? "Saved. Your review is back in the moderation queue, and it is hidden from the page until it is approved again."
+            : "Saved. Your review is in the moderation queue.",
+        )
+      : await submission.submit(
+          () =>
+            apiRequest("/v1/reviews", {
+              method: "POST",
+              body: jsonBody({ businessId: business.id, rating, body }),
+            }),
+          "Thanks. Your review is awaiting moderation before it appears publicly.",
+        );
+
+    if (ok) {
+      event.currentTarget.reset();
+      onChanged();
+    }
+  }
+
+  /* ---------------- Your existing review, read-only ---------------- */
+
+  if (mine && !editing) {
+    const locked = mine.status === "disputed";
+    return (
+      <Card className="rounded-3xl border-border/70">
+        <CardContent className="p-6 sm:p-7">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <h2 className="text-xl font-bold">Your review</h2>
+              <p className="mt-2 max-w-prose text-sm leading-6 text-muted-foreground">
+                {status?.detail}
+              </p>
+            </div>
+            <span
+              className={cn(
+                "inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold",
+                status?.tone,
+              )}
+            >
+              <Clock3 className="size-3.5" aria-hidden="true" />
+              {status?.label}
+            </span>
+          </div>
+
+          <div className="mt-5 rounded-2xl border border-border/70 bg-muted/25 p-5">
+            <div className="flex items-center justify-between gap-3">
+              <Stars rating={mine.rating} />
+              <span className="text-xs text-muted-foreground">
+                {mine.editedAt
+                  ? `Edited ${new Date(mine.editedAt).toLocaleDateString("en-NG", {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                    })}`
+                  : `Written ${new Date(mine.createdAt).toLocaleDateString("en-NG", {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                    })}`}
+              </span>
+            </div>
+            <p className="mt-3 whitespace-pre-line text-sm leading-7">{mine.body}</p>
+          </div>
+
+          <div className="mt-5 flex flex-wrap items-center gap-3">
+            <Button
+              variant={mine.status === "published" ? "outline" : "default"}
+              onClick={() => {
+                submission.reset();
+                setEditing(true);
+              }}
+              disabled={locked}
+            >
+              {mine.status === "rejected" ? "Rewrite and resubmit" : "Edit your review"}
+            </Button>
+            {locked ? (
+              <p className="text-xs text-muted-foreground">
+                Editing is unavailable while the dispute is open.
+              </p>
+            ) : null}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  /* ---------------- Write / edit form ---------------- */
+
+  const isEdit = Boolean(mine);
+  const willBeHidden = mine?.status === "published";
+
   return (
     <Card className="rounded-3xl border-border/70">
       <CardContent className="p-6 sm:p-7">
-        <h2 className="text-xl font-bold">Review {business.name}</h2>
-        <p className="mt-2 text-sm leading-6 text-muted-foreground">
-          Reviews are moderated before publication, and each account may review a business once.
-        </p>
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h2 className="text-xl font-bold">
+              {isEdit ? "Edit your review" : `Review ${business.name}`}
+            </h2>
+            <p className="mt-2 max-w-prose text-sm leading-6 text-muted-foreground">
+              {isEdit
+                ? "You are updating the review already on file for this business."
+                : "Reviews are moderated before publication, and each account may review a business once."}
+            </p>
+          </div>
+          {isEdit ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                submission.reset();
+                setEditing(false);
+              }}
+            >
+              Cancel
+            </Button>
+          ) : null}
+        </div>
+
+        {willBeHidden ? (
+          <p className="mt-5 rounded-2xl border border-accent/35 bg-accent/10 p-4 text-sm leading-6">
+            <strong className="font-semibold">This review is currently published.</strong> Saving
+            changes sends it back to moderation, so it disappears from this page and stops counting
+            toward the score until it is approved again.
+          </p>
+        ) : null}
 
         <form className="mt-6 space-y-4" onSubmit={onSubmit} noValidate>
           <fieldset>
@@ -366,6 +526,7 @@ function ReviewForm({
               minLength={20}
               maxLength={1500}
               rows={4}
+              defaultValue={mine?.body ?? ""}
               placeholder="What did you ask for, how did it go, and what should the next customer know?"
               className="mt-2"
               aria-describedby="review-body-error"
@@ -379,9 +540,17 @@ function ReviewForm({
             {...("requestId" in submission.state ? { requestId: submission.state.requestId } : {})}
           />
 
-          <Button type="submit" disabled={submission.isSubmitting}>
-            {submission.isSubmitting ? "Submitting…" : "Submit review"}
-          </Button>
+          <div className="flex flex-wrap gap-3">
+            <Button type="submit" disabled={submission.isSubmitting}>
+              {submission.isSubmitting
+                ? isEdit
+                  ? "Saving…"
+                  : "Submitting…"
+                : isEdit
+                  ? "Save changes"
+                  : "Submit review"}
+            </Button>
+          </div>
         </form>
       </CardContent>
     </Card>
@@ -494,7 +663,7 @@ function ReviewsSection({
         />
       )}
 
-      <ReviewForm business={business} onSubmitted={onChanged} />
+      <ReviewComposer business={business} mine={reviews.mine} onChanged={onChanged} />
     </section>
   );
 }
