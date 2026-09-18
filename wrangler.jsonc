@@ -63,7 +63,7 @@
         {
           "binding": "DB",
           "database_name": "gainhub-production",
-          "database_id": "22222222-2222-4222-8222-222222222222",
+          "database_id": "4e87c945-99bf-4144-825d-d1ce49b91dfa",
           "migrations_dir": "worker/migrations",
         },
       ],
