@@ -57,7 +57,7 @@
       "name": "gainhub-api-production",
       "vars": {
         "APP_ENV": "production",
-        "ALLOWED_ORIGINS": "https://gainhub.example,https://www.gainhub.example",
+        "ALLOWED_ORIGINS": "https://see-my-business-contact-gain.vercel.app,https://gainhub.example,https://www.gainhub.example",
       },
       "d1_databases": [
         {
