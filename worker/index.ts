@@ -170,7 +170,11 @@ class HttpError extends Error {
 
 const MAX_JSON_BYTES = 24_000;
 const SESSION_DAYS = 30;
-const PASSWORD_ITERATIONS = 310_000;
+    // Kept at/below 100k: higher counts exceed Workers CPU limits on auth
+    // paths and surface as 500s. NOTE: hashes made with the old 310k count
+    // will no longer verify; those accounts need a password reset (none
+    // known — no login has ever succeeded against this worker).
+    const PASSWORD_ITERATIONS = 100_000;
 const ALLOWED_EVIDENCE_TYPES = new Set([
   "application/pdf",
   "image/jpeg",
